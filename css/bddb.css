@@ -1,0 +1,53 @@
+.bddb-item {
+	text-align: left;
+}
+
+.bddb-item .mod {
+    color: inherit;
+    padding: 0 0 0 5px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.bddblist-subject {
+    line-height: 1.5;
+    overflow: hidden;
+    padding: 13px;
+    border-top: 1px solid #e7e7e7;
+    border-bottom: 1px solid #e7e7e7;
+	height:650px;
+}
+
+.bddblist-subject .poster {
+    float: left;
+    margin-right: 20px;
+	max-width:440px;
+	max-height:600px;
+}
+div.abstract p {
+	margin:0 0 0.125em 0;
+}
+
+div.abstract > p > span {
+	width: 5em;
+    display: inline-block;
+    text-align: right;
+}
+
+.bddb-gallery-wall {
+    margin:0;
+	width:100%;
+}
+.bddb-poster-thumb {
+	padding: 1em 0.75em;
+	float:left;
+}
+.bddb-poster-thumb a,
+.bddb-poster-thumb a:hover {
+	box-shadow:none;
+}
+
+.m-misc-brand {
+    margin: 0 5px;
+    height: 20px;
+}
