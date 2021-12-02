@@ -316,6 +316,7 @@ class BDDB_Template {
 		}
 		$post->post_content = '';
 		foreach ($this->total_items as $item) {
+			$item = array_merge( $this->default_item, $item );
 			if ('tax' == $item['type']) {
 				$term_str = $this->update_terms($post_ID, $item);
 				//alert($term_str);
@@ -337,6 +338,7 @@ class BDDB_Template {
 		if ($data['post_type'] == $this->self_post_type) {
 			$data['post_content'] = '';
 			foreach ($this->total_items as $item) {
+				$item = array_merge( $this->default_item, $item );
 				if ('tax' == $item['type']) {
 					$str_array = wp_get_post_terms($postarr['ID'], $item['name'], array('fields'=>'names'));
 					if (count($str_array)>1) {
