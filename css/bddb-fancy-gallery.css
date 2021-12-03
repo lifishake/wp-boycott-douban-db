@@ -72,6 +72,7 @@ a[data-fancybox] img {
 .fancybox__rightCol {
   width: 27vw;
 /*  max-width: 380px;*/
+  min-width:380px;
   height: 100%;
   padding: 5.5rem 2rem 2rem 2rem;
   overflow: auto;
@@ -126,10 +127,10 @@ p.bddb-disp-item.align-left {
 
 p.bddb-inline {
   line-height: 1.7;
-  margin-bottom: 1rem;
+  margin: 1rem auto;
 }
 
-p.bddb-disp-item:nth-of-type(3){
+p.bddb-disp-item:nth-of-type(2){
   border-top: 1px solid #B2B7B3;
   padding-top:0.5rem;
 }
@@ -141,9 +142,10 @@ p.bddb-disp-item:nth-of-type(3){
   font-family: 'FontAwesome';
   letter-spacing: 2px;
   font-size:16px;
-  margin:0 1em 0 0;
+  margin:0 1em 0.75rem 0;
   border-radius: 3px;
   display:inline-flex;
+  border:1px solid #DDD;
 }
 
 .bddb-score-stars{
@@ -158,8 +160,9 @@ p.bddb-disp-item:nth-of-type(3){
   color:#fff;
   border-radius: 3px;
   padding:5px 1em;
-  margin:0 1em 0 0;
+  margin:0 1em 0.75rem 0;
   display:inline-flex;
+  border:1px solid #DDD;
 }
 .bddb-disp-sp-dou-score{
   background-color: #107619;
@@ -192,18 +195,22 @@ span.bddb-disp-label {
 	font-style:italic;
 	font-weight:700;
 	letter-spacing: 0.125rem;
-  margin-top:0.5rem;
-  border-top: 1px solid #B2B7B3;
+	margin-top:0.5rem;
+	border-top: 1px solid #B2B7B3;
 }
 
 .bddb-disp-review:before{
 	content: "「";
+	font-size:24px;
+	font-weight:700;
   color:var(--fancybox-thumb-color, #111);
   -webkit-text-stroke:2px #111; 
 }
 
 .bddb-disp-review:after{
 	content: "」";
+	font-size:24px;
+	font-weight:700;
   color:var(--fancybox-thumb-color, #111);
   -webkit-text-stroke:2px #111; 
 }
@@ -220,4 +227,56 @@ span.bddb-disp-label {
 
 .fancybox__container.is-animated.is-closing .fancybox__leftCol {
   overflow: visible;
+}
+
+@media screen and  (max-width: 577px) {
+	.fancybox__thumbs {
+		display:none;
+	}
+	.carousel__button {
+		width:28px;
+		height:28px;
+	}
+	
+	.carousel__button svg {
+		width:33%;
+		height:33%;
+	}
+	.carousel__button.is-prev,
+	.carousel__button.is-next {
+		top:75%;
+	}
+	.fancybox__rightCol {
+		padding: 5.5rem 1rem 1rem 1rem;
+		font-size: 12px;
+		min-width:200px;
+	}
+	p.bddb-inline {
+		margin:0.5rem auto;
+	}
+	.bddb-gallery-scores{
+		padding:5px 0.5rem;
+		font-size:14px;
+		margin:0 1em 0.25rem 0;
+	}
+	.bddb-disp-sp-dou-score,
+	.bddb-disp-sp-imdb-score{
+		padding:5px 0.5rem;
+		margin:0 1em 0.25rem 0;
+	}
+	p.bddb-disp-item.align-left{
+		padding-left:5px;
+	}
+	.bddb-disp-name{
+		font-size:1.25rem;
+		padding-left:1.25rem;
+		line-height:1.5rem;
+	}
+	.bddb-disp-review {
+		font-size:0.9rem;
+	}
+	.bddb-disp-review:before,
+	.bddb-disp-review:after{
+		font-size:0.9rem;
+	}
 }

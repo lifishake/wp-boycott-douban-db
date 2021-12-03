@@ -171,7 +171,7 @@ class BDDB_Template {
 		wp_nonce_field(basename( __FILE__ ), 'bddb_nonce');
 		foreach ($this->total_items as $arg)
 		{
-			$arg = array_merge( $this->default_item, $arg );
+			//$arg = array_merge( $this->default_item, $arg );
 			$comment_str = '';
 			if (is_callable($arg['comment'])) {
 				$comment_str = call_user_func($arg['comment'], $post);
@@ -262,6 +262,13 @@ class BDDB_Template {
 		}
 		return $str;
 	}
+	/**
+	 * 优化出品时间。改为年-月格式。如果只输入年则默认定位到该年1月
+	 * @access public
+	 * @param string $str	编辑框中的出品年份
+	 * @return string	修改后的出品年份
+	 * @since 0.0.1
+	 */
 	public function sanitize_publish_time($str) {
 		if (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
 			$str = date("Y-m", strtotime($str));
@@ -271,9 +278,25 @@ class BDDB_Template {
 		}
 		return $str;
 	}
+	/**
+	 * 优化系列作品的封面列表。
+	 * @access 	public
+	 * @param 	string $str	编辑框中的所有封面地址
+	 * @return 	string	优化后的封面地址
+	 * @since 0.0.1
+	 */
 	public function sanitize_series_covers($str) {
+		//之前油猴采集到的链接用逗号分隔，替换成分号。
+		$str = str_replace(",", ";", $str);
 		return $this->sanitize_link($str);
 	}
+	/**
+	 * 优化链接输入。
+	 * @access 	public
+	 * @param 	string $str	编辑框中的所有封面地址
+	 * @return 	string	优化后的封面地址
+	 * @since 0.0.1
+	 */
 	public function sanitize_link($str) {
 		return htmlspecialchars_decode($str);
 	}
@@ -316,7 +339,7 @@ class BDDB_Template {
 		}
 		$post->post_content = '';
 		foreach ($this->total_items as $item) {
-			$item = array_merge( $this->default_item, $item );
+			//$item = array_merge( $this->default_item, $item );
 			if ('tax' == $item['type']) {
 				$term_str = $this->update_terms($post_ID, $item);
 				//alert($term_str);
@@ -338,7 +361,7 @@ class BDDB_Template {
 		if ($data['post_type'] == $this->self_post_type) {
 			$data['post_content'] = '';
 			foreach ($this->total_items as $item) {
-				$item = array_merge( $this->default_item, $item );
+				//$item = array_merge( $this->default_item, $item );
 				if ('tax' == $item['type']) {
 					$str_array = wp_get_post_terms($postarr['ID'], $item['name'], array('fields'=>'names'));
 					if (count($str_array)>1) {
@@ -437,6 +460,17 @@ class BDDB_Template {
 		}
 		return $strMetaVal;
 	}
+	/**
+	 * 为项目添加默认值。
+	 * @access private
+	 * @since 0.0.1
+	 */
+	public function merge_default_column($inItem) {
+		if (!is_array($inItem)){
+			return $this->default_item;
+		}
+		return array_merge($this->default_item, $inItem);
+	}
 };
 
 /**
@@ -533,6 +567,7 @@ final class BDDB_T_Movie extends BDDB_Template{
 											),
 		);
 		$this->total_items = array_merge($this->common_items, $this->additional_items);
+		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
 	}
 	
 };
@@ -633,6 +668,7 @@ final class BDDB_T_Book extends BDDB_Template{
 											),
 		);
 		$this->total_items = array_merge($this->common_items, $this->additional_items);
+		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
 	}
 	
 	//优化函数
@@ -727,6 +763,7 @@ final class BDDB_T_Game extends BDDB_Template{
 											),
 		);
 		$this->total_items = array_merge($this->common_items, $this->additional_items);
+		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
 	}
 
 	//优化函数
@@ -816,6 +853,7 @@ final class BDDB_T_Album extends BDDB_Template{
 											),
 		);
 		$this->total_items = array_merge($this->common_items, $this->additional_items);
+		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
 	}
 
 };
