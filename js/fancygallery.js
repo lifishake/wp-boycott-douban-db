@@ -32,9 +32,8 @@ function set_funcy_panel(fancybox, $trigger) {
 
 	//fancybox.$leftCol.setAttribute("style","background-color:"+lcolor);
 	//fancybox.$rightCol.setAttribute("style","background-color:"+rcolor);
-	const caption = '<a class="bddb-disp-name" target="_blank" href="' + $trigger.rel + '">' + $trigger.target + 		'</a><br/>';
 	const data = $trigger.dataset.info || "";
-	fancybox.$info.innerHTML = `${caption}<p>${data}</p>`;
+	fancybox.$info.innerHTML = `${data}`;
 	fancybox.$container.style.setProperty(
 		"--fancybox-left-control-bg",
 		lcolor
@@ -42,11 +41,11 @@ function set_funcy_panel(fancybox, $trigger) {
 	fancybox.$container.style.setProperty(
 		"--fancybox-right-control-bg",
 		rcolor
-	);
+	);/*
 	fancybox.$container.style.setProperty(
 		"--fancybox-hover-color",
 		rgb_to_hex_string(picmaincolor)
-	);
+	);*/
 	fancybox.$container.style.setProperty(
 		"--fancybox-thumb-color",
 		rgb_to_hex_string(picmaincolor)
@@ -66,7 +65,7 @@ Fancybox.bind('[data-fancybox="gallery"]', {
 		  "close",
 		],
 	},
-	click: false,
+	//click: false,
 	//click:next,
 	/*Thumbs: false,*/
 	on: {
@@ -87,6 +86,7 @@ Fancybox.bind('[data-fancybox="gallery"]', {
 			// Create info-box
 			const $info = document.createElement("div");
 			$rightCol.appendChild($info);
+			$info.classList.add("bddb_disp_panel");
 			fancybox.$info = $info;
 
 			// Add elements to DOM
@@ -114,12 +114,4 @@ Fancybox.bind('[data-fancybox="gallery"]', {
 			*/
 			},
 		},
-	caption: function (fancybox, carousel, slide) {
-		let caption = slide.caption;
-
-		if (slide.type === "image") {
-		  caption = '<a target="_blank" href="' + slide.$trigger.rel + '">' + slide.$trigger.target + '</a><br/>' + caption;
-		}
-		return "";
-	},
 });
