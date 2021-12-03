@@ -318,6 +318,7 @@ class BDDB_Common_Template {
 			'b_p_editor' => array(	'name' => 'b_p_editor',
 											'label' => '编者',
 											'type' => 'tax',
+											'summary' => '04',
 											),
 			'b_genre' => array(	'name' => 'b_genre',
 											'label' => '类别',
