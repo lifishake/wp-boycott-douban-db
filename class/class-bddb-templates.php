@@ -52,6 +52,10 @@ class BDDB_Common_Template {
 											),
 			'bddb_original_name' => array(	'name' => 'bddb_original_name',
 											'label' => '原名',
+											'summary' => '01',
+											'summary_callback' =>array($this, 'display_original_name'),
+											'panel' => '01',
+											'panel_callback' => array($this, 'panel_original_name'),
 											),
 			'bddb_personal_review' => array(	'name' => 'bddb_personal_review',
 											'label' => '简评',
@@ -107,6 +111,7 @@ class BDDB_Common_Template {
 		$content_str = '';
 		$obj_name = $this->get_poster_names($post);
 		$content_str .= '<div class="poster"><img src="'.$obj_name->poster_url.'"/></div>';
+		$content_str .= sprintf('<div class = "abstract">ID:%s</div>',$post->ID);
 		foreach ($this->total_items as $key=>$item ) {
 			$val_str = '';
 			if ('meta' == $item['type']){
@@ -183,6 +188,7 @@ class BDDB_Common_Template {
 		}
 		//3.标题
 		$title_str=sprintf('<a href="%1$s" class="cute" target="_blank" rel="external nofollow">%2$s</a>', $src_link, $src_title);//3
+		array_multisort( array_column($this->total_items,'summary'), array_column($this->total_items,'name'), $this->total_items);
 
 		$src_score_social = strval(round($src_score_social_float));
 		if (empty($src_is_series)){
@@ -206,7 +212,6 @@ class BDDB_Common_Template {
 								);
 			//5.详情
 			$abstract_str = '';
-			array_multisort( array_column($this->total_items,'summary'), array_column($this->total_items,'name'), $this->total_items);
 
 			if (is_callable(array($this, "get_{$this->self_post_type}_abstract"))){
 				$abstract_str = call_user_func(array($this, "get_{$this->self_post_type}_abstract"), $this->self_post_id);
@@ -235,24 +240,31 @@ class BDDB_Common_Template {
 	
 	private function add_movie_items() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
+		$this->common_items['bddb_publish_time']['panel'] = '02';
 		$this->common_items['bddb_publish_time']['label'] = '首映年月';
 		$this->common_items['bddb_view_time']['label'] = '观看年月';
+		$this->common_items['bddb_view_time']['panel'] = '03';
+		$this->common_items['contry']['label'] = '地区';
+		$this->common_items['contry']['panel'] = '05';
 		$this->common_items['bddb_publish_time']['summary_callback'] = array($this, 'display_movie_publish_time');
 		$add_items = array(
 			'm_p_director' => array(	'name' => 'm_p_director',
 											'label' => '导演',
 											'type' => 'tax',
 											'summary' => '02',
+											'panel' => '11',
 											),
 			'm_p_actor' => array(	'name' => 'm_p_actor',
 											'label' => '主演',
 											'type' => 'tax',
 											'summary' => '03',
+											'panel' => '12',
 											),
 			'm_genre' => array(	'name' => 'm_genre',
 											'label' => '类型',
 											'type' => 'tax',
 											'summary' => '04',
+											'panel' => '04',
 											),
 			'm_publisher' => array(	'name' => 'm_publisher',
 											'label' => '制作/发行方',
@@ -260,16 +272,20 @@ class BDDB_Common_Template {
 			'm_p_screenwriter' => array(	'name' => 'm_p_screenwriter',
 											'label' => '编剧',
 											'type' => 'tax',
+											'panel' => '13',
 											),
 			'm_p_musician' => array(	'name' => 'm_p_musician',
 											'label' => '配乐',
 											'type' => 'tax',
+											'panel' => '14',
 											),
 			'm_misc_brand' => array(	'name' => 'm_misc_brand',
 											'label' => 'TOBEDELETE',
 											'type' => 'tax',
 											'summary' => '61',
-											'summary_callback' => array($this, 'display_movie_misc_brand'),
+											'summary_callback' => array($this, 'display_movie_misc'),
+											'panel' => '99',
+											'panel_callback' => array($this, 'panel_movie_misc'),
 											),
 			'bddb_id_douban' => array(	'name' => 'bddb_id_douban',
 											'label' => '豆瓣ID',
@@ -291,47 +307,47 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_display_name']['label'] = '书名';
 		$this->common_items['bddb_publish_time']['label'] = '出版时间';
 		$this->common_items['bddb_publish_time']['summary_callback'] = array($this, 'display_book_publish_time');
-		$this->common_items['bddb_publish_time']['panel'] = '01';
+		$this->common_items['bddb_publish_time']['panel'] = '02';
 		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_book_publish_time');
-		$this->common_items['b_series_total']['panel'] = '02';
-		$this->common_items['b_series_total']['panel_callback'] = array($this, 'panel_book_series_total');
 		$this->common_items['bddb_view_time']['label'] = '阅读时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';
-		$this->common_items['b_genre']['panel'] = '04';
 		$this->common_items['country']['summary'] = false;
 		$this->common_items['country']['panel'] = '05';
-		$this->common_items['b_p_writer']['panel'] = '06';
-		$this->common_items['b_p_translator']['panel'] = '07';
-		$this->common_items['b_p_editor']['panel'] = '08';
-		$this->common_items['b_publisher']['panel'] = '09';
 		$add_items = array(
 			'b_p_writer' => array(	'name' => 'b_p_writer',
 											'label' => '作者',
 											'type' => 'tax',
 											'summary' => '02',
+											'panel' => '11',
 											),
 			'b_p_translator' => array(	'name' => 'b_p_translator',
 											'label' => '译者',
 											'type' => 'tax',
 											'summary' => '03',
+											'panel' => '12',
 											),
 			'b_p_editor' => array(	'name' => 'b_p_editor',
 											'label' => '编者',
 											'type' => 'tax',
-											),
-			'b_genre' => array(	'name' => 'b_genre',
-											'label' => '类别',
-											'type' => 'tax',
+											'panel' => '13',
 											),
 			'b_publisher' => array(	'name' => 'b_publisher',
 											'label' => '出版社',
 											'type' => 'tax',
 											'summary' => '04',
+											'panel' => '20',
+											),
+			'b_genre' => array(	'name' => 'b_genre',
+											'label' => '类别',
+											'type' => 'tax',
+											'panel' => '04',
 											),
 			'b_series_total' => array(	'name' => 'b_series_total',
 											'label' => '全套册数',
 											'summary' => '31',
-											'summary_callback' =>array($this, 'display_book_series_total'),
+											'summary_callback' => array($this, 'display_book_series_total'),
+											'panel' => 02,
+											'panel_callback' => array($this, 'panel_book_series_total'),
 											),
 			'bddb_id_douban' => array(	'name' => 'bddb_id_douban',
 											'label' => '豆瓣ID',
@@ -505,14 +521,14 @@ class BDDB_Common_Template {
 		}
 		return $ret;
 	}
-	public function display_movie_publish_time($id) {
-		$val = $this->get_meta_str('bddb_publish_time', $id);
+	public function display_movie_publish_time($id, $item) {
+		$val = $this->get_meta_str($item['name'], $id);
 		if (!$val) return false;
-		return sprintf('<span class="abs-list">%s：%s</span>', '时间', substr($val,0,4));
+		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], substr($val,0,4));
 	}
-	public function display_movie_misc_brand($id) {
+	public function movie_misc_special($id, $item) {
 		$feature='';
-		$str_array = wp_get_post_terms($id, 'm_misc_brand', array('fields'=>'id=>slug'));
+		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
 		if (is_wp_error($str_array)) return '';
 		foreach($str_array as $key => $slug) {
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
@@ -540,8 +556,27 @@ class BDDB_Common_Template {
 		}
 		return $feature;
 	}
-	public function display_book_publish_time($id) {
-		$val = $this->get_meta_str('bddb_publish_time', $id);
+	private function original_name_special($id, $item) {
+		$val = $this->get_meta_str($item['name'], $id);
+		$name_str = get_post_meta($id, 'bddb_display_name', true);
+		if (empty($val)||empty($name_str)) {
+			return false;
+		}
+		if (trim($val) == trim($name_str)){
+			return false;
+		}
+		return $val;
+	}
+	private function book_series_total_special($id, $item) {
+		$val = $this->get_meta_str($item['name'], $id);
+		$is_series = $this->get_meta_str('b_bl_series', $id);
+		if (empty($is_series)||empty($val)){
+			return false;
+		}
+		return $val;
+	}
+	private function book_publish_time_special($id, $item) {
+		$val = $this->get_meta_str($item['name'], $id);
 		$is_series = $this->get_meta_str('b_bl_series',$this->self_post_id);
 		if (empty($val)) return false;
 		if(!empty($is_series)){
@@ -556,21 +591,77 @@ class BDDB_Common_Template {
 		}else{
 			$val = substr($val, 0, 4);
 		}
-		return sprintf('<span class="abs-list">%s：%s</span>', '出版时间', $val);
+		return $val;
 	}
-	public function display_book_series_total($id) {
-		$val = $this->get_meta_str('b_series_total', $id);
-		$is_series = $this->get_meta_str('b_bl_series',$this->self_post_id);
-		if (empty($is_series)||empty($val)){
+
+	protected function display_movie_misc($id, $item) {
+		$val = $this->movie_misc_special($id, $item);
+		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list">%s：%s</span>', '全套册数', $val);
+		return sprintf('<span class="abs-list">%s</span>', $val);
+	}
+
+	protected function display_original_name($id, $item) {
+		$val = $this->original_name_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+	}
+
+	protected function display_book_publish_time($id, $item) {
+		$val = $this->book_publish_time_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+	}
+	protected function display_book_series_total($id, $item) {
+		$val = $this->book_series_total_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+	}
+
+	protected function panel_movie_misc($id, $item) {
+		$val = $this->movie_misc_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
+	}
+
+	protected function panel_book_publish_time($id, $item) {
+		$val = $this->book_publish_time_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+	}
+
+	protected function panel_book_series_total($id, $item) {
+		$val = $this->book_series_total_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+	}
+
+	protected function panel_original_name($id, $item) {
+		$val = $this->original_name_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
 	}
 
 	private function get_poster_for_gallery($post) {
 		$obj_name = $this->get_poster_names($post);
 
 		$detail_str = '';
+		array_multisort( array_column($this->total_items,'panel'), array_column($this->total_items,'name'), $this->total_items);
 		if (is_callable(array($this,"get_{$post->post_type}_info"))) {
 			$info_str .= call_user_func(array($this,"get_{$post->post_type}_info"), $post->ID);
 		}
@@ -634,94 +725,27 @@ class BDDB_Common_Template {
 		$detail_str .= sprintf('<p class="bddb-disp-item bddb-inline">%s%s%s</p>', $star_str, $dou_score_str, $imdb_score_str);
 		
 		
-		$publish_str = '<span class="bddb-disp-label">上映时间:</span>'.$this->get_meta_str('bddb_publish_time', $id);
-		$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $publish_str);
-		$view_time_str = '<span class="bddb-disp-label">观影时间:</span>'.$this->get_meta_str('bddb_view_time', $id);
-		$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $view_time_str);
-		$genre_str = '<span class="bddb-disp-label">类型:</span>'.$this->get_tax_str('m_genre', $id);
-		$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $genre_str);
-		$country_str = '<span class="bddb-disp-label">地区:</span>'.$this->get_tax_str('country', $id);
-		$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $country_str);
-		$staff_str = '';
-		$tmp_str = $this->get_tax_str('m_p_director', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">导演:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-		$tmp_str = $this->get_tax_str('m_p_actor', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">主演:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-		$tmp_str = $this->get_tax_str('m_p_screenwriter', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">编剧:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-		$tmp_str = $this->get_tax_str('m_p_musician', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">配乐:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-		$tmp_str = $this->display_movie_misc_brand($id);
-		if ('' !== $tmp_str) {
-			$detail_str .= sprintf('<p class="bddb-disp-item align-left">%s</p>', $tmp_str);
-		}
+		$detail_str .= $this->panel_common_loop($id);
+
 		$detail_str .= '<div class="bddb-disp-review" id="bddb-gallery-review">'.$this->get_meta_str('bddb_personal_review', $id).'</div>';
 		return $detail_str;
 	}
+
 	private function get_book_info($id) {
+		//title
 		$detail_str = $this->get_panel_title($id);
+		//stars
 		$star_str = $this->get_rating_stars($id);
 		$is_series = $this->get_meta_str('b_bl_series', $id);
-		$dou_score_str = '';
-		if ('1'==$is_series){
-			$detail_str .= sprintf('<p class="bddb-disp-item bddb-inline">%s</p>', $star_str);//只有自主评分
-			$publish_str = '<span class="bddb-disp-label">出版时间:</span>'.$this->get_meta_str('bddb_publish_time', $id).' / '.$this->get_meta_str('b_pub_time_end', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $publish_str);
-			$serial_total_str = '<span class="bddb-disp-label">全套册数:</span>'.$this->get_meta_str('b_series_total', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $serial_total_str);
-			$view_time_str = '<span class="bddb-disp-label">阅读时间:</span>'.$this->get_meta_str('bddb_view_time', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $view_time_str);
-			$genre_str = '<span class="bddb-disp-label">类别:</span>'.$this->get_tax_str('b_genre', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $genre_str);
-			$country_str = '<span class="bddb-disp-label">地区:</span>'.$this->get_tax_str('country', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $country_str);
-		}else{	//非丛书
+		if (empty($is_series)) {
 			$the_score = $this->get_meta_str('bddb_score_douban', $id);
 			if (''==$the_score)$the_score='--';
 			$dou_score_str = '<span class="bddb-disp-sp-dou-score">'.$the_score.'</span>';
 			$detail_str .= sprintf('<p class="bddb-disp-item bddb-inline">%s%s</p>', $star_str, $dou_score_str);
-			$publish_str = '<span class="bddb-disp-label">出版时间:</span>'.$this->get_meta_str('bddb_publish_time', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $publish_str);
-			$view_time_str = '<span class="bddb-disp-label">阅读时间:</span>'.$this->get_meta_str('bddb_view_time', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $view_time_str);
-			$genre_str = '<span class="bddb-disp-label">类别:</span>'.$this->get_tax_str('b_genre', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $genre_str);
-			$country_str = '<span class="bddb-disp-label">地区:</span>'.$this->get_tax_str('country', $id);
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $country_str);
+		} else {
+			$detail_str .= sprintf('<p class="bddb-disp-item bddb-inline">%s</p>', $star_str);//只有自主评分
 		}
-		$tmp_str = $this->get_tax_str('b_p_writer', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">作者:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-		$tmp_str = $this->get_tax_str('b_p_translator', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">译者:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-		$tmp_str = $this->get_tax_str('b_p_editor', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">编者:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-		$tmp_str = $this->get_tax_str('b_publisher', $id);
-		if ('' !== $tmp_str) {
-			$staff_str = '<span class="bddb-disp-label">出版社:</span>'.$tmp_str;
-			$detail_str .= sprintf('<p class="bddb-disp-item">%s</p>', $staff_str);
-		}
-
+		$detail_str .= $this->panel_common_loop($id);
 		$detail_str .= '<div class="bddb-disp-review" id="bddb-gallery-review">'.$this->get_meta_str('bddb_personal_review', $id).'</div>';
 		return $detail_str;
 	}
@@ -732,6 +756,31 @@ class BDDB_Common_Template {
 		return '';
 	}
 	private function panel_common_loop($id) {
+		$panel_str = '';
+		foreach ($this->total_items as $key=>$item ) {
+			if (!$item['panel']) continue;
+			$row_str='';
+			if (isset($item['panel_callback']) && is_callable($item['panel_callback'])) {
+				$val_str = call_user_func($item['panel_callback'], $id, $item);
+				if (empty($val_str)){
+					continue;
+				}
+				$row_str = $val_str;
+			} else {
+				$val_str = false;
+				if ('meta' == $item['type']){
+					$val_str = $this->get_meta_str($item['name'], $id);
+				} elseif('tax' == $item['type']){
+					$val_str = $this->get_tax_str($item['name'], $id);
+				}
+				if (empty($val_str)){
+					continue;
+				}
+				$row_str = sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val_str);
+			}
+			$panel_str .= $row_str;
+		}
+		return $panel_str;
 	}
 	private function get_movie_abstract($id) {
 		return $this->abstract_common_loop($id);
@@ -766,7 +815,7 @@ class BDDB_Common_Template {
 			if (!$item['summary']) continue;
 			$tmp_str='';
 			if (isset($item['summary_callback']) && is_callable($item['summary_callback'])) {
-				$val_str = call_user_func($item['summary_callback'], $id);
+				$val_str = call_user_func($item['summary_callback'], $id, $item);
 				if (!$val_str) continue;
 				$tmp_str = $val_str;
 			} else {

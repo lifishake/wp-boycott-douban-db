@@ -28,7 +28,6 @@ class BDDB_Template {
 	protected $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
 	protected $box_title;			/*编辑盒子的标题,初始为空,待子类覆盖*/
 	protected $self_post_type;			/*档案自身的种类*/
-	protected $gen_post_content;
 	protected $default_item;
 	/**
 	 * 构造函数。
@@ -38,7 +37,6 @@ class BDDB_Template {
 	 */
 	protected function __construct($settings){
 		$this->settings = $settings;
-		$this->gen_post_content = '';
 		$this->default_item = array(
 			'name' => '',
 			'label' => '',
@@ -334,34 +332,20 @@ class BDDB_Template {
 		if (!is_array($this->total_items)) {
 			return;
 		}
-		if($post->post_name == htmlspecialchars_decode($post->post_title)) {
-			//print_r(debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 1));
-		}
-		$post->post_content = '';
 		foreach ($this->total_items as $item) {
 			//$item = array_merge( $this->default_item, $item );
 			if ('tax' == $item['type']) {
 				$term_str = $this->update_terms($post_ID, $item);
-				//alert($term_str);
-				if ('' !== $term_str) {
-					$this->gen_post_content = $this->gen_post_content. sprintf("%s:%s\n",$item['label'],$term_str);
-				}
 			}elseif('meta' == $item['type'] || 'boolean_meta' == $item['type']) {
 				$meta_str = $this->update_meta($post_ID, $item);
-				//alert($meta_str);
-				if ('' !== $meta_str) {
-					$this->gen_post_content = $this->gen_post_content. sprintf("%s:%s\n",$item['label'],$meta_str);
-				}
 			}
 		}
-		alert($this->gen_post_content);
 	}
 	
 	public function generate_content($data, $postarr ) {
 		if ($data['post_type'] == $this->self_post_type) {
-			$data['post_content'] = '';
+			$data['post_content'] = 'ID:'.$postarr['ID'];
 			foreach ($this->total_items as $item) {
-				//$item = array_merge( $this->default_item, $item );
 				if ('tax' == $item['type']) {
 					$str_array = wp_get_post_terms($postarr['ID'], $item['name'], array('fields'=>'names'));
 					if (count($str_array)>1) {
