@@ -241,11 +241,11 @@ class BDDB_Common_Template {
 	private function add_movie_items() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
 		$this->common_items['bddb_publish_time']['panel'] = '02';
-		$this->common_items['bddb_publish_time']['label'] = '首映年月';
-		$this->common_items['bddb_view_time']['label'] = '观看年月';
+		$this->common_items['bddb_publish_time']['label'] = '首映时间';
+		$this->common_items['bddb_view_time']['label'] = '观看时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';
-		$this->common_items['contry']['label'] = '地区';
-		$this->common_items['contry']['panel'] = '05';
+		$this->common_items['country']['label'] = '地区';
+		$this->common_items['country']['panel'] = '05';
 		$this->common_items['bddb_publish_time']['summary_callback'] = array($this, 'display_movie_publish_time');
 		$add_items = array(
 			'm_p_director' => array(	'name' => 'm_p_director',
