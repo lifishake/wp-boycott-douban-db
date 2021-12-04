@@ -65,7 +65,7 @@ Fancybox.bind('[data-fancybox="gallery"]', {
 		  "close",
 		],
 	},
-	//click: false,
+	click: false,
 	//click:next,
 	/*Thumbs: false,*/
 	on: {
