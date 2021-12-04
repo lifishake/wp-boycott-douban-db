@@ -60,6 +60,7 @@ function bddb_quicktags(){
 ?>
 	<script type="text/javascript" charset="utf-8">
 	QTags.addButton( 'eg_bddb', 'BDDbItem', '[bddbitem id=\'', '\' got=\'no\' summary=\'\' /]', 'p' );
+	QTags.addButton( 'eg_bddbr', 'BDDbRd', '[bddbr id=\'', '\' /]', 'p' );
 	</script>
 <?php
 }
@@ -124,5 +125,12 @@ function bddb_shortcode_transfer($atts, $content = null){
 	if ("yes"!=$got) {
 		return '';
 	}
+	return $summary;
+}
+
+function bddb_real_transfer($atts, $content = null){
+	extract( $atts );
+	$tl = new BDDB_Common_Template('auto', $id);
+	$summary=$tl->get_summary();
 	return $summary;
 }
