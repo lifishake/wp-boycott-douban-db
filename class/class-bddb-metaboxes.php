@@ -344,7 +344,7 @@ class BDDB_Template {
 	
 	public function generate_content($data, $postarr ) {
 		if ($data['post_type'] == $this->self_post_type) {
-			$data['post_content'] = 'ID:'.$postarr['ID'];
+			$data['post_content'] = 'ID:'.$postarr['ID']."\n";
 			foreach ($this->total_items as $item) {
 				if ('tax' == $item['type']) {
 					$str_array = wp_get_post_terms($postarr['ID'], $item['name'], array('fields'=>'names'));

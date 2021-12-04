@@ -129,7 +129,6 @@ class BDDB_DoubanFetcher{
 				}
 			} elseif ("book"===$this->type) {
 				$fetch['original_name'] = '';
-				$fetch['country']="";
 				$info_grep_keys = array(
 					array('pattern'=>'/(?<=\<span class="pl"\>出版社:\<\/span\>).*?(?=\<br\/\>)/', 'item'=>'publisher'),
 					array('pattern'=>'/(?<=\<span class="pl"\>出版年:\<\/span\>).*?(?=\<br\/\>)/', 'item'=>'pubdate'),
@@ -155,24 +154,16 @@ class BDDB_DoubanFetcher{
 					} else {
 						$author_str = substr($info_div_str, $pos_start, ($pos_end - $pos_start)+strlen('<br>') );
 					}
-					//$author_str = str_replace(array("\r\n","\n"),"",$author_str);
+					
 					unset($matches);
 					preg_match_all( '/(?<=>)[\s\S].*?(?=<\/a>)/', $author_str, $matches);
 					if (is_array($matches) && count($matches)>0 && is_array($matches[0]) ) {
 						$author_untrim = $this->items_implode($matches[0]);
 						preg_match_all('/^【(.*)】[\s](.*)$/', $author_untrim, $m1);
-						if (is_array($m1) && count($m1) == 3) {
-							$fetch['author'] = $m1[2][0];
-							$zone = $this->get_termname_by_desctiption($m1[1][0],'country');
-							if ($zone) {
-								$fetch['country']=$zone;
-							}
-						}else {
-							$fetch['author'] = str_replace(array('【','】'),"",$author_untrim);
-						}						
+						$fetch['author'] = preg_replace('/【.】 /',"",$this->items_implode($matches[0]));
 					}
 				}
-				$temp = $this->fetch_douban_people_str('译者');
+
 				$fetch['translator'] = '';
 				$ak = 1;
 				$pos_start = strpos($info_div_str, '<span class="pl"> 译者</span>:');
@@ -197,6 +188,7 @@ class BDDB_DoubanFetcher{
 						$fetch['translator'] = $this->items_implode($matches[0]);
 					}
 				}
+				$fetch['country']="";
 			} elseif ("album"=== $this->type) {
 				$info_grep_keys = array(
 					array('pattern'=>'/(?<=\<span class="pl"\>出版者:<\/span>).[\s\S]*?(?=\<br[\s\S]\/>)/', 'item'=>'publisher'),
@@ -352,18 +344,5 @@ class BDDB_DoubanFetcher{
 			}
 			return "";
 		}//fetch_douban_people_str
-
-		private function get_termname_by_desctiption($term_description, $taxonomy){
-			$ret = get_terms(array(
-				'taxonomy' => $taxonomy,
-				'description__like'=>$term_description,
-				'fields'=>'names', 
-				'hide_empty'=>false,
-				'number'=>'1'));
-			if (is_wp_error($ret)) {
-				return false;
-			}
-			return $ret[0];
-		}
 }//class
 
