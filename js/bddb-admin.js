@@ -52,68 +52,75 @@ jQuery(document).ready(function($) {
             success:function(response){
                 mybar.value=response.content;
                 var the_input = document.getElementsByName("bddb_display_name");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.title.length > 0){
                     the_input[0].value = response.result.title;
                 }
                 the_input = document.getElementsByName("bddb_original_name");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.original_name.length > 0){
                     the_input[0].value = response.result.original_name;
                 }
                 the_input = document.getElementsByName("bddb_poster_link");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.pic.length > 0){
                     the_input[0].value = response.result.pic;
                 }
                 the_input = document.getElementsByName("bddb_score_douban");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.average_score.length > 0){
                     the_input[0].value = response.result.average_score;
                 }
                 the_input = document.getElementsByName("bddb_id_douban");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.dou_id.length > 0){
                     the_input[0].value = response.result.dou_id;
                 }
                 the_input = document.getElementsByName("country");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.country.length > 0){
                     the_input[0].value = response.result.country;
                 }
                 the_input = document.getElementsByName("b_publisher");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.publisher.length > 0){
                     the_input[0].value = response.result.publisher;
                 }
                 the_input = document.getElementsByName("bddb_publish_time");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.pubdate.length > 0){
                     the_input[0].value = response.result.pubdate;
                 }
                 the_input = document.getElementsByName("m_genre");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.genre.length > 0){
                     the_input[0].value = response.result.genre;
                 }
                 the_input = document.getElementsByName("m_p_director");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.director.length > 0){
                     the_input[0].value = response.result.director;
                 }
                 the_input = document.getElementsByName("m_p_actor");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.actor.length > 0){
                     the_input[0].value = response.result.actor;
                 }
                 the_input = document.getElementsByName("m_p_screenwriter");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.screenwriter.length > 0){
                     the_input[0].value = response.result.screenwriter;
                 }
                 the_input = document.getElementsByName("m_id_imdb");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.imdbid.length > 0){
                     the_input[0].value = response.result.imdbid;
                 }
                 the_input = document.getElementsByName("m_score_imdb");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.imdb_score.length > 0){
                     the_input[0].value = response.result.imdb_score;
                 }
                 the_input = document.getElementsByName("b_p_writer");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.author.length > 0){
                     the_input[0].value = response.result.author;
                 }
                 the_input = document.getElementsByName("b_p_translator");
-                if (the_input.length == 1){
+                if (the_input.length == 1 && response.result.translator.length > 0){
                     the_input[0].value = response.result.translator;
+                }
+                the_input = document.getElementsByName("b_series_total");
+                if (the_input.length == 1 && response.result.series_total.length > 0){
+                    the_input[0].value = response.result.series_total;
+                    if (response.result.series_total > 1) {
+                        document.getElementsByName("b_bl_series")[0].checked = true;
+                    }
                 }
                 mybar.value="网页抓取完毕.";
             },
