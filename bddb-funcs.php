@@ -16,6 +16,14 @@ function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) {
 	return $data;
 }
 
+function bddbt_get_inlabel($str, $start_str, $stop_str){
+	$arr = bddbt_get_msg($str, $start_str, $stop_str ,1 ,0);
+	if (1 != count($arr)){
+		return false;
+	}
+	return $arr[0];
+}
+
 function bddbt_substr_n_pos($str,$find,$n){
     $pos_val=0;
     for ($i=1;$i<=$n;$i++){

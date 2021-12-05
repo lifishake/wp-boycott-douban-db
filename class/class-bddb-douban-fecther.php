@@ -86,7 +86,22 @@ class BDDB_DoubanFetcher{
 		
 		
 	private function parse_douban_body($body) {
-		$fetch = array();
+		$fetch = array(
+			'pic' => '',
+			'average_score' => '',
+			'director' => '',
+			'actor' => '',
+			'genre' => '',
+			'pubdate' => '',
+			'country' => '',
+			'original_name' => '',
+			'imdbid' => '',
+			'screenwriter' => '',
+			'author' => '',
+			'translator' => '',
+			'artist' => '',
+			'series_total' => '',
+		);
 		preg_match_all('/(<div id="mainpic"[\s\S]+?<\/div>)|(<div id="info"[\s\S]+?<\/div>)|(<strong .+? property="v:average">.+?(<\/strong>|>))/',$body, $matches);
 		if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
 			$mainpic_div_str = $matches[0][0];
@@ -188,7 +203,6 @@ class BDDB_DoubanFetcher{
 						$fetch['translator'] = $this->items_implode($matches[0]);
 					}
 				}
-				$fetch['country']="";
 			} elseif ("album"=== $this->type) {
 				$info_grep_keys = array(
 					array('pattern'=>'/(?<=\<span class="pl"\>出版者:<\/span>).[\s\S]*?(?=\<br[\s\S]\/>)/', 'item'=>'publisher'),
@@ -209,6 +223,26 @@ class BDDB_DoubanFetcher{
 					}
 				}
 			}//preg_matches
+			else{
+				$data = bddbt_get_inlabel($body,"</h1>","<h2>");
+				if (!empty($data)){
+					$data = trim($data);
+					$publisher_str = bddbt_get_inlabel($data, '<div class="ll publishers">','</div>');
+					if (!empty($publisher_str)){
+						$fetch['publisher'] = trim($publisher_str);
+					}
+					$count_str = bddbt_get_inlabel($data, '<div class="clear-both">','</div>');
+					if (!empty($count_str)){
+						$count_str = strip_tags($count_str);
+						$count_str = str_replace('&nbsp;','',$count_str);
+						$pos = strpos($count_str,':');
+						if ($pos > 0){
+							$count_str = trim(substr($count_str,$pos+1));
+							$fetch['series_total'] = $count_str;
+						}
+					}
+				}
+			}//series
 			//$fetch['pubdate'] = $this->trim_year_month($fetch['pubdate']);
 			if (isset($fetch['imdbid']) && '' != $fetch['imdbid']) {
 				$fetch = $this->get_from_omdb($fetch['imdbid'], $fetch);
