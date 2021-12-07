@@ -24,9 +24,9 @@ class BDDB_Common_Template {
 	 */
 	public function __construct($post_type, $post_id=0){
 		if ('auto'===$post_type && 0 != $post_id) {
-			$post = get_post($post_id);
-			$this->self_post_type = $post->post_type;
-			$this->self_post_id = $post->ID;
+			$po = get_post($post_id);
+			$this->self_post_type = $po->post_type;
+			$this->self_post_id = $po->ID;
 		} elseif (!in_array($post_type, array('movie', 'book', 'game', 'album'))) {
 			return;
 		} else {
@@ -355,6 +355,14 @@ class BDDB_Common_Template {
 			'bddb_score_douban' => array(	'name' => 'bddb_score_douban',
 											'label' => '豆瓣评分',
 											),
+			'b_misc_brand' => array(	'name' => 'b_misc_brand',
+											'label' => 'TOBEDELETE',
+											'type' => 'tax',
+											'summary' => '61',
+											'summary_callback' => array($this, 'display_book_misc'),
+											'panel' => '99',
+											'panel_callback' => array($this, 'panel_book_misc'),
+											),
 			'b_bl_series' => array(	'name' => 'b_bl_series',
 											'label' => '是否丛书',
 											),
@@ -577,7 +585,7 @@ class BDDB_Common_Template {
 	}
 	private function book_publish_time_special($id, $item) {
 		$val = $this->get_meta_str($item['name'], $id);
-		$is_series = $this->get_meta_str('b_bl_series',$this->self_post_id);
+		$is_series = $this->get_meta_str('b_bl_series',$id);
 		if (empty($val)) return false;
 		if(!empty($is_series)){
 			$val2 = $this->get_meta_str('b_pub_time_end', $id);
@@ -593,7 +601,25 @@ class BDDB_Common_Template {
 		}
 		return $val;
 	}
-
+	public function book_misc_special($id, $item) {
+		$feature='';
+		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
+		if (is_wp_error($str_array)) return '';
+		foreach($str_array as $key => $slug) {
+			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
+			switch($slug) {
+				case 'cat':
+					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
+				break;
+				case '404':
+					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
+				break;
+				default:
+				break;
+			}
+		}
+		return $feature;
+	}
 	protected function display_movie_misc($id, $item) {
 		$val = $this->movie_misc_special($id, $item);
 		if (empty($val)) {
@@ -608,6 +634,14 @@ class BDDB_Common_Template {
 			return false;
 		}
 		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+	}
+
+	protected function display_book_misc($id, $item) {
+		$val = $this->book_misc_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<span class="abs-list">%s</span>', $val);
 	}
 
 	protected function display_book_publish_time($id, $item) {
@@ -655,6 +689,14 @@ class BDDB_Common_Template {
 			return false;
 		}
 		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+	}
+
+	protected function panel_book_misc($id, $item) {
+		$val = $this->book_misc_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
 	}
 
 	private function get_poster_for_gallery($post) {

@@ -201,45 +201,16 @@ jQuery(document).ready(function($) {
 			},
         });
 	})
+	$('.box-tag').click(function(){
+		var input_bar = document.getElementsByName(this.getAttribute('data'));
+		var myself = this.innerText;
+		var original_value = input_bar[0].value;
+		var new_value = "";
+		if (original_value.length>0) {
+			new_value = original_value + ", " + myself;
+		} else {
+			new_value = myself;
+		}
+		input_bar[0].value = new_value;
+	})
 })
-
-jQuery(function ($) { 
-    $(document).ajaxComplete(function (event, xhr, settings)  {
-        if (typeof settings.data==='string' && /action=get-post-thumbnail-html/.test(settings.data) && xhr.responseJSON && typeof xhr.responseJSON.data==='string') {
-            if ( /thumbnail_id=-1/.test(settings.data) ) {
-                return;
-            }
-            var pos = settings.data.toLowerCase().indexOf("thumbnail_id");
-            if (pos <= 0) {
-                return;
-            }
-            var res = settings.data.split("&");
-            var pic_id = res[1].substr(res[1].indexOf("=")+1);
-            if (!pic_id) {
-                return;
-            }
-            var img=jQuery('#set-post-thumbnail')[0].childNodes[0];
-            var colorThief = new ColorThief();
-            var picmaincolor=colorThief.getColor(img);
-            var colorhex=rgb_to_hex_string(picmaincolor);
-            var colorrgb=rgb_to_rgb_string(picmaincolor);
-            var data = {
-                action: 'apip_new_thumbnail_color',
-                picid: pic_id,
-                maincolor: colorhex,
-            };
-            jQuery.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: data,
-                success: function (response) {
-				if (response) {
-                    //成功后更新colorpicker的颜色
-                    var picker = jQuery('#apipcolorthiefdiv').find('.wp-picker-container').find('.wp-color-result');
-                    picker[0].setAttribute("style","background-color:"+colorrgb);
-				}
-			}
-            });
-           }
-    });
-});
