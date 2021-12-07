@@ -21,7 +21,7 @@ echo '</body></html>';
 /**
  * 编辑用模板类，不可直接创建对象
  */
-class BDDB_Template {
+class BDDB_Editor {
 	//成员列表
 	protected $common_items;		/*四种档案都包括的共通项目*/
 	protected $settings;			/*保留*/
@@ -35,7 +35,7 @@ class BDDB_Template {
 	 * @param	array	$settings	reserved
 	 * @since 0.0.1
 	 */
-	protected function __construct($settings){
+	public function __construct($settings){
 		$this->settings = $settings;
 		$this->default_item = array(
 			'name' => '',
@@ -51,6 +51,7 @@ class BDDB_Template {
 			'step' => 1,
 			'limit' => 0,
 		);
+		$this->self_post_type = false;
 		$this->common_items = array(
 			'bddb_display_name' => array(	'name' => 'bddb_display_name',
 											'label' => '表示名',
@@ -118,9 +119,30 @@ class BDDB_Template {
 	 * @access public
 	 * @since 0.0.1
 	 */
-	public function add_meta_box() {
-		add_meta_box('bddbstsdiv', '状态显示', array($this, 'show_pic_meta_box'), $this->self_post_type, 'normal', 'core');
-		add_meta_box('bddbcommondiv', $this->box_title, array($this, 'show_meta_box'), $this->self_post_type, 'normal', 'core');
+	public function add_meta_box($post_type) {
+		if (empty($this->self_post_type)){
+			$this->set_working_mode($post_type);
+		}
+		switch($this->self_post_type){
+			case 'movie':
+			$addi = '影片'; 
+			break;
+			case 'book':
+			$addi = '书籍'; 
+			break;
+			case 'game':
+			$addi = '游戏'; 
+			break;
+			case 'album':
+			$addi = '专辑'; 
+			break;
+			default:
+			return;
+		}
+		$title = sprintf("完善%s信息", $addi);
+		add_meta_box('bddbstsdiv', '状态显示', array($this, 'show_pic_meta_box'));
+		//add_meta_box('bddbcommondiv', $title, array($this, 'show_meta_box'), $this->self_post_type, 'normal', 'core', );
+		add_meta_box('bddbcommondiv', $title, array($this, 'show_meta_box'));
 	}
 	
 	/**
@@ -130,14 +152,14 @@ class BDDB_Template {
 	 * @since 0.0.1
 	 */
 	public function show_pic_meta_box($post) {
-		$dir = $this->settings['base_dir'];
+		$dir = BDDB_GALLERY_DIR;
 		$thumb_name = sprintf("%sthumbnails/%s_%013d.jpg", $dir, $post->post_type, $post->ID);
 		$is_got_thumb= is_file($thumb_name);
-		$thumb_image_src = $this->settings['base_url'].sprintf("thumbnails/%s_%013d.jpg",$post->post_type, $post->ID);
+		$thumb_image_src = BDDB_GALLERY_URL.sprintf("thumbnails/%s_%013d.jpg",$post->post_type, $post->ID);
 		if ($is_got_thumb) {
 			$thumb_src = $thumb_image_src;
 		} else {
-			$thumb_src = $this->settings['plugin_url'].sprintf("img/nocover_%d_%d.png", $this->settings['thumb_width'], $this->settings['thumb_height']);
+			$thumb_src = BDDB_PLUGIN_URL.sprintf("img/nocover_%d_%d.png", $this->settings['thumb_width'], $this->settings['thumb_height']);
 		}
 		$val_str='';
 		if ('movie' == $post->post_type) {
@@ -191,6 +213,7 @@ class BDDB_Template {
 						$val_str =trim($str_array[0]);
 					}
 				}
+				$comment_str = $this->get_tax_comment_str($post->ID, $arg);
 				$val_str = " value='".$val_str."' ";
 				$type_str = " type='text' ";
 			}elseif($arg['type'] === 'meta') {
@@ -224,7 +247,7 @@ class BDDB_Template {
 	 * @return string	-1~100的十进制字符串
 	 * @since 0.0.1
 	 */
-	public function sanitize_personal_rating($str) {
+	protected function sanitize_personal_rating($str) {
 		$int = intval($str);
 		if ($int < 0 || $int >100) {
 			return '-1';
@@ -240,7 +263,7 @@ class BDDB_Template {
 	 * @return string	原名
 	 * @since 0.0.1
 	 */
-	public function sanitize_original_name($str) {
+	protected function sanitize_original_name($str) {
 		if ($str == "" && isset($_POST['bddb_display_name'])) {
 			$str = htmlentities($_POST['bddb_display_name']);
 		}
@@ -254,7 +277,7 @@ class BDDB_Template {
 	 * @return string	原名
 	 * @since 0.0.1
 	 */
-	public function sanitize_personal_review($str) {
+	protected function sanitize_personal_review($str) {
 		if ($str == "" && isset($_POST['bddb_display_name'])) {
 			$str = "《".htmlentities($_POST['bddb_display_name'])."》实在是无聊到无语。";
 		}
@@ -267,7 +290,7 @@ class BDDB_Template {
 	 * @return string	修改后的出品年份
 	 * @since 0.0.1
 	 */
-	public function sanitize_publish_time($str) {
+	protected function sanitize_publish_time($str) {
 		if (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
 			$str = date("Y-m", strtotime($str));
 		}
@@ -276,6 +299,7 @@ class BDDB_Template {
 		}
 		return $str;
 	}
+	
 	/**
 	 * 优化系列作品的封面列表。
 	 * @access 	public
@@ -283,7 +307,7 @@ class BDDB_Template {
 	 * @return 	string	优化后的封面地址
 	 * @since 0.0.1
 	 */
-	public function sanitize_series_covers($str) {
+	protected function sanitize_series_covers($str) {
 		//之前油猴采集到的链接用逗号分隔，替换成分号。
 		$str = str_replace(",", ";", $str);
 		return $this->sanitize_link($str);
@@ -295,11 +319,17 @@ class BDDB_Template {
 	 * @return 	string	优化后的封面地址
 	 * @since 0.0.1
 	 */
-	public function sanitize_link($str) {
+	protected function sanitize_link($str) {
 		return htmlspecialchars_decode($str);
 	}
-	
-	public function sanitize_name($str) {
+	/**
+	 * 优化人名输入。
+	 * @access 	public
+	 * @param 	string $str	编辑框中的人名
+	 * @return 	string	优化后的人名
+	 * @since 0.0.1
+	 */
+	protected function sanitize_name($str) {
 		return str_replace(".","·", $str);
 	}
 
@@ -310,11 +340,42 @@ class BDDB_Template {
 	 * @return string	观影/阅读/游戏/欣赏时间
 	 * @since 0.0.1
 	 */
-	public function sanitize_view_time($str) {
+	protected function sanitize_view_time($str) {
 		if ('' == $str) {
 			$str = date('Y-m');
 		} elseif (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
 			$str = date("Y-m", strtotime($str));
+		}
+		return $str;
+	}
+	
+	//优化函数
+	/**
+	 * 优化花费时间，不填时默认0。
+	 * @access public
+	 * @param string $str	编辑框中的花费时间
+	 * @return string	花费时间
+	 * @since 0.0.1
+	 */
+	protected function sanitize_cost_time($str) {
+		$int = intval($str);
+		if ($int <= 0) {
+			$str = '0';
+		}
+		return $str;
+	}
+	
+	/**
+	 * 优化丛书本数，不填时默认为非丛书，设成1本。
+	 * @access public
+	 * @param string $str	编辑框中的丛书本数
+	 * @return string	丛书本数
+	 * @since 0.0.1
+	 */
+	public function sanitize_series_total($str) {
+		$int = intval($str);
+		if ($int <= 0) {
+			$str = '1';
 		}
 		return $str;
 	}
@@ -329,6 +390,9 @@ class BDDB_Template {
 	public function update_all_items($post_ID, $post) {
 		if (!isset( $_POST['bddb_nonce'] ) || !wp_verify_nonce( $_POST['bddb_nonce'], basename( __FILE__ ) ) )
 			return;
+		if (empty($this->self_post_type)){
+			$this->set_working_mode($post->post_type);
+		}
 		if (!is_array($this->total_items)) {
 			return;
 		}
@@ -343,26 +407,29 @@ class BDDB_Template {
 	}
 	
 	public function generate_content($data, $postarr ) {
-		if ($data['post_type'] == $this->self_post_type) {
-			$data['post_content'] = 'ID:'.$postarr['ID']."\n";
-			foreach ($this->total_items as $item) {
-				if ('tax' == $item['type']) {
-					$str_array = wp_get_post_terms($postarr['ID'], $item['name'], array('fields'=>'names'));
-					if (count($str_array)>1) {
-						$val_str = implode(', ', $str_array);
-					} elseif(count($str_array) == 1) {
-						$val_str =trim($str_array[0]);
-					} else {
-						$val_str = '';
-					}
-					if ($val_str != '' ) {
-						$data['post_content'] .= sprintf("%s:%s\n",$item['label'], $val_str);
-					}
-				}elseif('meta' == $item['type'] || 'boolean_meta' == $item['type']) {
-					$meta_str = get_post_meta($postarr['ID'], $item['name'], true);
-					if ($meta_str != '' ) {
-						$data['post_content'] .= sprintf("%s:%s\n",$item['label'], $meta_str);
-					}
+		if (!isset($postarr['post_type']) || 
+			!in_array($postarr['post_type'], array('movie', 'book', 'game', 'album'))) {
+			return;
+		}
+		$this->set_working_mode($postarr['post_type']);
+		$data['post_content'] = 'ID:'.$postarr['ID']."\n";
+		foreach ($this->total_items as $item) {
+			if ('tax' == $item['type']) {
+				$str_array = wp_get_post_terms($postarr['ID'], $item['name'], array('fields'=>'names'));
+				if (count($str_array)>1) {
+					$val_str = implode(', ', $str_array);
+				} elseif(count($str_array) == 1) {
+					$val_str =trim($str_array[0]);
+				} else {
+					$val_str = '';
+				}
+				if ($val_str != '' ) {
+					$data['post_content'] .= sprintf("%s:%s\n",$item['label'], $val_str);
+				}
+			}elseif('meta' == $item['type'] || 'boolean_meta' == $item['type']) {
+				$meta_str = get_post_meta($postarr['ID'], $item['name'], true);
+				if (!empty($meta_str)) {
+					$data['post_content'] .= sprintf("%s:%s\n",$item['label'], $meta_str);
 				}
 			}
 		}
@@ -370,22 +437,22 @@ class BDDB_Template {
 	}
 	
 	//说明栏中的特殊项
-	public function poster_special( $post ) {
+	protected function poster_special( $post ) {
 		//$dir = $this->settings['base_dir'];
 		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
-		$thumb_image_src = $this->settings['base_url'].sprintf("thumbnails/%s_%013d.jpg",$post->post_type, $post->ID);
+		$thumb_image_src = BDDB_GALLERY_URL.sprintf("thumbnails/%s_%013d.jpg",$post->post_type, $post->ID);
 		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" id="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$thumb_image_src.'" >取得</button>';
 		return $btn_get;
 	}
 	
-	public function link_special($post) {
+	protected function link_special($post) {
 		$link = get_post_meta($post->ID, 'bddb_external_link',true);
 		$nonce = wp_create_nonce('douban-spider-'.$post->ID);
 		$str = '<button class="button" name="douban_spider_btn" type="button" doulink="'.$link.'" id="'.$post->ID.'"  ptype="'.$post->post_type.'" wpnonce="'.$nonce.'" >抓取</button>';
 		return $str;
 	}
 
-	public function series_covers_special($post) {
+	protected function series_covers_special($post) {
 		$links = get_post_meta($post->ID, 'b_series_covers',true);
 		$scount = get_post_meta($post->ID, 'b_series_total',true);
 		$nonce = wp_create_nonce('bddb-get-scovers-'.$post->ID);
@@ -449,35 +516,71 @@ class BDDB_Template {
 	 * @access private
 	 * @since 0.0.1
 	 */
-	public function merge_default_column($inItem) {
+	protected function merge_default_column($inItem) {
 		if (!is_array($inItem)){
 			return $this->default_item;
 		}
 		return array_merge($this->default_item, $inItem);
 	}
-};
-
-/**
- * 编辑用电影类
- */
-final class BDDB_T_Movie extends BDDB_Template{
-	protected $additional_items;
-	/**
-	 * 构造函数。
-	 * @access public
-	 * @param	array	$settings	reserved
-	 * @since 0.0.1
-	 */
-	public function __construct($settings = false){
-		parent::__construct($settings);
-		$this->settings['thumb_width'] = OBLONG_THUMB_WIDTH;
-		$this->settings['thumb_height'] = OBLONG_THUMB_HEIGHT;
-		$this->self_post_type = 'movie';
-		$this->box_title = '完善影片信息';
+	
+	private function get_tax_comment_str($id, $item) {
+		if (!is_array($item) || !isset($item['type']) || $item['type']!=='tax') {
+			return '';
+		}
+		$ret = '';
+		$arg = array(	'taxonomy'=>$item['name'],
+						'hide_empty'=>false,
+						'orderby'=>'id',
+						'order'=>'DESC',
+						'fields'=>'id=>name',
+						'number'=>'4',);
+		$recent_terms = get_terms($arg);
+		if (is_wp_error($recent_terms)) {
+			$new_arg = $arg;
+			$new_arg['number'] = '10';
+			$new_arg['orderby'] = 'count';
+		}else{
+			$new_arg = $arg;
+			$new_arg['number'] = 10 - count($recent_terms);
+			$new_arg['orderby'] = 'count';
+			$new_arg['exclude'] = array_keys($recent_terms);
+		}
+		$popular = get_terms($new_arg);
+		if (!is_wp_error($popular)){
+			$recent_terms = array_merge($recent_terms , $popular);
+		}
+		$ret = '';
+		foreach ($recent_terms as $key=>$term){
+			$ret .= sprintf('<span class="box-tag" data="%s">%s</span>', $item['name'], $term);
+		}
+		return $ret;
+	}
+	
+	private function set_working_mode($post_type){
+		if (!in_array($post_type, array('movie', 'book', 'game', 'album'))) {
+			return false;
+		}
+		$this->self_post_type = $post_type;
+		if ('album' == $post_type) {
+			$this->settings['thumb_width'] = SQUARE_THUMB_WIDTH;
+			$this->settings['thumb_height'] = SQUARE_THUMB_WIDTH;
+		}else {
+			$this->settings['thumb_width'] = OBLONG_THUMB_WIDTH;
+			$this->settings['thumb_height'] = OBLONG_THUMB_HEIGHT;
+		}
+		if (is_callable(array($this,"set_additional_items_{$post_type}"))){
+			call_user_func(array($this,"set_additional_items_{$post_type}"));
+		} else {
+			return false;
+		}
+		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
+		return true;
+	}
+	private function set_additional_items_movie() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
 		$this->common_items['bddb_publish_time']['label'] = '首映年月';
 		$this->common_items['bddb_view_time']['label'] = '观看年月';
-		$this->additional_items = array(
+		$additional_items = array(
 			'm_p_director'		=>	array(	'name' => 'm_p_director',
 											'label' => '导演',
 											'size' => 16,
@@ -550,33 +653,13 @@ final class BDDB_T_Movie extends BDDB_Template{
 											'step' => '0.1',
 											),
 		);
-		$this->total_items = array_merge($this->common_items, $this->additional_items);
-		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
+		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
-	
-};
-
-/**
- * 编辑用书籍类
- */
-final class BDDB_T_Book extends BDDB_Template{
-	protected $additional_items;
-	/**
-	 * 构造函数。
-	 * @access public
-	 * @param	array	$settings	reserved
-	 * @since 0.0.1
-	 */
-	public function __construct($settings = false){
-		parent::__construct($settings);
-		$this->settings['thumb_width'] = OBLONG_THUMB_WIDTH;
-		$this->settings['thumb_height'] = OBLONG_THUMB_HEIGHT;
-		$this->self_post_type = 'book';
-		$this->box_title = '完善书籍信息';
+	private function set_additional_items_book() {
 		$this->common_items['bddb_display_name']['label'] = '书名';
 		$this->common_items['bddb_publish_time']['label'] = '出版年月';
 		$this->common_items['bddb_view_time']['label'] = '品读年月';
-		$this->additional_items = array(
+		$additional_items = array(
 			'b_p_writer'		=>	array(	'name' => 'b_p_writer',
 											'label' => '作者',
 											'size' => 16,
@@ -630,6 +713,12 @@ final class BDDB_T_Book extends BDDB_Template{
 											'max' => '10.0',
 											'step' => '0.1',
 											),
+			'b_misc_brand'		=>	array(	'name' => 'b_misc_brand',
+											'label' => '特殊头衔',
+											'size' => 16,
+											'type' => 'tax',
+											'placeholder'=>'404',
+											),
 			'b_bl_series'	=>	array(	'name' => 'b_bl_series',
 											'label' => '丛书',
 											'size' => 8,
@@ -651,48 +740,13 @@ final class BDDB_T_Book extends BDDB_Template{
 											'placeholder' => '用分号分割',
 											),
 		);
-		$this->total_items = array_merge($this->common_items, $this->additional_items);
-		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
+		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
-	
-	//优化函数
-	/**
-	 * 优化丛书本数，不填时默认为非丛书，设成1本。
-	 * @access public
-	 * @param string $str	编辑框中的丛书本数
-	 * @return string	丛书本数
-	 * @since 0.0.1
-	 */
-	public function sanitize_series_total($str) {
-		$int = intval($str);
-		if ($int <= 0) {
-			$str = '1';
-		}
-		return $str;
-	}
-};
-
-/**
- * 编辑用游戏类
- */
-final class BDDB_T_Game extends BDDB_Template{
-	protected $additional_items;
-	/**
-	 * 构造函数。
-	 * @access public
-	 * @param	array	$settings	reserved
-	 * @since 0.0.1
-	 */
-	public function __construct($settings = false){
-		parent::__construct($settings);
-		$this->settings['thumb_width'] = OBLONG_THUMB_WIDTH;
-		$this->settings['thumb_height'] = OBLONG_THUMB_HEIGHT;
-		$this->self_post_type = 'game';
-		$this->box_title = '完善游戏信息';
+	private function set_additional_items_game() {
 		$this->common_items['bddb_display_name']['label'] = '游戏名';
 		$this->common_items['bddb_publish_time']['label'] = '首发年月';
 		$this->common_items['bddb_view_time']['label'] = '接触年月';
-		$this->additional_items = array(
+		$additional_items = array(
 			'g_genre'		=>		array(	'name' => 'g_genre',
 											'label' => '类别',
 											'size' => 16,
@@ -746,48 +800,13 @@ final class BDDB_T_Game extends BDDB_Template{
 											'comment'=>'',
 											),
 		);
-		$this->total_items = array_merge($this->common_items, $this->additional_items);
-		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
+		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
-
-	//优化函数
-	/**
-	 * 优化花费时间，不填时默认0。
-	 * @access public
-	 * @param string $str	编辑框中的花费时间
-	 * @return string	花费时间
-	 * @since 0.0.1
-	 */
-	public function sanitize_cost_time($str) {
-		$int = intval($str);
-		if ($int <= 0) {
-			$str = '0';
-		}
-		return $str;
-	}
-};
-
-/**
- * 编辑用专辑类
- */
-final class BDDB_T_Album extends BDDB_Template{
-	protected $additional_items;
-	/**
-	 * 构造函数。
-	 * @access public
-	 * @param	array	$settings	reserved
-	 * @since 0.0.1
-	 */
-	public function __construct($settings = false){
-		parent::__construct($settings);
-		$this->self_post_type = 'album';
-		$this->settings['thumb_width'] = SQUARE_THUMB_WIDTH;
-		$this->settings['thumb_height'] = SQUARE_THUMB_HEIGHT;
-		$this->box_title = '完善专辑信息';
+	private function set_additional_items_album() {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
 		$this->common_items['bddb_publish_time']['label'] = '发行年月';
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
-		$this->additional_items = array(
+		$additional_items = array(
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'size' => 16,
@@ -836,10 +855,7 @@ final class BDDB_T_Album extends BDDB_Template{
 											'comment'=>'',
 											),
 		);
-		$this->total_items = array_merge($this->common_items, $this->additional_items);
-		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
+		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
-
 };
 
-//movie/brand

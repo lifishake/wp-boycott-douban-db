@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.0.9
+ * Version:     0.1.0
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -186,6 +186,13 @@ function bddb_check_taxonomy()
               'complex_name' => 'translators',
               'show_admin_column' => false,
               ),
+		array('tax' => 'b_misc_brand',
+              'obj' => array( 'book' ),
+              'label' => 'Brand',
+              'slug' => 'b_misc_brand',
+              'complex_name' => 'brands',
+              'show_admin_column' => true,
+              ),
 			//机种/游戏
 		array(	'tax' => 'g_platform',
 				'obj' => array( 'game' ),
@@ -271,18 +278,8 @@ function bddb_check_taxonomy()
 function bddb_add_common_meta_box($post) {
 	$post_type = $post->post_type;
 	$settings = array('base_url' => BDDB_GALLERY_URL, 'base_dir' => BDDB_GALLERY_DIR, 'plugin_url' => BDDB_PLUGIN_URL);
-	if ('movie' === $post_type) {
-		$template = new BDDB_T_Movie($settings);
-	} elseif ('book'=== $post_type) {
-		$template = new BDDB_T_Book($settings);
-	} elseif ('game'=== $post_type) {
-		$template = new BDDB_T_Game($settings);
-	} elseif ('album' === $post_type) {
-		$template = new BDDB_T_Album($settings);
-	} else {
-		return;
-	}
-	$template->add_meta_box();
+	$template = new BDDB_Editor($settings);
+	$template->add_meta_box($post_type);
 }
 
 /*检查自定义类型*/
@@ -397,6 +394,7 @@ function bddb_init()
 }
 
 add_action('init', 'bddb_init_actions', 11);
+
 /* Plugin页面追加配置选项 */
 function bddb_init_actions()
 {   
@@ -413,7 +411,7 @@ function bddb_init_actions()
 	//manage_$post_type_posts_custom_column 
 }
 
-
+/*取豆瓣信息的ajax回调函数*/
 function bddb_douban_fetch() {
 	$resp = array('title' => 'here is the title', 'content' => 'finished') ;
 	if (!isset($_GET['nonce']) || !isset($_GET['id']) || !isset($_GET['ptype']) || !isset($_GET['doulink']) ) {
@@ -434,6 +432,7 @@ function bddb_douban_fetch() {
 
 }
 
+/*取封面的ajax回调函数*/
 function bddb_get_pic() {
 	if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
 		die();
@@ -475,6 +474,7 @@ function bddb_get_pic() {
 	$image->save($thumbnail_full_name);
 }
 
+/*取系列多缩略图的ajax回调函数*/
 function bddb_get_scovers(){
     if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
 		die();
@@ -522,18 +522,9 @@ function bddb_get_scovers(){
 
 function bddb_admin_init() {
 	$settings = array('base_url' => BDDB_GALLERY_URL, 'base_dir' => BDDB_GALLERY_DIR, 'plugin_url' => BDDB_PLUGIN_URL);
-	$tm = new BDDB_T_Movie($settings);
-	$tb = new BDDB_T_Book($settings);
-	$tg = new BDDB_T_Game($settings);
-	$ta = new BDDB_T_Album($settings);
-	add_action ( 'save_post_movie', array($tm, 'update_all_items'), 10, 2);
-	add_action ( 'save_post_book', array($tb, 'update_all_items'), 10, 2);
-	add_action ( 'save_post_game', array($tg, 'update_all_items'), 10, 2);
-	add_action ( 'save_post_album', array($ta, 'update_all_items'), 10, 2);
-	add_filter ( 'wp_insert_post_data', array($tm, 'generate_content'), 10, 2);
-	add_filter ( 'wp_insert_post_data', array($tb, 'generate_content'), 10, 2);
-	add_filter ( 'wp_insert_post_data', array($tg, 'generate_content'), 10, 2);
-	add_filter ( 'wp_insert_post_data', array($ta, 'generate_content'), 10, 2);
+	$t = new BDDB_Editor($settings);
+	add_action ( 'save_post', array($t, 'update_all_items'), 10, 2);
+	add_filter ( 'wp_insert_post_data', array($t, 'generate_content'), 10, 2);
 	add_action( 'admin_enqueue_scripts', 'bddb_admin_scripts' );
 	add_action( 'wp_ajax_bddb_douban_fetch', 'bddb_douban_fetch' );
 	add_action( 'wp_ajax_bddb_get_pic', 'bddb_get_pic' );
@@ -559,6 +550,7 @@ function bddb_scripts() {
 /* 统一处理后台相关的脚本 */
 function bddb_admin_scripts() {
     wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20211110', true);
+    wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css' );
     wp_deregister_style( 'open-sans' );
     wp_register_style( 'open-sans', false );
 }

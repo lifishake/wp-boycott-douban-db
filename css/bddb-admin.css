@@ -1,0 +1,8 @@
+.box-tag {
+    margin: auto 5px;
+    border-radius: 3px;
+    background: #C1C4E5;
+	padding: 3px 5px;
+    line-height: 1.25;
+	cursor: pointer;
+}
