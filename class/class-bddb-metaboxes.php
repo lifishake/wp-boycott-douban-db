@@ -409,7 +409,7 @@ class BDDB_Editor {
 	public function generate_content($data, $postarr ) {
 		if (!isset($postarr['post_type']) || 
 			!in_array($postarr['post_type'], array('movie', 'book', 'game', 'album'))) {
-			return;
+			return $data;
 		}
 		$this->set_working_mode($postarr['post_type']);
 		$data['post_content'] = 'ID:'.$postarr['ID']."\n";
@@ -533,7 +533,7 @@ class BDDB_Editor {
 						'orderby'=>'id',
 						'order'=>'DESC',
 						'fields'=>'id=>name',
-						'number'=>'4',);
+						'number'=>'2',);
 		$recent_terms = get_terms($arg);
 		if (is_wp_error($recent_terms)) {
 			$new_arg = $arg;
