@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.1.1
+ * Version:     0.1.2
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -63,7 +63,7 @@ function bddb_check_taxonomy()
               'label' => 'Genre',
               'slug' => 'm_genre',
               'complex_name' => 'genres',
-              'show_admin_column' => true,
+              'show_admin_column' => false,
               ),
             //种类/书
         array('tax' => 'b_genre',
@@ -71,7 +71,7 @@ function bddb_check_taxonomy()
               'label' => 'Genre',
               'slug' => 'b_genre',
               'complex_name' => 'genres',
-              'show_admin_column' => true,
+              'show_admin_column' => false,
               ),
             //种类/游戏
         array('tax' => 'g_genre',
@@ -520,6 +520,50 @@ function bddb_get_scovers(){
 	}
 }
 
+function bddb_country_content( $value, $column_name, $tax_id ){
+	return "111-";
+}
+
+function bddb_sort_custom_column_query($query){
+    $orderby = $query->get( 'orderby' );
+
+    if ( 'bddb_view_time' == $orderby ) {
+
+        $meta_query = array(
+            'relation' => 'OR',
+            array(
+                'key' => 'bddb_view_time',
+                'compare' => 'NOT EXISTS', // see note above
+            ),
+            array(
+                'key' => 'bddb_view_time',
+            ),
+        );
+
+        $query->set( 'meta_query', $meta_query );
+        $query->set( 'orderby', 'meta_value' );
+    }
+    if ( 'bddb_personal_rating' == $orderby ) {
+
+        $meta_query = array(
+            'relation' => 'OR',
+            array(
+                'key' => 'bddb_personal_rating',
+                'compare' => 'NOT EXISTS', // see note above
+                'type' => 'numeric',
+            ),
+            array(
+                'key' => 'bddb_personal_rating',
+            ),
+        );
+
+        $query->set( 'meta_query', $meta_query );
+        $query->set( 'orderby', 'meta_value' );
+    }
+}
+
+add_action( 'pre_get_posts', 'bddb_sort_custom_column_query' );
+
 function bddb_admin_init() {
 	$settings = array('base_url' => BDDB_GALLERY_URL, 'base_dir' => BDDB_GALLERY_DIR, 'plugin_url' => BDDB_PLUGIN_URL);
 	$t = new BDDB_Editor($settings);
@@ -529,7 +573,19 @@ function bddb_admin_init() {
 	add_action( 'wp_ajax_bddb_douban_fetch', 'bddb_douban_fetch' );
 	add_action( 'wp_ajax_bddb_get_pic', 'bddb_get_pic' );
     add_action( 'wp_ajax_bddb_get_scovers', 'bddb_get_scovers' );
+	add_filter( 'manage_posts_columns', array($t,'get_admin_edit_headers'), 10, 2);
+	add_action( 'manage_movie_posts_custom_column', array($t, 'manage_movie_admin_columns'), 10, 2);
+    add_action( 'manage_book_posts_custom_column', array($t, 'manage_book_admin_columns'), 10, 2);
+	add_action( 'manage_game_posts_custom_column', array($t, 'manage_game_admin_columns'), 10, 2);
+	add_action( 'manage_album_posts_custom_column', array($t, 'manage_album_admin_columns'), 10, 2);
+	add_filter( 'manage_country_custom_column','bddb_country_content',10,3 );
+    add_filter( 'manage_edit-movie_sortable_columns', array($t, 'add_movie_sortable_columns'));
+    add_filter( 'manage_edit-book_sortable_columns', array($t, 'add_book_sortable_columns'));
+    add_filter( 'manage_edit-game_sortable_columns', array($t, 'add_game_sortable_columns'));
+    add_filter( 'manage_edit-album_sortable_columns', array($t, 'add_album_sortable_columns'));
+	//manage_{$this->screen->id}_sortable_columns
 }
+
 
 function bddb_scripts() {
 	if (is_page(array('moviesgallery','booksgallery','gamesgallery','albumsgallery'))) {

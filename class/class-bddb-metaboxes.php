@@ -18,6 +18,18 @@ echo '</body></html>';
 //exit();
 }
 
+function bddb_n_pos($del, $find, $n){
+	$start = 0;
+	for($i=0; $i < $n; ++$i) {
+		$pos = strpos($find, $del, $start);
+		if (false===$pos) {
+			return false;
+		}
+		$start = $pos;
+	}
+	return $start - 1;
+}
+
 /**
  * 编辑用模板类，不可直接创建对象
  */
@@ -49,7 +61,8 @@ class BDDB_Editor {
 			'min' => -1,
 			'max' => 9999,
 			'step' => 1,
-			'limit' => 0,
+			'limit' => 10,//TODO
+			'show_admin_column' => false,
 		);
 		$this->self_post_type = false;
 		$this->common_items = array(
@@ -93,6 +106,7 @@ class BDDB_Editor {
 											'comment'=>'<strong>*必填</strong>，不填默认为保存年月。',
 											'sanitize_callback' => array($this, 'sanitize_view_time'),
 											'placeholder' => '年年年年-月月',
+											'show_admin_column' => true,
 											),
 			'bddb_personal_rating' => array( 'name' => 'bddb_personal_rating',
 											'label' => '评分',
@@ -103,13 +117,13 @@ class BDDB_Editor {
 											'min' => '-1',
 											'max' => '100',
 											'placeholder' => '59',
+											'show_admin_column' => true,
 											),
 			'country' => array(				'name' => 'country',
 											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
 											'comment' => '',
-											'placeholder' => '大陆, 香港, 美国, 日本, etc',
 											),
 		);
 	}
@@ -239,6 +253,68 @@ class BDDB_Editor {
 		echo '</table></div>';
 	}
 	
+	public function get_admin_edit_headers($columns, $post_type) {
+		if (!$this->self_post_type){
+			if (!$this->set_working_mode($post_type)){
+				return $columns;
+			}
+		}
+		unset($columns['date']);
+		foreach ($this->total_items as $arg) {
+			if ($arg['show_admin_column']) {
+				$columns[$arg['name']] = $arg['label'];
+			}
+		}
+		$columns['date'] = 'Date';
+		return $columns;
+	}
+	public function manage_movie_admin_columns($column_name, $id){
+		$this->get_column('movie',$column_name, $id);
+	}
+	public function manage_book_admin_columns($column_name, $id){
+		$this->get_column('book',$column_name, $id);
+	}
+	public function manage_game_admin_columns($column_name, $id){
+		$this->get_column('game',$column_name, $id);
+	}
+	public function manage_album_admin_columns($column_name, $id){
+		$this->get_column('album',$column_name, $id);
+	}
+	private function get_column($post_type, $column_name, $id){
+		$this->set_working_mode($post_type);
+		if (!array_key_exists($column_name, $this->total_items)){
+			echo "not found";
+		}else{
+			$arg = $this->total_items[$column_name];
+			if ('meta'==$arg['type']) {
+				echo get_post_meta($id, $column_name, true);
+			} else {
+				echo $arg['type'];
+			}
+		}
+	}
+	public function add_movie_sortable_columns($columns){
+		return $this->set_sortalbe_columns('movie', $columns);
+	}
+	public function add_book_sortable_columns($columns){
+		return $this->set_sortalbe_columns('book', $columns);
+	}
+	public function add_game_sortable_columns($columns){
+		return $this->set_sortalbe_columns('game', $columns);
+	}
+	public function add_album_sortable_columns($columns){
+		return $this->set_sortalbe_columns('album', $columns);
+	}
+	private function set_sortalbe_columns($post_type, $columns){
+		$this->set_working_mode($post_type);
+		foreach($this->total_items as $arg) {
+			if ($arg['show_admin_column']){
+				$columns[$arg['name']] = $arg['name'];
+			}
+		}
+		return $columns;
+	}
+	
 	//优化函数
 	/**
 	 * 优化个人评分。
@@ -330,6 +406,13 @@ class BDDB_Editor {
 	 * @since 0.0.1
 	 */
 	protected function sanitize_name($str) {
+		if (strpos($str, ',')) {
+			$arr_person = explode(",", $str);
+			if (count($arr_person) > 10) {
+				$arr_person = array_slice($arr_person, 0, 10);
+				$str = implode(', ',$arr_person);
+			}
+		}		
 		return str_replace(".","·", $str);
 	}
 
@@ -789,6 +872,7 @@ class BDDB_Editor {
 											'max' => '9999.0',
 											'step' => '0.1',
 											'sanitize_callback' => array($this, 'sanitize_cost_time'),
+											'show_admin_column' => true,
 											),
 			'g_score_ign'	=>		array(	'name' => 'g_score_ign',
 											'label' => 'IGN评分',
