@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.1.2
+ * Version:     0.1.3
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -24,7 +24,7 @@ register_deactivation_hook( __FILE__,'bddb_plugin_deactivation' );
 register_uninstall_hook(__FILE__, 'bddb_plugin_uninstall');
 
 require_once( BDDB_PLUGIN_DIR . '/bddb-funcs.php');
-require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-metaboxes.php');
+require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-editor.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-douban-fecther.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-image.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-templates.php');
@@ -319,13 +319,14 @@ function bddb_check_post_type() {
 			'singular_name'			=> ucfirst($bddb_type['slug']),
             'add_new_item'         => sprintf('Add new %s', $bddb_type['slug']),
 			'all_items'				=> sprintf('All %s', $bddb_type['label']),
-			'edit_item'				=> sprintf('Edit %s', $bddb_type['label']),
+			'edit_item'				=> sprintf('Edit %s', ucfirst($bddb_type['slug'])),
+			'search_items'				=> sprintf('Search %s', $bddb_type['label']),
         );
         $arg = array(
             'label'                 => $bddb_type['label'],
             'labels'                => $labels,
             'public'                => true,
-            'publicly_queryable'    => true,
+            'publicly_queryable'    => false,
             'exclude_from_search'   => true,
             'show_in_rest'          => false,
             'register_meta_box_cb'  => 'bddb_add_common_meta_box',
@@ -333,7 +334,9 @@ function bddb_check_post_type() {
             'menu_icon'           => $bddb_type['icon'],
             'supports'              => array('title', 'editor'),
             'taxonomies'            => $bddb_type['taxonomies'],
-            'has_archive'           => true,
+            'has_archive'           => false,
+			'show_ui'				=> true,
+			'query_var'				=> $bddb_type['slug'],
             'rewrite'               => array('feeds'=>false,'pages'=>false,'with_front'=>false),
         );
         register_post_type( $bddb_type['slug'], $arg);
@@ -520,8 +523,32 @@ function bddb_get_scovers(){
 	}
 }
 
+function bddb_redefine_country_header($columns) {
+	unset($columns['posts']);
+	$columns['real_count'] = "CountA";
+	$columns['posts'] = "Count";
+	return $columns;
+}
+
 function bddb_country_content( $value, $column_name, $tax_id ){
-	return "111-";
+	if ('real_count' !== $column_name) {
+		echo $value;
+	}
+	global $post_type;
+	$args = array(
+			'post_type' => $post_type,
+			'numberposts' => -1,
+			'post_status' => 'publish',
+			'fields' => 'ids',
+			'tax_query'=> array(
+				array(
+					'taxonomy' => 'country',
+					'terms' => $tax_id,
+					),
+			),
+		);
+	$ids = get_posts($args);
+	echo count($ids);
 }
 
 function bddb_sort_custom_column_query($query){
@@ -578,12 +605,12 @@ function bddb_admin_init() {
     add_action( 'manage_book_posts_custom_column', array($t, 'manage_book_admin_columns'), 10, 2);
 	add_action( 'manage_game_posts_custom_column', array($t, 'manage_game_admin_columns'), 10, 2);
 	add_action( 'manage_album_posts_custom_column', array($t, 'manage_album_admin_columns'), 10, 2);
+	add_filter( "manage_edit-country_columns", 'bddb_redefine_country_header');
 	add_filter( 'manage_country_custom_column','bddb_country_content',10,3 );
     add_filter( 'manage_edit-movie_sortable_columns', array($t, 'add_movie_sortable_columns'));
     add_filter( 'manage_edit-book_sortable_columns', array($t, 'add_book_sortable_columns'));
     add_filter( 'manage_edit-game_sortable_columns', array($t, 'add_game_sortable_columns'));
     add_filter( 'manage_edit-album_sortable_columns', array($t, 'add_album_sortable_columns'));
-	//manage_{$this->screen->id}_sortable_columns
 }
 
 
