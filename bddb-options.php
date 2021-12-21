@@ -68,9 +68,17 @@ function bddb_settings_init(  ) {
 
   //01
   add_settings_field(
-  'basic_setting',
+  'basic_folder_setting',
   '目录设定',
   'bddb_basic_setting_render',
+  'bddb_option_tab',
+  'bddb_pluginPage_section'
+  );
+  
+  add_settings_field(
+  'basic_poster_setting',
+  '图片设定',
+  'bddb_poster_render',
   'bddb_option_tab',
   'bddb_pluginPage_section'
   );
@@ -87,23 +95,23 @@ function bddb_settings_init(  ) {
 	);  
   
   add_settings_field(
-  'test_field_settings',
-  '书籍预留',
-  'bddb_test_field_render',
+  'bddb_b_max_serial_count',
+  '系列书籍有效本数',
+  'bddb_b_max_serial_count_render',
   'bddb_book_tab',
   'bddb_book_section'
   );
   
   add_settings_field(
-  'test_field_settings',
-  '游戏预留',
-  'bddb_test_field_render',
+  'bddb_g_giantbomb_key',
+  'GiantBomb Auth KEY',
+  'bddb_g_giantbomb_key_render',
   'bddb_game_tab',
   'bddb_game_section'
   );
   
   add_settings_field(
-  'test_field_settings',
+  'bddb_a_poster_setting',
   '专辑预留',
   'bddb_test_field_render',
   'bddb_album_tab',
@@ -160,26 +168,20 @@ function bddb_text_field_0_render(  ) {
 
 }
 
-function bddb_color_setting_render(  ) {
-  //01
-  $options = get_option( 'bddb_settings' );
+function bddb_basic_setting_render(  ) {
+  //03
+	global $global_option_class;
+	$options = $global_option_class->get_options();
   ?>
-  <span> 自定义链接颜色：</span>
-  <input type= 'text' name='bddb_settings[link_color]' id='link-color'  value='<?php if ( isset( $options['link_color'] ) ) echo $options['link_color']; else echo " #1A5F99"; ?>' /><br />
-  <span> 自定义文字颜色：</span>
-  <input type= 'text' name='bddb_settings[font_color]' id='font-color'  value='<?php if ( isset( $options['font_color'] ) ) echo $options['font_color']; else echo " #0A161F"; ?>' /><br />
-  <span> 自定义边框颜色：</span>
-  <input type= 'text' name='bddb_settings[border_color]' id='border-color'  value='<?php if ( isset( $options['border_color'] ) ) echo $options['border_color']; else echo " #8A8988"; ?>' /><br />
-  <span> 自定义背景颜色：</span>
-  <input type= 'text' name='bddb_settings[bg_color]' id='bg-color'  value='<?php if ( isset( $options['bg_color'] ) ) echo $options['bg_color']; else echo " #ECE5DF"; ?>' /><br />
-  <span> 自定义标签云链接颜色：</span>
-  <input type= 'text' name='bddb_settings[tagcloud_link_color]' id='tagcloud-link-color'  value='<?php if ( isset( $options['tagcloud_link_color'] ) ) echo $options['tagcloud_link_color']; else echo " #ea3382"; ?>' /><br />
-  <span> 自定义标签云背景颜色：</span>
-  <input type= 'text' name='bddb_settings[tagcloud_bg_color]' id='tagcloud-bg-color'  value='<?php if ( isset( $options['tagcloud_bg_color'] ) ) echo $options['tagcloud_bg_color']; else echo " #9eccef"; ?>' /><br />
+  <span>当前TAX版本号：</span>
+  <input type='text' name='bddb_settings["tax_version"]' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
+  <span>当前TYPE版本号：</span>
+  <input type='text' name='bddb_settings["type_version"]' size='24' value='<?php echo $options['type_version']; ?>'/>
   <?php
 }
 
-function bddb_basic_setting_render(  ) {
+
+function bddb_basic_setting_render1(  ) {
   //03
 	global $global_option_class;
 	$options = $global_option_class->get_options();
@@ -198,14 +200,44 @@ function bddb_basic_setting_render(  ) {
   <?php
 }
 
+function bddb_poster_render() {
+	global $global_option_class;
+	$options = $global_option_class->get_options();
+?>
+	<span>图像宽度：</span><input type='text' name='bddb_settings[poster_width]' size='24' value='<?php echo $options['poster_width']; ?>'/><br />
+	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' size='24' value='<?php echo $options['thumbnail_width']; ?>'/></br>
+	<span>海报宽高比: 1:1.48</span>
+<?php
+}
+
 function bddb_m_omdb_key_render()
 {
   //08
 	global $global_option_class;
 	$options = $global_option_class->get_options();
 ?>
-	<span>CODE:myimdb</span></td><td>
 	<input type='text' name='bddb_settings[m_omdb_key]' size='64' value='<?php echo $options['m_omdb_key']; ?>'/>
+<?php
+}
+
+function bddb_b_max_serial_count_render()
+{
+  //08
+	global $global_option_class;
+	$options = $global_option_class->get_options();
+?>
+	<input type='text' name='bddb_settings[b_max_serial_count]' size='64' value='<?php echo $options['b_max_serial_count']; ?>'/>
+<?php
+}
+
+
+function bddb_g_giantbomb_key_render()
+{
+  //08
+	global $global_option_class;
+	$options = $global_option_class->get_options();
+?>
+	<input type='text' name='bddb_settings[g_giantbomb_key]' size='64' value='<?php echo $options['g_giantbomb_key']; ?>'/>
 <?php
 }
 

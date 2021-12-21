@@ -1,7 +1,6 @@
 <?php
 
 add_action('admin_print_footer_scripts','bddb_quicktags');
-add_action( 'transition_post_status', 'bddb_content_filter', 10, 3 );
 
 function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) { 
 	$start=$n; //从第n个位置开始查找
@@ -47,10 +46,6 @@ function bddb_the_content() {
         return;
     }
 	$post_ID = $post->ID;
-	if (!class_exists('BDDB_Common_Template')) {
-		echo "<p>tffesting...</p>";
-		return;
-	}
 	$tl = new BDDB_Common_Template($post->post_type);
 	echo $tl->get_content();
 }
@@ -67,73 +62,9 @@ function bddb_the_gallery($post_type) {
 function bddb_quicktags(){
 ?>
 	<script type="text/javascript" charset="utf-8">
-	QTags.addButton( 'eg_bddb', 'BDDbItem', '[bddbitem id=\'', '\' got=\'no\' summary=\'\' /]', 'p' );
 	QTags.addButton( 'eg_bddbr', 'BDDbRd', '[bddbr id=\'', '\' /]', 'p' );
 	</script>
 <?php
-}
-
-function bddb_content_filter($new_status, $old_status, $post) {
-	if ( 'post' !== $post->post_type && 'page' !== $post->post_type) {
-        return;
-    }
-	if (!class_exists('BDDB_Common_Template')){
-		return;
-	}
-	$my_content = $post->post_content;
-    $fix_to = "";
-    if ( "draft" == $new_status || "publish" == $new_status || "private" == $new_status) {
-        preg_match_all('/\[bddbitem.+[^\]]/', $post->post_content, $matches);
-        if ( !is_array($matches) || empty($matches) ) {
-            return;
-        }
-		foreach ($matches[0] as $hit) {
-			unset($id);
-			unset($got);
-			unset($summary);
-			//id
-            preg_match('/(?<=id=\').*?(?=\')/', $hit, $keys);
-            if(!is_array($keys) || count($keys) == 0 || trim($keys[0])== "") {
-                continue;
-            }
-            $id = trim($keys[0]);
-			
-			preg_match('/(?<=got=\').*?(?=\')/', $hit, $keys);
-            if(!is_array($keys) || count($keys) == 0 || trim($keys[0])== "") {
-                continue;
-            }
-			$got = trim($keys[0]);
-			if('no'!=$got) {
-				continue;
-			}
-			//print_r(debug_backtrace());
-			$tl = new BDDB_Common_Template('auto', $id);
-			$summary=$tl->get_summary();
-			$fix_to = sprintf("[bddbitem id='%s' got='yes' summary='%s']", $id, $summary);
-			$hit = trim($hit);
-			$my_content = str_replace($hit, $fix_to, $my_content);
-		}//end foreach
-		if ($fix_to !== "") {
-            //防止无限循环
-            remove_action( 'transition_post_status', 'bddb_content_filter', 10 );
-			if (function_exists('apip_fix_shortcodes')){
-				remove_filter( 'the_content', 'apip_fix_shortcodes' );
-			}
-            wp_update_post(array("ID"=>$post->ID, "post_content"=> $my_content));
-            add_action( 'transition_post_status', 'bddb_content_filter', 10, 3 );
-			if (function_exists('apip_fix_shortcodes')){
-				add_filter( 'the_content', 'apip_fix_shortcodes');
-			}
-        }
-	}
-}
-
-function bddb_shortcode_transfer($atts, $content = null){
-	extract( $atts );
-	if ("yes"!=$got) {
-		return '';
-	}
-	return $summary;
 }
 
 function bddb_real_transfer($atts, $content = null){
@@ -141,4 +72,39 @@ function bddb_real_transfer($atts, $content = null){
 	$tl = new BDDB_Common_Template('auto', $id);
 	$summary=$tl->get_summary();
 	return $summary;
+}
+
+function bddb_get_poster_names($post_type, $ID) {
+	$ret = array();
+	$name = sprintf("%s_%013d.jpg", $post_type, $ID);
+	$s = new BDDB_Settings();
+	$dir_o = $s->get_default_folder();
+	$gallery_dir = ABSPATH.$dir_o;
+	$gallery_url = home_url('/',is_ssl()?'https':'http').$dir_o;
+	$rel_url = str_replace(home_url(), '', $gallery_url);
+	$rel_plugin_url = str_replace(home_url(), '', BDDB_PLUGIN_URL);
+	if (bddb_is_debug_mode()){
+		$rel_url = str_replace('http://localhost', '', $gallery_url);
+		$rel_plugin_url = str_replace('http://localhost', '', BDDB_PLUGIN_URL);
+	}
+	$ret['short_name'] = $name;
+	$ret['gallery_dir'] = $gallery_dir;
+	$ret['thumb_dir'] = $gallery_dir.'thumbnails/';
+	$ret['poster_name'] = $gallery_dir .$name;
+	$ret['thumb_name'] = $gallery_dir.'thumbnails/'.$name;
+	$ret['thumb_series_front'] = $gallery_dir.'thumbnails/'.sprintf("%s_%013d_", $post_type, $ID);
+	$ret['poster_url'] = $rel_url .$name;
+	$ret['thumb_url'] = $rel_url.'thumbnails/'.$name;
+	$ret['thumb_url_front'] = $rel_url.'thumbnails/';
+	$poster_width = $s->get_poster_width();
+	$poster_height = $s->get_poster_height();
+	$thumb_width = $s->get_thumbnail_width();
+	$thumb_height = $s->get_thumbnail_height();
+	if ('album' == $post_type) {
+		$poster_height = $poster_width;
+		$thumb_height = $thumb_width;
+	}
+	$ret['nopic_thumb_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $thumb_width, $thumb_height );
+	$ret['nopic_poster_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $poster_width, $poster_height );
+	return (object)$ret;
 }

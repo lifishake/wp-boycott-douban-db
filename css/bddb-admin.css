@@ -6,3 +6,14 @@
     line-height: 1.25;
 	cursor: pointer;
 }
+
+#bddb-recent-dashboard ul span,
+#movie-recent-dashboard ul span,
+#book-recent-dashboard ul span,
+#game-recent-dashboard ul span,
+#album-recent-dashboard ul span{
+	display: inline-block;
+	margin-right: 5px;
+	min-width: 150px;
+	color: #72777c;
+}

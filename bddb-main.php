@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.1.3
+ * Version:     0.1.4
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -28,6 +28,7 @@ require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-editor.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-douban-fecther.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-image.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-templates.php');
+require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 
 function bddb_is_debug_mode()
 {
@@ -244,42 +245,39 @@ function bddb_check_taxonomy()
 
     );
     foreach ($check_taxonomies as $chk_tax) {
-            //if (!taxonomy_exists($chk_tax['tax'])) {
-                $labels = array( 'name'             => $chk_tax['label'],
-                                 'singular_name'    => $chk_tax['slug'],
-                                 'search_items'     => sprintf('Search %s',$chk_tax['complex_name']),
-                                 'popular_items'    => sprintf('Popular %s',$chk_tax['complex_name']),
-                                 'all_items'        => sprintf('All %s',$chk_tax['complex_name']),
-                                 'edit_item'        => sprintf('Edit %s',$chk_tax['label']),
-                                 'update_item'      => sprintf('Update %s',$chk_tax['label']),
-                                 'add_new_item'     => sprintf('Add New %s',$chk_tax['label']),
-                                 'new_item_name'    => sprintf('%s Name',$chk_tax['label']),
-                                 'add_or_remove_items'   => sprintf('Add or Remove %s',$chk_tax['label']),
-                                 'choose_from_most_used'=> sprintf('Choose from most used %s',strtolower($chk_tax['complex_name'])),'separate_items_with_commas' => sprintf('Separate %s with commas',strtolower($chk_tax['complex_name'])),
-                                 'menu_name'        => ucfirst($chk_tax['complex_name']),
-                                );
-                $arg = array (
-                    'label' => $chk_tax['label'],
-                    'labels' => $labels,
-                    'public' => false,
-                    'meta_box_cb' => false,
-                    'show_ui' => true,
-                    'show_in_nav_menus' => false,
-                    'show_tagcloud' => false,
-                    'show_admin_column' => $chk_tax['show_admin_column'],
-                    'show_in_rest' => false,
-                );
-                register_taxonomy($chk_tax['tax'],$chk_tax['obj'],$arg);
-            //}
+		$labels = array( 
+			'name'             => $chk_tax['label'],
+			 'singular_name'    => $chk_tax['slug'],
+			 'search_items'     => sprintf('Search %s',$chk_tax['complex_name']),
+			 'popular_items'    => sprintf('Popular %s',$chk_tax['complex_name']),
+			 'all_items'        => sprintf('All %s',$chk_tax['complex_name']),
+			 'edit_item'        => sprintf('Edit %s',$chk_tax['label']),
+			 'update_item'      => sprintf('Update %s',$chk_tax['label']),
+			 'add_new_item'     => sprintf('Add New %s',$chk_tax['label']),
+			 'new_item_name'    => sprintf('%s Name',$chk_tax['label']),
+			 'add_or_remove_items'   => sprintf('Add or Remove %s',$chk_tax['label']),
+			 'menu_name'        => ucfirst($chk_tax['complex_name']),
+		);
+		$arg = array (
+			'label' => $chk_tax['label'],
+			'labels' => $labels,
+			'public' => false,
+			'meta_box_cb' => false,
+			'show_ui' => true,
+			'show_in_nav_menus' => false,
+			'show_tagcloud' => false,
+			'show_admin_column' => $chk_tax['show_admin_column'],
+			'show_in_rest' => false,
+		);
+		register_taxonomy($chk_tax['tax'],$chk_tax['obj'],$arg);
     };
 }
 
-/**/
+/*自定义post_type的meta_box的回调函数*/
 function bddb_add_common_meta_box($post) {
 	$post_type = $post->post_type;
-	$settings = array('base_url' => BDDB_GALLERY_URL, 'base_dir' => BDDB_GALLERY_DIR, 'plugin_url' => BDDB_PLUGIN_URL);
-	$template = new BDDB_Editor($settings);
-	$template->add_meta_box($post_type);
+	$template = new BDDB_Editor($post_type);
+	$template->add_meta_box();
 }
 
 /*检查自定义类型*/
@@ -317,7 +315,7 @@ function bddb_check_post_type() {
     foreach( $bddb_post_types as $bddb_type) {
         $labels = array(
 			'singular_name'			=> ucfirst($bddb_type['slug']),
-            'add_new_item'         => sprintf('Add new %s', $bddb_type['slug']),
+            'add_new_item'         => sprintf('Add new %s', ucfirst($bddb_type['slug'])),
 			'all_items'				=> sprintf('All %s', $bddb_type['label']),
 			'edit_item'				=> sprintf('Edit %s', ucfirst($bddb_type['slug'])),
 			'search_items'				=> sprintf('Search %s', $bddb_type['label']),
@@ -343,6 +341,7 @@ function bddb_check_post_type() {
     }
 }
 
+/*创建目录*/
 function bddb_create_dir($dir) {
 	if (file_exists ($dir)) {
         if (! is_writeable ( $dir )) {
@@ -353,12 +352,41 @@ function bddb_create_dir($dir) {
     }
 }
 
+/*创建必须文件*/
+function bddb_create_nopic($width, $height) {
+	if ($width == $height){
+		$src = sprintf("%s/img/nocover_square.png", BDDB_PLUGIN_DIR);
+	}else{
+		$src = sprintf("%s/img/nocover_oblone.png", BDDB_PLUGIN_DIR);
+	}
+	$dest = sprintf("%s/img/nocover_%s_%s.png", BDDB_PLUGIN_DIR, $width, $height);
+	if (file_exists ($dest)) {
+		return;
+	}
+	print_r($dest);
+	$image = new Bddb_SimpleImage();
+	$image->load($src);
+	$image->resize($width,$height);
+	$image->save($dest);
+}
+
 /*插件激活*/
 function bddb_plugin_activation() {
-	$dirs = array(BDDB_GALLERY_DIR, BDDB_GALLERY_DIR."thumbnails/");
-	foreach ($dirs as $dir) {
-		bddb_create_dir($dir);
-	}
+	
+}
+
+/*检查路径，检查默认文件*/
+function bddb_check_paths(){
+	$s = new BDDB_Settings();
+	$dir_o = $s->get_default_folder();
+	$gallery_dir= ABSPATH.$dir_o;
+	$thumb_dir = $gallery_dir."thumbnails/";
+	bddb_create_dir($gallery_dir);
+	bddb_create_dir($thumb_dir);
+	bddb_create_nopic($s->get_poster_width(),$s->get_poster_width());
+	bddb_create_nopic($s->get_poster_width(),$s->get_poster_height());
+	bddb_create_nopic($s->get_thumbnail_width(),$s->get_thumbnail_width());
+	bddb_create_nopic($s->get_thumbnail_width(),$s->get_thumbnail_height());
 }
 
 /*插件反激活*/
@@ -386,13 +414,13 @@ function bddb_settings_link($action_links, $plugin_file){
     }
     return $action_links;
 }
-add_filter('plugin_action_links','bddb_settings_link',10,2);
 
-/*变量初期化*/
+/*变量初期化， 更早*/
 add_action('plugins_loaded', 'bddb_init', 11);
 function bddb_init()
 {
-    global $wpdb;
+    bddb_check_paths();
+	add_action('admin_init','bddb_admin_init');
 
 }
 
@@ -401,17 +429,12 @@ add_action('init', 'bddb_init_actions', 11);
 /* Plugin页面追加配置选项 */
 function bddb_init_actions()
 {   
-    bddb_check_taxonomy();
+	bddb_check_taxonomy();
     bddb_check_post_type();
-	if (is_admin()) {
-		add_action('admin_init','bddb_admin_init');
-	}
 	//js和css加载
     add_action( 'wp_enqueue_scripts', 'bddb_scripts' );
 	//Quick Tag追加
-	add_shortcode('bddbitem', 'bddb_shortcode_transfer');
     add_shortcode('bddbr', 'bddb_real_transfer');
-	//manage_$post_type_posts_custom_column 
 }
 
 /*取豆瓣信息的ajax回调函数*/
@@ -435,97 +458,10 @@ function bddb_douban_fetch() {
 
 }
 
-/*取封面的ajax回调函数*/
-function bddb_get_pic() {
-	if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
-		die();
-	}
-	if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-pic-".$_POST['id'])) { 
-		die();
-	}
-	$poster_name = sprintf("%s_%013d.jpg", $_POST['ptype'], $_POST['id']);
-	$poster_full_name = BDDB_GALLERY_DIR.$poster_name;
-	$thumbnail_full_name = BDDB_GALLERY_DIR.'thumbnails/'.$poster_name;
-	if (file_exists($poster_full_name)) {
-		unlink($poster_full_name);
-	}
-	if (file_exists($thumbnail_full_name)) {
-		unlink($thumbnail_full_name);
-	}
-	$response = @wp_remote_get( 
-            htmlspecialchars_decode($_POST['piclink']), 
-            array( 
-                'timeout'  => 3000, 
-                'stream'   => true, 
-                'filename' => $poster_full_name 
-            ) 
-        );
-	if ( is_wp_error( $response ) )
-	{
-		return false;
-	}
-	$full_width = 400;
-	$full_height = 592;
-	if ('album' == $_POST['ptype']) {
-		$full_height = 400;
-	}
-	$image = new Bddb_SimpleImage();
-	$image->load($poster_full_name);
-	$image->resize($full_width, $full_height);
-	$image->save($poster_full_name);
-	$image->resize($full_width/4, $full_height/4);
-	$image->save($thumbnail_full_name);
-}
-
 /*取系列多缩略图的ajax回调函数*/
-function bddb_get_scovers(){
-    if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
-		die();
-	}
-	if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-scovers-".$_POST['id'])) { 
-		die();
-	}
-    $tl = new BDDB_Common_Template($_POST['ptype']);
-    $po = get_post($_POST['id']);
-    $obj_names = $tl->get_poster_names($po);
-	print_r($obj_names);
-	$slinks = $_POST['slinks'];
-	print_r($slinks);
-	$parts = explode(";", $slinks);
-	print_r($parts);
-    $serial_count = min(count($parts),18,$_POST['stotal']);
-	for($i=0;$i<18;++$i) {
-		//$dest = sprintf($obj_names['scover_name_template'],$i);
-		$dest = BDDB_GALLERY_DIR.'thumbnails/'. sprintf("%s_%013d_%02d.jpg", $po->post_type, $po->ID, $i);
-		if (file_exists($dest))
-			unlink($dest);
-	}
-	for($i=0;$i<$serial_count;++$i) {
-		//$dest = sprintf($obj_names['scover_name_template'],$i);
-		$dest = BDDB_GALLERY_DIR.'thumbnails/'. sprintf("%s_%013d_%02d.jpg", $po->post_type, $po->ID, $i);
-		$src = $parts[$i];
-		$response = @wp_remote_get( 
-            htmlspecialchars_decode($src), 
-            array( 
-                'timeout'  => 3000, 
-                'stream'   => true, 
-                'filename' => $dest 
-            ) 
-        );
-		if ( is_wp_error( $response ) )
-		{
-			continue;
-		}
-		$image = new Bddb_SimpleImage();
-		$image->load($dest);
-		$image->resize(100, 148);
-		$image->save($dest);
-	}
-}
-
 function bddb_redefine_country_header($columns) {
 	unset($columns['posts']);
-	$columns['real_count'] = "CountA";
+	$columns['real_count'] = "实数";
 	$columns['posts'] = "Count";
 	return $columns;
 }
@@ -551,55 +487,14 @@ function bddb_country_content( $value, $column_name, $tax_id ){
 	echo count($ids);
 }
 
-function bddb_sort_custom_column_query($query){
-    $orderby = $query->get( 'orderby' );
-
-    if ( 'bddb_view_time' == $orderby ) {
-
-        $meta_query = array(
-            'relation' => 'OR',
-            array(
-                'key' => 'bddb_view_time',
-                'compare' => 'NOT EXISTS', // see note above
-            ),
-            array(
-                'key' => 'bddb_view_time',
-            ),
-        );
-
-        $query->set( 'meta_query', $meta_query );
-        $query->set( 'orderby', 'meta_value' );
-    }
-    if ( 'bddb_personal_rating' == $orderby ) {
-
-        $meta_query = array(
-            'relation' => 'OR',
-            array(
-                'key' => 'bddb_personal_rating',
-                'compare' => 'NOT EXISTS', // see note above
-                'type' => 'numeric',
-            ),
-            array(
-                'key' => 'bddb_personal_rating',
-            ),
-        );
-
-        $query->set( 'meta_query', $meta_query );
-        $query->set( 'orderby', 'meta_value' );
-    }
-}
-
-add_action( 'pre_get_posts', 'bddb_sort_custom_column_query' );
-
 function bddb_admin_init() {
-	$settings = array('base_url' => BDDB_GALLERY_URL, 'base_dir' => BDDB_GALLERY_DIR, 'plugin_url' => BDDB_PLUGIN_URL);
-	$t = new BDDB_Editor($settings);
+	$t = new BDDB_Editor();
 	add_action ( 'save_post', array($t, 'update_all_items'), 10, 2);
 	add_filter ( 'wp_insert_post_data', array($t, 'generate_content'), 10, 2);
 	add_action( 'admin_enqueue_scripts', 'bddb_admin_scripts' );
 	add_action( 'wp_ajax_bddb_douban_fetch', 'bddb_douban_fetch' );
-	add_action( 'wp_ajax_bddb_get_pic', 'bddb_get_pic' );
-    add_action( 'wp_ajax_bddb_get_scovers', 'bddb_get_scovers' );
+	add_action( 'wp_ajax_bddb_get_pic', array($t, 'download_pic') );
+    add_action( 'wp_ajax_bddb_get_scovers', array($t, 'download_serial_pics'));
 	add_filter( 'manage_posts_columns', array($t,'get_admin_edit_headers'), 10, 2);
 	add_action( 'manage_movie_posts_custom_column', array($t, 'manage_movie_admin_columns'), 10, 2);
     add_action( 'manage_book_posts_custom_column', array($t, 'manage_book_admin_columns'), 10, 2);
@@ -611,8 +506,17 @@ function bddb_admin_init() {
     add_filter( 'manage_edit-book_sortable_columns', array($t, 'add_book_sortable_columns'));
     add_filter( 'manage_edit-game_sortable_columns', array($t, 'add_game_sortable_columns'));
     add_filter( 'manage_edit-album_sortable_columns', array($t, 'add_album_sortable_columns'));
+	add_action( 'wp_user_dashboard_setup','bddb_dashboard_widget');
+	add_action( 'wp_dashboard_setup','bddb_dashboard_widget');
+	add_action( 'pre_get_posts', array($t, 'sort_custom_column_query') );
+	add_filter('plugin_action_links','bddb_settings_link',10,2);
 }
 
+
+function bddb_dashboard_widget() {
+	$t = new BDDB_Editor();
+	wp_add_dashboard_widget( 'dashboard_bddb_recent', 'BDDb', array($t, 'dashboard_widget_div') );
+}
 
 function bddb_scripts() {
 	if (is_page(array('moviesgallery','booksgallery','gamesgallery','albumsgallery'))) {
