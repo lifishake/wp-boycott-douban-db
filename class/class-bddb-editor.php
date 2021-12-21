@@ -3,10 +3,9 @@
 后台编辑用类
 */
 
-define ('OBLONG_THUMB_WIDTH', 100);
-define ('OBLONG_THUMB_HEIGHT', 148);
-define ('SQUARE_THUMB_WIDTH', 100);
-define ('SQUARE_THUMB_HEIGHT', 100);
+if (!class_exists('BDDB_Settings')) {
+	require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
+}
 
 function alert($message,$url='',$isAlert=true,$title='提示'){
 echo '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>',$title,'</title></head><body>';
@@ -36,19 +35,19 @@ function bddb_n_pos($del, $find, $n){
 class BDDB_Editor {
 	//成员列表
 	protected $common_items;		/*四种档案都包括的共通项目*/
-	protected $settings;			/*保留*/
 	protected $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
-	protected $box_title;			/*编辑盒子的标题,初始为空,待子类覆盖*/
 	protected $self_post_type;			/*档案自身的种类*/
 	protected $default_item;
+	protected $options;
 	/**
 	 * 构造函数。
 	 * @access protected
 	 * @param	array	$settings	reserved
 	 * @since 0.0.1
 	 */
-	public function __construct($settings){
-		$this->settings = $settings;
+	public function __construct($post_type = false){
+		$this->settings = false;
+		$this->options = false;
 		$this->default_item = array(
 			'name' => '',
 			'label' => '',
@@ -126,6 +125,9 @@ class BDDB_Editor {
 											'comment' => '',
 											),
 		);
+		if (!empty($post_type) && in_array($post_type, array('movie', 'book', 'game', 'album'))) {
+			$this->set_working_mode($post_type);
+		}
 	}
 	
 	//外部接口
@@ -134,9 +136,9 @@ class BDDB_Editor {
 	 * @access public
 	 * @since 0.0.1
 	 */
-	public function add_meta_box($post_type) {
-		if (empty($this->self_post_type)){
-			$this->set_working_mode($post_type);
+	public function add_meta_box() {
+		if(!$this->self_post_type) {
+			return;
 		}
 		switch($this->self_post_type){
 			case 'movie':
@@ -155,7 +157,7 @@ class BDDB_Editor {
 			return;
 		}
 		$title = sprintf("完善%s信息", $addi);
-		add_meta_box('bddbstsdiv', '状态显示', array($this, 'show_status_meta_box'));
+		add_meta_box('bddbstsdiv', '状态显示', array($this, 'show_status_meta_box'), NULL, 'side');
 		add_meta_box('bddbcommondiv', $title, array($this, 'show_meta_box'));
 	}
 	
@@ -166,14 +168,14 @@ class BDDB_Editor {
 	 * @since 0.0.1
 	 */
 	public function show_status_meta_box($post) {
-		$dir = BDDB_GALLERY_DIR;
-		$thumb_name = sprintf("%sthumbnails/%s_%013d.jpg", $dir, $post->post_type, $post->ID);
+		$names = bddb_get_poster_names($post->post_type, $post->ID);
+		$thumb_name = $names->thumb_name;
 		$is_got_thumb= is_file($thumb_name);
-		$thumb_image_src = BDDB_GALLERY_URL.sprintf("thumbnails/%s_%013d.jpg",$post->post_type, $post->ID);
+		$thumb_url = $names->thumb_url;
 		if ($is_got_thumb) {
-			$thumb_src = $thumb_image_src;
+			$thumb_src = $thumb_url;
 		} else {
-			$thumb_src = BDDB_PLUGIN_URL.sprintf("img/nocover_%d_%d.png", $this->settings['thumb_width'], $this->settings['thumb_height']);
+			$thumb_src = $names->nopic_thumb_url;
 		}
 		$val_str='';
 		if ('movie' == $post->post_type) {
@@ -379,6 +381,118 @@ class BDDB_Editor {
 		return $this->set_sortalbe_columns('album', $columns);
 	}
 	
+	public function dashboard_widget_div() {
+		echo '<div id="bddb-recent-widget">';
+		$bddb_types = array('movie', 'book', 'game', 'album');
+		$quary_args = array(
+				'post_type' => $bddb_types,
+				'numberposts' => 20,
+				'post_status' => 'publish',
+				'orderby' => 'modified',
+				'order' => 'DESC',
+		);
+		$last_year_t = strtotime( '-1 year', current_time( 'timestamp' ) );
+		$bddb_posts = get_posts($quary_args);
+		if (is_wp_error($bddb_posts) || count($bddb_posts) == 0) {
+			echo 'Noting found.';
+		} else {
+			echo '<div id="bddb-recent-dashboard" class="activity-block">';
+			echo '<h3> Recent Records </h3>';
+			echo '<ul>';
+			foreach ($bddb_posts as $p) {
+				$draft_or_post_title = _draft_or_post_title($p->ID);
+				$modify_time_t = strtotime($p->post_modified);
+				if ($modify_time_t > $last_year_t) {
+					$relative = date('m-d H:i', $modify_time_t);
+				}else{
+					$relative = date('Y-m-d', $modify_time_t);
+				}
+				printf(
+					'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
+					$relative,
+					get_edit_post_link($p->ID),
+					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
+					$draft_or_post_title
+				);
+			}
+			echo '</ul>';
+			echo '</div>';
+			
+			$exclude_ids = array_map(create_function('$o', 'return $o->ID;'), $bddb_posts);
+			$quary_args['post__not_in'] = $exclude_ids;
+			$quary_args['numberposts'] = 5;
+
+			foreach ($bddb_types as $my_type) {
+				$quary_args['post_type'] = $my_type;
+				$bddb_posts = get_posts($quary_args);
+				if (is_wp_error($bddb_posts) || count($bddb_posts) == 0) {
+					continue;
+				}
+				echo '<div id="' . $my_type . '-recent-dashboard" class="activity-block">';
+				echo '<h3> Recent ' . ucfirst($my_type) . 's </h3>';
+				echo '<ul>';
+				foreach ($bddb_posts as $p) {
+					$draft_or_post_title = _draft_or_post_title($p->ID);
+					$publish_time_t = strtotime($p->post_date);
+					if ($publish_time_t > $last_year_t) {
+						$relative = date('m-d H:i', $publish_time_t);
+					}else{
+						$relative = date('Y-m-d', $publish_time_t);
+					}
+					printf(
+						'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
+						$relative,
+						get_edit_post_link($p->ID),
+						esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
+						$draft_or_post_title
+					);
+				}
+				echo '</ul>';
+				echo '</div>';
+			}
+		}
+		
+		echo '</div>';
+	}
+	
+	public function sort_custom_column_query($query){
+		$orderby = $query->get( 'orderby' );
+
+		if ( 'bddb_view_time' == $orderby ) {
+
+			$meta_query = array(
+				'relation' => 'OR',
+				array(
+					'key' => 'bddb_view_time',
+					'compare' => 'NOT EXISTS', // see note above
+				),
+				array(
+					'key' => 'bddb_view_time',
+				),
+			);
+
+			$query->set( 'meta_query', $meta_query );
+			$query->set( 'orderby', 'meta_value' );
+		}
+		if ( 'bddb_personal_rating' == $orderby ) {
+
+			$meta_query = array(
+				'relation' => 'OR',
+				array(
+					'key' => 'bddb_personal_rating',
+					'compare' => 'NOT EXISTS', // see note above
+					'type' => 'numeric',
+				),
+				array(
+					'key' => 'bddb_personal_rating',
+				),
+			);
+
+			$query->set( 'meta_query', $meta_query );
+			$query->set( 'orderby', 'meta_value' );
+		}
+	}
+	
 	/**
 	 * 后台类别列表增加排序属性。
 	 * @access private
@@ -436,7 +550,7 @@ class BDDB_Editor {
 	 */
 	protected function sanitize_personal_review($str) {
 		if ($str == "" && isset($_POST['bddb_display_name'])) {
-			$str = "《".htmlentities($_POST['bddb_display_name'])."》实在是无聊到无语。";
+			$str = "没有评价。";
 		}
 		return $str;
 	}
@@ -602,10 +716,107 @@ class BDDB_Editor {
 	 */
 	protected function echo_poster_button( $post ) {
 		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
-		$thumb_image_src = BDDB_GALLERY_URL.sprintf("thumbnails/%s_%013d.jpg",$post->post_type, $post->ID);
-		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" id="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$thumb_image_src.'" >取得</button>';
+		$names = bddb_get_poster_names($post->post_type, $post->ID);
+		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" id="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button>';
 		return $btn_get;
 	}
+	
+	/**
+	 * 获取封面的Callback。
+	 * @access public
+	 * @since 0.0.1
+	 */
+	 public function download_pic(){
+		 if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
+			die();
+		}
+		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-pic-".$_POST['id'])) { 
+			die();
+		}
+		$this->set_working_mode($_POST['ptype']);
+		$names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
+		$poster_full_name = $names->poster_name;
+		$thumbnail_full_name = $names->thumb_name;
+		if (file_exists($poster_full_name)) {
+			unlink($poster_full_name);
+		}
+		if (file_exists($thumbnail_full_name)) {
+			unlink($thumbnail_full_name);
+		}
+		$response = @wp_remote_get( 
+				htmlspecialchars_decode($_POST['piclink']), 
+				array( 
+					'timeout'  => 3000, 
+					'stream'   => true, 
+					'filename' => $poster_full_name 
+				) 
+			);
+		if ( is_wp_error( $response ) )
+		{
+			return false;
+		}
+		$full_width = intval($this->options['poster_width']);
+		$full_height = floor($full_width * 1.48);
+		$thumb_width = intval($this->options['thumbnail_width']);
+		$thumb_height = floor($thumb_width * 1.48);
+		if ('album' == $_POST['ptype']) {
+			$full_height = $full_width;
+			$thumb_height = $thumb_width;
+		}
+		$image = new Bddb_SimpleImage();
+		$image->load($poster_full_name);
+		$image->resize($full_width, $full_height);
+		$image->save($poster_full_name);
+		$image->resize($thumb_width, $thumb_height);
+		$image->save($thumbnail_full_name);
+	 }
+	 
+	 public function download_serial_pics(){
+		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
+			die();
+		}
+		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-scovers-".$_POST['id'])) { 
+			die();
+		}
+		$this->set_working_mode($_POST['ptype']);
+		$default_serial_count = $this->options['b_max_serial_count'];
+		$thumb_width = intval($this->options['thumbnail_width']);
+		$thumb_height = floor($thumb_width * 1.48);
+		if ('album' == $_POST['ptype']) {
+			$thumb_height = $thumb_width;
+		}
+		$obj_names = bddb_get_poster_names($_POST['ptype'],$_POST['id']);
+		$slinks = $_POST['slinks'];
+		$parts = explode(";", $slinks);
+		$serial_count = min(count($parts), $default_serial_count, $_POST['stotal']);
+		for($i=0; $i<$default_serial_count; ++$i) {
+			$dest = sprintf("%s%02d.jpg",$obj_names->thumb_series_front,$i);
+			if (file_exists($dest))
+				unlink($dest);
+		}
+		for($i=0;$i<$serial_count;++$i) {
+			$dest = sprintf("%s%02d.jpg",$obj_names->thumb_series_front,$i);
+			$src = $parts[$i];
+			$response = @wp_remote_get( 
+				htmlspecialchars_decode($src), 
+				array( 
+					'timeout'  => 3000, 
+					'stream'   => true, 
+					'filename' => $dest 
+				) 
+			);
+			if ( is_wp_error( $response ) )
+			{
+				continue;
+			}
+			$image = new Bddb_SimpleImage();
+			$image->load($dest);
+			$image->resize($thumb_width, $thumb_height);
+			$image->save($dest);
+		}
+	 }
+	 
+	 
 	
 	/**
 	 * 抓取按钮。
@@ -751,13 +962,8 @@ class BDDB_Editor {
 			return false;
 		}
 		$this->self_post_type = $post_type;
-		if ('album' == $post_type) {
-			$this->settings['thumb_width'] = SQUARE_THUMB_WIDTH;
-			$this->settings['thumb_height'] = SQUARE_THUMB_WIDTH;
-		}else {
-			$this->settings['thumb_width'] = OBLONG_THUMB_WIDTH;
-			$this->settings['thumb_height'] = OBLONG_THUMB_HEIGHT;
-		}
+		$s = new BDDB_Settings();
+		$this->options = $s->get_options();
 		if (is_callable(array($this,"set_additional_items_{$post_type}"))){
 			call_user_func(array($this,"set_additional_items_{$post_type}"));
 		} else {

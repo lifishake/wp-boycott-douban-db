@@ -1,17 +1,13 @@
 <?php
-/**
-后台编辑用类
-*/
 
 /**
- * 编辑用模板类，不可直接创建对象
+ * 内容显示用类
  */
 class BDDB_Common_Template {
 	//成员列表
 	protected $common_items;		/*四种档案都包括的共通项目*/
 	protected $settings;			/*保留*/
 	protected $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
-	protected $box_title;			/*编辑盒子的标题,初始为空,待子类覆盖*/
 	protected $self_post_type;			/*档案自身的种类*/
 	protected $self_post_id;
 	protected $default_item;
@@ -102,14 +98,13 @@ class BDDB_Common_Template {
 	 * @since 0.0.1
 	 */
 	public function get_order_str() {
-		add_meta_box('bddbcommondiv', $this->box_title, array($this, 'show_meta_box'), $this->self_post_type, 'normal', 'core');
 	}
 	
 
 	public function get_content() {
 		$post = get_post();
 		$content_str = '';
-		$obj_name = $this->get_poster_names($post);
+		$obj_name = bddb_get_poster_names($post->post_type, $post->ID);
 		$content_str .= '<div class="poster"><img src="'.$obj_name->poster_url.'"/></div>';
 		$content_str .= sprintf('<div class = "abstract">ID:%s</div>',$post->ID);
 		foreach ($this->total_items as $key=>$item ) {
@@ -139,7 +134,7 @@ class BDDB_Common_Template {
 		$all_posts = get_posts($galleryargs);
 		foreach ($all_posts as $pt) {
 			echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt->ID}'>";
-			echo $this->get_poster_for_gallery($pt);
+			echo $this->get_poster_for_gallery($pt->ID);
 			echo "</div>";
 		}
 		echo "</div>";
@@ -152,7 +147,7 @@ class BDDB_Common_Template {
 		}
 
 		$post = get_post($this->self_post_id);
-		$obj_name = $this->get_poster_names($post);
+		$obj_name = bddb_get_poster_names($this->self_post_type, $this->self_post_id);
 		$src_is_series = $this->get_meta_str('b_bl_series',$this->self_post_id);
 		$src_title = $this->get_meta_str('bddb_display_name',$this->self_post_id);
 		$src_link = $this->get_meta_str('bddb_external_link',$this->self_post_id);
@@ -162,7 +157,7 @@ class BDDB_Common_Template {
 		$src_score_social = '0';
 		$src_score_social_float = 0.0;
 		
-		switch($post->post_type){
+		switch($this->self_post_type){
 			case 'movie':{
 				if ($src_dou_score){
 					$src_score_social_float = floatval($src_dou_score);
@@ -455,28 +450,7 @@ class BDDB_Common_Template {
 		);
 		$this->total_items = array_merge($this->common_items, $add_items);
 	}
-	public function get_poster_names($post) {
-		$ret = array();
-		$name = sprintf("%s_%013d.jpg", $post->post_type, $post->ID);
-		//$b = bloginfo
-		$rel_url = str_replace(home_url(), '', BDDB_GALLERY_URL);
-		$rel_plugin_url = str_replace(home_url(), '', BDDB_PLUGIN_URL);
-		if (bddb_is_debug_mode()){
-			$rel_url = str_replace('http://localhost', '', BDDB_GALLERY_URL);
-			$rel_plugin_url = str_replace('http://localhost', '', BDDB_PLUGIN_URL);
-		}
-		$ret['short_name'] = $name;
-		$ret['poster_name'] = BDDB_GALLERY_DIR .$name;
-		$ret['thumb_name'] = BDDB_GALLERY_DIR.'thumbnails/'.$name;
-		$ret['poster_url'] = $rel_url .$name;
-		$ret['thumb_url'] = $rel_url.'thumbnails/'.$name;
-		$ret['nopic_thumb_url'] = $rel_plugin_url.'img/nocover_100_148.png';
-		$ret['nopic_poster_url'] = $rel_plugin_url.'img/nocover_oblone.png';
-		//$ret['scover_name_template'] = BDDB_GALLERY_DIR.'thumbnails/'.$post->post_type . sprintf('_%013d',$post->ID).'_%02d.jpg';
-		//$ret['scover_url_template'] = BDDB_GALLERY_URL.'thumbnails/'.$post->post_type . sprintf('_%013d',$post->ID).'_%02d.jpg';
-		//$ret['scover_name_template'] = str_replace('.jpg','',$ret['poster_name']) . "_\%02d.jpg";
-		return (object)$ret;
-	}
+	
 	private function get_tax_str($tax_name, $id) {
 		$val_str = '';
 		$str_array = wp_get_post_terms($id, $tax_name, array('fields'=>'names'));
@@ -489,26 +463,12 @@ class BDDB_Common_Template {
 		}
 		return $val_str;
 	}
-	private function get_disp_tax_str($item, $id) {
-		$val_str = $this->get_tax_str($item['name'], $id);
-		if ('' !== $val_str) {
-			return "<p calss='bddb-item-content'><span calss='bddb-item-name'>{$item['label']}:</span>{$val_str}</p>";
-		}else {
-			return '';
-		}
-	}
+
 	private function get_meta_str($meta_name, $id) {
 		$val_str = get_post_meta($id, $meta_name, true);
 		return $val_str;
 	}
-	private function get_disp_meta_str($item, $id) {
-		$val_str = $this->get_meta_str($item['name'], $id);
-		if ('' !== $val_str) {
-			return "<p calss='bddb-item-content'><span calss='bddb-item-name'>{$item['label']}:</span>{$val_str}</p>";
-		}else {
-			return '';
-		}
-	}
+
 	private function get_order_args() {
 		$ret = array();
 		array_multisort( array_column($this->total_items,'priority'), array_column($this->total_items,'name'), $this->total_items);
@@ -541,20 +501,13 @@ class BDDB_Common_Template {
 		foreach($str_array as $key => $slug) {
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
 			switch($slug) {
-				case 'cat':
-					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
-				break;
-				case 'dou250':
-					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
-				break;
-				case '404':
-					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
-				break;
 				case 'sanji':
 					$img = BDDB_PLUGIN_URL.'img/restricted.png';
+					/*go through*/
+				case 'cat':
+				case 'dou250':
+				case '404':
 				case 'restricted':
-					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
-				break;
 				case 'imdb250':
 					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
 				break;
@@ -609,9 +562,8 @@ class BDDB_Common_Template {
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
 			switch($slug) {
 				case 'cat':
-					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
-				break;
 				case '404':
+				case 'doved':
 					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
 				break;
 				default:
@@ -699,13 +651,13 @@ class BDDB_Common_Template {
 		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
 	}
 
-	private function get_poster_for_gallery($post) {
-		$obj_name = $this->get_poster_names($post);
+	private function get_poster_for_gallery($id) {
+		$obj_name =bddb_get_poster_names($this->self_post_type, $id);
 
 		$detail_str = '';
 		array_multisort( array_column($this->total_items,'panel'), array_column($this->total_items,'name'), $this->total_items);
-		if (is_callable(array($this,"get_{$post->post_type}_info"))) {
-			$info_str .= call_user_func(array($this,"get_{$post->post_type}_info"), $post->ID);
+		if (is_callable(array($this,"get_{$this->self_post_type}_info"))) {
+			$info_str .= call_user_func(array($this,"get_{$this->self_post_type}_info"), $id);
 		}
 		$alt = base64_encode($obj_name->short_name);
 		if(file_exists($obj_name->poster_name)) {
@@ -718,17 +670,16 @@ class BDDB_Common_Template {
 		}else{
 			$thumb_url = $obj_name->nopic_thumb_url;
 		}
-		return "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}' alt='{$alt}' /></a>";
+		$is_lazy = wp_script_is("apip-js-lazyload");
+		if (!$is_lazy) {
+			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}' alt='{$alt}' /></a>";
+		}else{
+			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' data-unveil='true' alt='{$alt}' /></a>";
+		}
+		return $ret;
 	
 	}
-	private function get_display_name_link_str($post, $class='bddb-name-link') {
-		$name_str = get_post_meta($post->ID, 'bddb_display_name', true);
-		$link_str = get_post_meta($post->ID, 'bddb_external_link', true);
-		if ('' == $link_str) {
-			$link_str = '#';
-		}
-		return "<a target='_blank' href='{$link_str}' class='{$class}' >{$name_str}</a>";
-	}
+
 	private function get_rating_stars($id) {
 		$stars='';
 		$emp_stars='';
@@ -840,13 +791,16 @@ class BDDB_Common_Template {
 		$template = '<div class="abstract-left">%s</div>%s';
 		$abs_str = $this->abstract_common_loop($id);
 		$images = '';
-		for($i = 0; $i<18; ++$i){
-			$short_name = sprintf('book_%013d_%02d.jpg', $id, $i);
-			$thumbnail_full_name = BDDB_GALLERY_DIR.'thumbnails/'.$short_name;
+		$s = new BDDB_Settings();
+		$count = $s->get_max_serial_count();
+		$obj_names = bddb_get_poster_names($this->self_post_type, $id);
+		for($i = 0; $i<$count; ++$i){
+			$short_name = sprintf('%s_%013d_%02d.jpg', $this->self_post_type, $id, $i);
+			$thumbnail_full_name = $obj_names->thumb_dir.$short_name;
 			if (!file_exists($thumbnail_full_name)){
 				continue;
 			}
-			$url = BDDB_GALLERY_URL.'thumbnails/'.$short_name;
+			$url = $obj_names->thumb_url_front.$short_name;
 			$images.=sprintf('<div class="apiplist-post"><img src="%1$s" alt="%2$s" ></img></div>', $url, base64_encode($short_name));
 		}
 		return sprintf($template, $abs_str, $images);
