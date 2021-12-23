@@ -131,6 +131,22 @@ class BDDB_Editor {
 	}
 	
 	//外部接口
+	public function admin_init() {
+		add_action ( 'save_post', array($this, 'update_all_items'), 10, 2);
+		add_filter ( 'wp_insert_post_data', array($this, 'generate_content'), 10, 2);
+		add_action( 'wp_ajax_bddb_get_pic', array($this, 'download_pic') );
+		add_action( 'wp_ajax_bddb_get_scovers', array($this, 'download_serial_pics'));
+		add_filter( 'manage_posts_columns', array($this,'get_admin_edit_headers'), 10, 2);
+		add_action( 'manage_movie_posts_custom_column', array($this, 'manage_movie_admin_columns'), 10, 2);
+		add_action( 'manage_book_posts_custom_column', array($this, 'manage_book_admin_columns'), 10, 2);
+		add_action( 'manage_game_posts_custom_column', array($this, 'manage_game_admin_columns'), 10, 2);
+		add_action( 'manage_album_posts_custom_column', array($this, 'manage_album_admin_columns'), 10, 2);
+		add_filter( 'manage_edit-movie_sortable_columns', array($this, 'add_movie_sortable_columns'));
+		add_filter( 'manage_edit-book_sortable_columns', array($this, 'add_book_sortable_columns'));
+		add_filter( 'manage_edit-game_sortable_columns', array($this, 'add_game_sortable_columns'));
+		add_filter( 'manage_edit-album_sortable_columns', array($this, 'add_album_sortable_columns'));
+		add_action( 'pre_get_posts', array($this, 'sort_custom_column_query') );
+	}
 	/**
 	 * 创建编辑盒子。
 	 * @access public
@@ -381,80 +397,7 @@ class BDDB_Editor {
 		return $this->set_sortalbe_columns('album', $columns);
 	}
 	
-	public function dashboard_widget_div() {
-		echo '<div id="bddb-recent-widget">';
-		$bddb_types = array('movie', 'book', 'game', 'album');
-		$quary_args = array(
-				'post_type' => $bddb_types,
-				'numberposts' => 20,
-				'post_status' => 'publish',
-				'orderby' => 'modified',
-				'order' => 'DESC',
-		);
-		$last_year_t = strtotime( '-1 year', current_time( 'timestamp' ) );
-		$bddb_posts = get_posts($quary_args);
-		if (is_wp_error($bddb_posts) || count($bddb_posts) == 0) {
-			echo 'Noting found.';
-		} else {
-			echo '<div id="bddb-recent-dashboard" class="activity-block">';
-			echo '<h3> Recent Records </h3>';
-			echo '<ul>';
-			foreach ($bddb_posts as $p) {
-				$draft_or_post_title = _draft_or_post_title($p->ID);
-				$modify_time_t = strtotime($p->post_modified);
-				if ($modify_time_t > $last_year_t) {
-					$relative = date('m-d H:i', $modify_time_t);
-				}else{
-					$relative = date('Y-m-d', $modify_time_t);
-				}
-				printf(
-					'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
-					$relative,
-					get_edit_post_link($p->ID),
-					esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
-					$draft_or_post_title
-				);
-			}
-			echo '</ul>';
-			echo '</div>';
-			
-			$exclude_ids = array_map(create_function('$o', 'return $o->ID;'), $bddb_posts);
-			$quary_args['post__not_in'] = $exclude_ids;
-			$quary_args['numberposts'] = 5;
 
-			foreach ($bddb_types as $my_type) {
-				$quary_args['post_type'] = $my_type;
-				$bddb_posts = get_posts($quary_args);
-				if (is_wp_error($bddb_posts) || count($bddb_posts) == 0) {
-					continue;
-				}
-				echo '<div id="' . $my_type . '-recent-dashboard" class="activity-block">';
-				echo '<h3> Recent ' . ucfirst($my_type) . 's </h3>';
-				echo '<ul>';
-				foreach ($bddb_posts as $p) {
-					$draft_or_post_title = _draft_or_post_title($p->ID);
-					$publish_time_t = strtotime($p->post_date);
-					if ($publish_time_t > $last_year_t) {
-						$relative = date('m-d H:i', $publish_time_t);
-					}else{
-						$relative = date('Y-m-d', $publish_time_t);
-					}
-					printf(
-						'<li><span>%1$s</span> <a href="%2$s" aria-label="%3$s">%4$s</a></li>',
-						$relative,
-						get_edit_post_link($p->ID),
-						esc_attr( sprintf( __( 'Edit &#8220;%s&#8221;' ), $draft_or_post_title ) ),
-						$draft_or_post_title
-					);
-				}
-				echo '</ul>';
-				echo '</div>';
-			}
-		}
-		
-		echo '</div>';
-	}
-	
 	public function sort_custom_column_query($query){
 		$orderby = $query->get( 'orderby' );
 

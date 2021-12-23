@@ -39,17 +39,6 @@ function bddbt_substr_n_pos($str,$find,$n){
     return $str;
 }
 
-function bddb_the_content() {
-    $post = get_post();
-    if (!in_array($post->post_type, array('movie','book','game','album'))) {
-        the_content();
-        return;
-    }
-	$post_ID = $post->ID;
-	$tl = new BDDB_Common_Template($post->post_type);
-	echo $tl->get_content();
-}
-
 function bddb_the_gallery($post_type) {
 	if (!in_array($post_type, array('movie','book','game','album'))) {
         the_content();
@@ -65,13 +54,6 @@ function bddb_quicktags(){
 	QTags.addButton( 'eg_bddbr', 'BDDbRd', '[bddbr id=\'', '\' /]', 'p' );
 	</script>
 <?php
-}
-
-function bddb_real_transfer($atts, $content = null){
-	extract( $atts );
-	$tl = new BDDB_Common_Template('auto', $id);
-	$summary=$tl->get_summary();
-	return $summary;
 }
 
 function bddb_get_poster_names($post_type, $ID) {
