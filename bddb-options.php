@@ -21,8 +21,12 @@ function bddb_add_admin_menu(  ) {
 
 */
 function bddb_settings_init(  ) {
-
-  register_setting( 'bddb_settings_group', 'bddb_settings' );
+	$s = new BDDB_Settings();
+	$arg = array(
+		'sanitize_callback' => array($s, 'sanitize_options'),
+		'default' => $s->default_options(),
+	);
+  register_setting( 'bddb_settings_group', 'bddb_settings', $arg);
   //register_setting( 'bddb_movie_tab', 'bddb_settings' );
   //register_setting( 'bddb_settings', 'm_omdb_key' );
   /*
@@ -79,6 +83,13 @@ function bddb_settings_init(  ) {
   'basic_poster_setting',
   '图片设定',
   'bddb_poster_render',
+  'bddb_option_tab',
+  'bddb_pluginPage_section'
+  );
+  add_settings_field(
+  'basic_order_setting',
+  '共通順序设定',
+  'bddb_general_order_render',
   'bddb_option_tab',
   'bddb_pluginPage_section'
   );
@@ -174,9 +185,9 @@ function bddb_basic_setting_render(  ) {
 	$options = $global_option_class->get_options();
   ?>
   <span>当前TAX版本号：</span>
-  <input type='text' name='bddb_settings["tax_version"]' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
+  <input type='text' name='bddb_settings[tax_version]' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
   <span>当前TYPE版本号：</span>
-  <input type='text' name='bddb_settings["type_version"]' size='24' value='<?php echo $options['type_version']; ?>'/>
+  <input type='text' name='bddb_settings[type_version]' size='24' value='<?php echo $options['type_version']; ?>'/>
   <?php
 }
 
@@ -209,6 +220,26 @@ function bddb_poster_render() {
 	<span>海报宽高比: 1:1.48</span>
 <?php
 }
+
+function bddb_general_order_render() {
+	global $global_option_class;
+	$options = $global_option_class->get_options();
+	$t = new BDDB_Common_Template();
+	$option_value = '';
+	for($i=0;$i<10;$i++){
+		$sel_list .= sprintf("\n\t<option value='%02d'>%02d</option>",$i,$i);
+	}
+  /*
+	foreach ($options['general_order'] as $key=>$ci) {
+		$value = $ci['priority'];
+		if (empty($value)) {
+			$value = false;
+		}
+		printf('<span>%1$s:</span><select name="bddb_settings[general_order][%1$s] size=20" id="id_general_common_order_%1$s" value="%2$s">%3$s</select></br>',
+		$key, $value, $sel_list);
+	}*/
+}
+
 
 function bddb_m_omdb_key_render()
 {

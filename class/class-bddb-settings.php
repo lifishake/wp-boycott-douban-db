@@ -17,9 +17,38 @@ class BDDB_Settings{
 			'poster_width'=>400,
 			'thumbnail_width'=>100,
 			'b_max_serial_count'=>18,
+			'general_order' => array(
+				'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
+				'bddb_original_name' => array( 'priority' => false, 'orderby' => 'ASC'),
+				'bddb_personal_review' => array( 'priority' => false, 'orderby' => 'ASC'),
+				'bddb_publish_time' => array( 'priority' => '03', 'orderby' => 'ASC'),
+				'bddb_view_time' => array( 'priority' => '02', 'orderby' => 'ASC'),
+				'bddb_personal_rating' => array( 'priority' => '01', 'orderby' => 'DESC'),
+				'country' => array( 'priority' => false, 'orderby' => 'ASC'),
+			),
 		);
 		return $ret;
 	}
+	public function sanitize_options($input){
+		$current_options = $this->get_options();
+		foreach( $current_options as $key => $val ) {
+			if (!isset($input[$key])){
+				$input[$key] = $val;
+			}
+		}
+		if (isset($input['tax_version'])) {
+			if (empty($input['tax_version'])) {
+				$input['tax_version'] = BDDB_TAX_VER;
+			}
+		}
+		if (isset($input['type_version'])) {
+			if (empty($input['type_version'])) {
+				$input['type_version'] = BDDB_META_VER;
+			}
+		}
+		return $input;
+	}
+
 	public function get_options(){
 		if (!$this->bddb_options) {
 			$this->bddb_options = get_option('bddb_settings');
