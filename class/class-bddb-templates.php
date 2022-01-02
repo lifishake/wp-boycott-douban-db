@@ -80,6 +80,10 @@ class BDDB_Common_Template {
 		$this->set_working_mode($post_type);
 	}
 	
+	public function get_common_items(){
+		return $this->common_items;
+	}
+	
 	/********    外部函数 开始    ********/
 	/**
 	 * 显示照片墙，被主题调用。

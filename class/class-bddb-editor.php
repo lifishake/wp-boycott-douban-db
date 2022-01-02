@@ -17,6 +17,26 @@ echo '</body></html>';
 //exit();
 }
 
+function wpse155797_posts_clauses( $pieces, $query ) {
+    if ( ! is_admin() || ! $query->is_main_query() ) {
+        return $pieces;
+    }
+    global $wpdb;
+    if ( ( $orderby = $query->get( 'orderby' ) ) == 'asset_type' ) {
+        if ( ( $order = strtoupper( $query->get( 'order' ) ) ) != 'DESC' ) $order = 'ASC';
+        $pieces[ 'join' ] .= ' LEFT JOIN ' . $wpdb->term_relationships . ' AS tr ON ' . $wpdb->posts . '.ID = tr.object_id'
+            . ' LEFT JOIN ' . $wpdb->term_taxonomy . ' AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id'
+            . ' LEFT JOIN ' . $wpdb->terms . ' AS t ON tt.term_id = t.term_id';
+        $pieces[ 'fields' ] .= ', group_concat(t.name ORDER BY t.name ' . $order . ') AS ' . $orderby;
+        $pieces[ 'groupby' ] = $wpdb->posts . '.ID';
+        $pieces[ 'orderby' ] = $orderby . ' ' . $order . ', ' . $wpdb->posts . '.post_title ASC';
+    }
+    return $pieces;
+}
+//add_filter( 'posts_clauses', 'wpse155797_posts_clauses', 10, 2 );
+
+
+
 function bddb_n_pos($del, $find, $n){
 	$start = 0;
 	for($i=0; $i < $n; ++$i) {
@@ -286,7 +306,7 @@ class BDDB_Editor {
 		}
 		unset($columns['date']);
 		foreach ($this->total_items as $arg) {
-			if ($arg['show_admin_column']) {
+			if ($arg['show_admin_column'] && $arg['type'] == 'meta') {
 				$columns[$arg['name']] = $arg['label'];
 			}
 		}
@@ -376,6 +396,9 @@ class BDDB_Editor {
 	 * @since 0.1.0
 	 */
 	public function add_book_sortable_columns($columns){
+		$columns['taxonomy-country'] = 'country';
+		$columns['taxonomy-b_p_writer'] = 'b_p_writer';
+		$columns['taxonomy-b_misc_brand'] = 'b_misc_brand';
 		return $this->set_sortalbe_columns('book', $columns);
 	}
 	/**
@@ -930,6 +953,7 @@ class BDDB_Editor {
 											'size' => 16,
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
+											//'show_admin_column' => true,
 											),
 			'm_p_actor'			=>	array(	'name' => 'm_p_actor',
 											'label' => '主要演员',
