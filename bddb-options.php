@@ -230,6 +230,7 @@ function bddb_general_order_render() {
 		$sel_list .= sprintf("\n\t<option value='%02d'>%02d</option>",$i,$i);
 	}
   /*
+  TBD
 	foreach ($options['general_order'] as $key=>$ci) {
 		$value = $ci['priority'];
 		if (empty($value)) {
@@ -274,7 +275,7 @@ function bddb_g_giantbomb_key_render()
 
 function bddb_settings_section_callback(  ) {
 
-  echo '<span>一些基本设定项目，抄自多个插件</span>';
+  echo '<span>一些基本设定项目，某些可以被子项目覆盖</span>';
 
 }
 
@@ -339,14 +340,4 @@ function bddb_test_field_render() {
     <?php
 }
 
-
-function bddb_check_rubbish_options_field_render() {
-    ?>
-    <span>TODO</span>
-    <?php
-    $alloptions = wp_load_alloptions();
-    $registered_settings = get_registered_settings();
-    $arrnew = array_diff_key($alloptions, $registered_settings);
-    bddb_debug_page($arrnew ,"ccccccccc");
-}
 ?>

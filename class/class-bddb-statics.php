@@ -7,6 +7,39 @@ class BDDB_Statics {
 	private $post_types = false;
 	public function __construct(){
 		$this->taxonomies = array(
+			//地区/电影
+		array('tax' => 'm_region',
+			'obj' => array( 'movie' ),
+			'label' => 'Region',
+			'slug' => 'm_region',
+			'complex_name' => 'regions',
+			'show_admin_column' => true,
+			),
+			//地区/书
+		array('tax' => 'b_region',
+			'obj' => array( 'book' ),
+			'label' => 'Region',
+			'slug' => 'b_region',
+			'complex_name' => 'regions',
+			'show_admin_column' => true,
+			),
+			//地区/游戏
+		array('tax' => 'g_region',
+			'obj' => array( 'game' ),
+			'label' => 'Region',
+			'slug' => 'g_region',
+			'complex_name' => 'regions',
+			'show_admin_column' => true,
+			),
+			//地区/专辑
+		array('tax' => 'a_region',
+			'obj' => array( 'album' ),
+			'label' => 'Region',
+			'slug' => 'a_region',
+			'complex_name' => 'regions',
+			'show_admin_column' => true,
+			),
+
 		//国家/共通
         array('tax' => 'country',
               'obj' => array( 'movie','book','game','album' ),
@@ -204,34 +237,32 @@ class BDDB_Statics {
         'movie' => array(
 			'label' => 'Movies',
 			'slug' => 'movie',
-			//'taxonomies' => array('country', 'm_genre'),
 			'icon' => 'dashicons-video-alt',
 			'menu_position' => 6,
 			),
         'book' => array(
 			'label' => 'Books',
 			'slug' => 'book',
-			//'taxonomies' => array('country', 'b_genre'),
 			'icon' => 'dashicons-book-alt',
 			'menu_position' => 7,
 			),
         'game' => array(
 			'label' => 'Games',
 			'slug' => 'game',
-			//'taxonomies' => array('country', 'g_genre'),
 			'icon' => 'dashicons-laptop',
 			'menu_position' => 8,
 			),
         'album' => array(
 			'label' => 'Albums',
 			'slug' => 'album',
-			//'taxonomies' => array('country', 'a_genre'),
 			'icon' => 'dashicons-album',
 			'menu_position' => 9,
 			),
     );
 	}
 	public function check_taxonomies(){
+
+		$this->tax_diff();
 		foreach ($this->taxonomies as $chk_tax) {
 			$labels = array( 
 				'name'             => $chk_tax['label'],
@@ -258,7 +289,7 @@ class BDDB_Statics {
 				'show_in_rest' => false,
 			);
 			register_taxonomy($chk_tax['tax'],$chk_tax['obj'],$arg);
-    };
+    	};
 	}
 	public function check_types(){
 		array_map(array($this, 'generte_type_taxonomies'), $this->taxonomies);
@@ -422,5 +453,96 @@ class BDDB_Statics {
 			);
 		}
 		echo '</ul></div>';
+	}
+	private function tax_diff(){
+		$op = new BDDB_Settings();
+		$stored_tax_version = $op->get_tax_version();
+		if (empty($stored_tax_version)) {
+			return;
+		}
+		$available_vals[] = '20220101';
+		$old_val = intval($stored_tax_version);
+		foreach ($available_vals as $new_val_str){
+			if ($old_val < intval($new_val_str)) {
+				if (is_callable(array($this, "tax_update_{$new_val_str}"))){
+					call_user_func(array($this, "tax_update_{$new_val_str}"), $op);
+				}
+			}
+		}
+	}
+	protected function tax_update_20220101($op){
+		register_taxonomy('country',array('movie','book','game','album'));
+		$taxonomies = array(
+			array('tax' => 'm_region',
+				'obj' => array( 'movie' ),
+				'label' => 'Region',
+				'slug' => 'm_region',
+				),
+			array('tax' => 'b_region',
+				'obj' => array( 'book' ),
+				'label' => 'Region',
+				'slug' => 'b_region',
+				),
+			array('tax' => 'g_region',
+				'obj' => array( 'game' ),
+				'label' => 'Region',
+				'slug' => 'g_region',
+				),
+			array('tax' => 'a_region',
+				'obj' => array( 'album' ),
+				'label' => 'Region',
+				'slug' => 'a_region',
+				),
+		);
+		foreach ($taxonomies as $chk_tax) {
+			$labels = array( 
+				 'name'             => 'Region',
+				 'singular_name'    => 'region',
+				 'search_items'     => 'Search Regions',
+				 'popular_items'    => 'Popular Regions',
+				 'all_items'        => 'All Regions',
+				 'edit_item'        => 'Edit Region',
+				 'update_item'      => 'Update Region',
+				 'add_new_item'     => 'Add New Region',
+				 'new_item_name'    => 'Region Name',
+				 'add_or_remove_items'   => 'Add or Remove Regions',
+				 'menu_name'        => 'Regions',
+			);
+			$arg = array (
+				'label' => $chk_tax['label'],
+				'labels' => $labels,
+				'public' => false,
+				'meta_box_cb' => false,
+				'show_ui' => true,
+				'show_in_nav_menus' => false,
+				'show_tagcloud' => false,
+				'show_admin_column' => true,
+				'show_in_rest' => false,
+			);
+			register_taxonomy($chk_tax['tax'],$chk_tax['obj'],$arg);
+			$args = array(
+				'post_type' => $chk_tax['obj'][0],
+				'numberposts' => -1,
+				'post_status' => 'any',
+				'fields' => 'ids',
+			);
+			$ids = get_posts($args);
+			if (is_array($ids)&&count($ids)>0) {
+				foreach ($ids as $post_id) {
+					$val_str = '';
+					$str_array = wp_get_post_terms($post_id, 'country', array('fields'=>'names'));
+					if (is_wp_error($str_array))
+						continue;
+					if (count($str_array)>1) {
+						$val_str = implode(', ', $str_array);
+					} elseif(count($str_array) == 1) {
+						$val_str =trim($str_array[0]);
+					}
+					wp_set_post_terms($post_id, $val_str, $chk_tax['tax']);
+					wp_set_post_terms($post_id, '', 'country');
+				}
+			}
+    	};
+		$op->update_tax_version('20220101');
 	}
 };
