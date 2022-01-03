@@ -138,12 +138,6 @@ class BDDB_Editor {
 											'placeholder' => '59',
 											'show_admin_column' => true,
 											),
-			'country' => array(				'name' => 'country',
-											'label' => '地区',
-											'size' => 16,
-											'type' => 'tax',
-											'comment' => '',
-											),
 		);
 		if (!empty($post_type) && in_array($post_type, array('movie', 'book', 'game', 'album'))) {
 			$this->set_working_mode($post_type);
@@ -396,7 +390,7 @@ class BDDB_Editor {
 	 * @since 0.1.0
 	 */
 	public function add_book_sortable_columns($columns){
-		$columns['taxonomy-country'] = 'country';
+		$columns['taxonomy-b_region'] = 'b_region';
 		$columns['taxonomy-b_p_writer'] = 'b_p_writer';
 		$columns['taxonomy-b_misc_brand'] = 'b_misc_brand';
 		return $this->set_sortalbe_columns('book', $columns);
@@ -954,7 +948,7 @@ class BDDB_Editor {
 		$this->common_items['bddb_view_time']['label'] = '观看年月';
 		$additional_items = array(
 			'm_region' 			=> array(	'name' => 'm_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
 											'comment' => '',
@@ -1045,7 +1039,7 @@ class BDDB_Editor {
 		$this->common_items['bddb_view_time']['label'] = '品读年月';
 		$additional_items = array(
 			'b_region' 			=> 	array(	'name' => 'b_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
 											'comment' => '',
@@ -1139,7 +1133,7 @@ class BDDB_Editor {
 		$this->common_items['bddb_view_time']['label'] = '接触年月';
 		$additional_items = array(
 			'g_region' 			=> 	array(	'name' => 'g_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
 											'comment' => '',
@@ -1205,7 +1199,7 @@ class BDDB_Editor {
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
 		$additional_items = array(
 			'a_region' 			=> 	array(	'name' => 'a_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
 											'comment' => '',
