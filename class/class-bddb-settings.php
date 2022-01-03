@@ -24,7 +24,6 @@ class BDDB_Settings{
 				'bddb_publish_time' => array( 'priority' => '03', 'orderby' => 'ASC'),
 				'bddb_view_time' => array( 'priority' => '02', 'orderby' => 'ASC'),
 				'bddb_personal_rating' => array( 'priority' => '01', 'orderby' => 'DESC'),
-				'country' => array( 'priority' => false, 'orderby' => 'ASC'),
 			),
 		);
 		return $ret;
@@ -94,5 +93,14 @@ class BDDB_Settings{
 	public function get_default_folder(){
 		$options = $this->get_options();
 		return $options['default_folder'];
+	}
+	public function get_tax_version(){
+		$options = $this->get_options();
+		return $options['tax_version'];
+	}
+	public function update_tax_version($version){
+		$options = $this->get_options();
+		$options['tax_version'] = $version;
+		update_option('bddb_settings', $options);
 	}
 };

@@ -3,11 +3,11 @@
 /**
  * Plugin Name: Boycott Douban Database
  * Plugin URI:  http://pewae.com
- * GitHub Plugin URI: https://github.com/lifishake/bddb
+ * GitHub Plugin URI: https://github.com/lifishake/wp-boycott-douban-db
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.1.6
+ * Version:     0.1.7
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -16,7 +16,7 @@ define('BDDB_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define('BDDB_PLUGIN_DIR', plugin_dir_path( __FILE__ ) ) ;
 define ('BDDB_PLUGIN_BASE_NAME', plugin_basename(__FILE__));
 define('BDDB_GALLERY_URL',home_url('/',is_ssl()?'https':'http').'wp-content/poster_gallery/');
-define('BDDB_GALLERY_DIR', ABSPATH.'wp-content/poster_gallery/');
+//define('BDDB_GALLERY_DIR', ABSPATH.'wp-content/poster_gallery/');
 define('BDDB_TAX_VER', '20211103');
 define('BDDB_META_VER', '20211103');
 

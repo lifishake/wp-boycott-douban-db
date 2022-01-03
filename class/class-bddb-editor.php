@@ -737,6 +737,11 @@ class BDDB_Editor {
 		$image->save($thumbnail_full_name);
 	 }
 	 
+	 /**
+	 * 获取系列封面的Callback。
+	 * @access public
+	 * @since 0.0.8
+	 */
 	 public function download_serial_pics(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
 			die();
@@ -798,10 +803,10 @@ class BDDB_Editor {
 	}
 
 	/**
-	 * 取多张封面按钮。。
+	 * 取多张封面按钮。
 	 * @access protected
 	 * @param object $post	
-	 * @since 0.0.1
+	 * @since 0.0.8
 	 */
 	protected function echo_series_covers_button($post) {
 		$links = get_post_meta($post->ID, 'b_series_covers',true);
@@ -948,6 +953,12 @@ class BDDB_Editor {
 		$this->common_items['bddb_publish_time']['label'] = '首映年月';
 		$this->common_items['bddb_view_time']['label'] = '观看年月';
 		$additional_items = array(
+			'm_region' 			=> array(	'name' => 'm_region',
+											'label' => '籍贯',
+											'size' => 16,
+											'type' => 'tax',
+											'comment' => '',
+											),
 			'm_p_director'		=>	array(	'name' => 'm_p_director',
 											'label' => '导演',
 											'size' => 16,
@@ -1033,6 +1044,12 @@ class BDDB_Editor {
 		$this->common_items['bddb_publish_time']['label'] = '出版年月';
 		$this->common_items['bddb_view_time']['label'] = '品读年月';
 		$additional_items = array(
+			'b_region' 			=> 	array(	'name' => 'b_region',
+											'label' => '籍贯',
+											'size' => 16,
+											'type' => 'tax',
+											'comment' => '',
+											),
 			'b_p_writer'		=>	array(	'name' => 'b_p_writer',
 											'label' => '作者',
 											'size' => 16,
@@ -1121,6 +1138,12 @@ class BDDB_Editor {
 		$this->common_items['bddb_publish_time']['label'] = '首发年月';
 		$this->common_items['bddb_view_time']['label'] = '接触年月';
 		$additional_items = array(
+			'g_region' 			=> 	array(	'name' => 'g_region',
+											'label' => '籍贯',
+											'size' => 16,
+											'type' => 'tax',
+											'comment' => '',
+											),
 			'g_genre'		=>		array(	'name' => 'g_genre',
 											'label' => '类别',
 											'size' => 16,
@@ -1181,6 +1204,12 @@ class BDDB_Editor {
 		$this->common_items['bddb_publish_time']['label'] = '发行年月';
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
 		$additional_items = array(
+			'a_region' 			=> 	array(	'name' => 'a_region',
+											'label' => '籍贯',
+											'size' => 16,
+											'type' => 'tax',
+											'comment' => '',
+											),
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'size' => 16,

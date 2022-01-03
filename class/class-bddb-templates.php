@@ -241,6 +241,12 @@ class BDDB_Common_Template {
 		$this->common_items['country']['panel'] = '05';					//上墙显示。
 		$this->common_items['bddb_publish_time']['summary_callback'] = array($this, 'display_movie_publish_time');
 		$add_items = array(
+			'm_region' => array(			'name' => 'm_region',
+											'label' => '籍贯',
+											'type' => 'tax',
+											'summary' => '11',
+											'panel' => '05',
+											),
 			'm_p_director' => array(	'name' => 'm_p_director',
 											'label' => '导演',
 											'type' => 'tax',
@@ -313,6 +319,12 @@ class BDDB_Common_Template {
 		$this->common_items['country']['summary'] = false;
 		$this->common_items['country']['panel'] = false;
 		$add_items = array(
+			'b_region' => array(			'name' => 'b_region',
+											'label' => '籍贯',
+											'type' => 'tax',
+											'summary' => false,
+											'panel' => false,
+											),
 			'b_p_writer' => array(	'name' => 'b_p_writer',
 											'label' => '作者',
 											'type' => 'tax',
@@ -390,6 +402,12 @@ class BDDB_Common_Template {
 		$this->common_items['country']['summary'] = false;
 		$this->common_items['country']['panel'] = false;
 		$add_items = array(
+			'g_region' => array(			'name' => 'g_region',
+											'label' => '籍贯',
+											'type' => 'tax',
+											'summary' => false,
+											'panel' => false,
+											),
 			'g_genre'		=>		array(	'name' => 'g_genre',
 											'label' => '类别',
 											'type' => 'tax',
@@ -442,6 +460,11 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel'] = '11';
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
 		$add_items = array(
+			'a_region' => array(			'name' => 'a_region',
+											'label' => '籍贯',
+											'type' => 'tax',
+											'summary' => '11',
+											),
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'type' => 'tax',
