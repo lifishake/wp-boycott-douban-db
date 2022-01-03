@@ -71,7 +71,7 @@ jQuery(document).ready(function($) {
                 if (the_input.length == 1 && response.result.dou_id.length > 0){
                     the_input[0].value = response.result.dou_id;
                 }
-                the_input = document.getElementsByName("country");
+                the_input = document.getElementsByName("b_region");
                 if (the_input.length == 1 && response.result.country.length > 0){
                     the_input[0].value = response.result.country;
                 }
@@ -82,6 +82,10 @@ jQuery(document).ready(function($) {
                 the_input = document.getElementsByName("bddb_publish_time");
                 if (the_input.length == 1 && response.result.pubdate.length > 0){
                     the_input[0].value = response.result.pubdate;
+                }
+                the_input = document.getElementsByName("m_region");
+                if (the_input.length == 1 && response.result.country.length > 0){
+                    the_input[0].value = response.result.country;
                 }
                 the_input = document.getElementsByName("m_genre");
                 if (the_input.length == 1 && response.result.genre.length > 0){

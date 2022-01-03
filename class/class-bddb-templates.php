@@ -68,11 +68,6 @@ class BDDB_Common_Template {
 											'ctype' => 'numeric',
 											'sort' => 'DESC',
 											),
-			'country' => array(				'name' => 'country',
-											'label' => '地区',
-											'type' => 'tax',
-											'summary' => '11',
-											),
 		);
 		if (!in_array($post_type, array('movie', 'book', 'game', 'album'))) {
 			return;
@@ -237,12 +232,10 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['label'] = '首映时间';
 		$this->common_items['bddb_view_time']['label'] = '观看时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';			//上墙显示。
-		$this->common_items['country']['label'] = '地区';
-		$this->common_items['country']['panel'] = '05';					//上墙显示。
 		$this->common_items['bddb_publish_time']['summary_callback'] = array($this, 'display_movie_publish_time');
 		$add_items = array(
 			'm_region' => array(			'name' => 'm_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'type' => 'tax',
 											'summary' => '11',
 											'panel' => '05',
@@ -316,11 +309,9 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_book_publish_time');
 		$this->common_items['bddb_view_time']['label'] = '阅读时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';			//上墙显示
-		$this->common_items['country']['summary'] = false;
-		$this->common_items['country']['panel'] = false;
 		$add_items = array(
 			'b_region' => array(			'name' => 'b_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'type' => 'tax',
 											'summary' => false,
 											'panel' => false,
@@ -399,11 +390,9 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel'] = '11';
 		$this->common_items['bddb_view_time']['label'] = '接触年月';
 		$this->common_items['bddb_view_time']['panel'] = '01';
-		$this->common_items['country']['summary'] = false;
-		$this->common_items['country']['panel'] = false;
 		$add_items = array(
 			'g_region' => array(			'name' => 'g_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'type' => 'tax',
 											'summary' => false,
 											'panel' => false,
@@ -461,7 +450,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
 		$add_items = array(
 			'a_region' => array(			'name' => 'a_region',
-											'label' => '籍贯',
+											'label' => '地区',
 											'type' => 'tax',
 											'summary' => '11',
 											),

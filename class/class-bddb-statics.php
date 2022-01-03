@@ -39,15 +39,6 @@ class BDDB_Statics {
 			'complex_name' => 'regions',
 			'show_admin_column' => true,
 			),
-
-		//国家/共通
-        array('tax' => 'country',
-              'obj' => array( 'movie','book','game','album' ),
-              'label' => 'Country',
-              'slug' => 'country',
-              'complex_name' => 'countries',
-              'show_admin_column' => true,
-              ),
             //种类/电影
         array('tax' => 'm_genre',
               'obj' => array( 'movie' ),
@@ -325,8 +316,8 @@ class BDDB_Statics {
 		add_filter( 'plugin_action_links', array($this, 'add_settings_link_to_plugin_page'),10,2);
 		add_action( 'wp_user_dashboard_setup', array($this, 'add_dashboard_widget'));
 		add_action( 'wp_dashboard_setup', array($this, 'add_dashboard_widget'));
-		add_filter( "manage_edit-country_columns", array($this, 'redefine_country_header'));
-		add_filter( 'manage_country_custom_column',array($this, 'print_country_count_by_type'),10,3 );
+		//add_filter( "manage_edit-country_columns", array($this, 'redefine_country_header'));
+		//add_filter( 'manage_country_custom_column',array($this, 'print_country_count_by_type'),10,3 );
 	}
 	protected function generte_type_taxonomies($tax_item) {
 		if (is_array($tax_item['obj'])) {
