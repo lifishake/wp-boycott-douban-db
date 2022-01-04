@@ -4,10 +4,12 @@
 设定项管理类
 */
 class BDDB_Settings{
-	public $bddb_options;
+	public $bddb_options;			//成员
+	/*构造*/
 	public function __construct(){
 		$this->bddb_options = false;
 	}
+	/*默认值*/
 	public function default_options(){
 		$ret = array(
 			'default_folder'=>'wp-content/poster_gallery/',
@@ -17,6 +19,7 @@ class BDDB_Settings{
 			'poster_width'=>400,
 			'thumbnail_width'=>100,
 			'b_max_serial_count'=>18,
+			//TODO
 			'general_order' => array(
 				'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
 				'bddb_original_name' => array( 'priority' => false, 'orderby' => 'ASC'),
@@ -28,7 +31,9 @@ class BDDB_Settings{
 		);
 		return $ret;
 	}
+	/*优化（保存前）*/
 	public function sanitize_options($input){
+		//取得当前值。
 		$current_options = $this->get_options();
 		foreach( $current_options as $key => $val ) {
 			if (!isset($input[$key])){
@@ -47,7 +52,7 @@ class BDDB_Settings{
 		}
 		return $input;
 	}
-
+	/*取得*/
 	public function get_options(){
 		if (!$this->bddb_options) {
 			$this->bddb_options = get_option('bddb_settings');
@@ -80,6 +85,7 @@ class BDDB_Settings{
 	}
 	public function get_poster_height(){
 		$options = $this->get_options();
+		//TODO：100：148是电影海报的规格，书籍应该略宽。
 		return floor($options['poster_width']*1.48);
 	}
 	public function get_thumbnail_width(){
