@@ -165,6 +165,7 @@ class BDDB_Editor {
 			default:
 			return;
 		}
+		$title = "追加{$addi}信息";
 		//工作状态box，使用最后一个参数，默认加到侧边。
 		add_meta_box('bddbstsdiv', '状态显示', array($this, 'show_status_meta_box'), NULL, 'side');
 		add_meta_box('bddbcommondiv', $title, array($this, 'show_meta_box'));
