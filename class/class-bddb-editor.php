@@ -7,62 +7,22 @@ if (!class_exists('BDDB_Settings')) {
 	require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 }
 
-function alert($message,$url='',$isAlert=true,$title='提示'){
-echo '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>',$title,'</title></head><body>';
-echo '<script type="text/javascript">';
-echo $isAlert?'alert("'.$message.'");':'';
-echo $url==''?'history.back();':'location.href="'.$url.'";';
-echo '</script>';
-echo '</body></html>';
-//exit();
-}
-
-function wpse155797_posts_clauses( $pieces, $query ) {
-    if ( ! is_admin() || ! $query->is_main_query() ) {
-        return $pieces;
-    }
-    global $wpdb;
-    if ( ( $orderby = $query->get( 'orderby' ) ) == 'asset_type' ) {
-        if ( ( $order = strtoupper( $query->get( 'order' ) ) ) != 'DESC' ) $order = 'ASC';
-        $pieces[ 'join' ] .= ' LEFT JOIN ' . $wpdb->term_relationships . ' AS tr ON ' . $wpdb->posts . '.ID = tr.object_id'
-            . ' LEFT JOIN ' . $wpdb->term_taxonomy . ' AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id'
-            . ' LEFT JOIN ' . $wpdb->terms . ' AS t ON tt.term_id = t.term_id';
-        $pieces[ 'fields' ] .= ', group_concat(t.name ORDER BY t.name ' . $order . ') AS ' . $orderby;
-        $pieces[ 'groupby' ] = $wpdb->posts . '.ID';
-        $pieces[ 'orderby' ] = $orderby . ' ' . $order . ', ' . $wpdb->posts . '.post_title ASC';
-    }
-    return $pieces;
-}
-//add_filter( 'posts_clauses', 'wpse155797_posts_clauses', 10, 2 );
-
-
-
-function bddb_n_pos($del, $find, $n){
-	$start = 0;
-	for($i=0; $i < $n; ++$i) {
-		$pos = strpos($find, $del, $start);
-		if (false===$pos) {
-			return false;
-		}
-		$start = $pos;
-	}
-	return $start - 1;
-}
-
 /**
- * 编辑用模板类，不可直接创建对象
+ * 编辑类，后台post用
  */
 class BDDB_Editor {
+
 	//成员列表
-	protected $common_items;		/*四种档案都包括的共通项目*/
-	protected $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
-	protected $self_post_type;			/*档案自身的种类*/
-	protected $default_item;
-	protected $options;
+	private $common_items;			/*四种档案都包括的共通项目*/
+	private $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
+	private $self_post_type;		/*档案自身的种类*/
+	private $default_item;			/*单条档案对应的默认值*/
+	private $options;				/*配置选项，在set_working_mode时被设置*/
+
 	/**
 	 * 构造函数。
 	 * @access protected
-	 * @param	array	$settings	reserved
+	 * @param	array	$post_type 不设置时大部分功能不能使用。
 	 * @since 0.0.1
 	 */
 	public function __construct($post_type = false){
@@ -87,7 +47,7 @@ class BDDB_Editor {
 		$this->common_items = array(
 			'bddb_display_name' => array(	'name' => 'bddb_display_name',
 											'label' => '表示名',
-											'comment' => '<strong>*必填</strong>',
+											'comment' => '<strong>*必填，不填无法显示！</strong>',
 											'placeholder' => '尽量使用中文',
 											),
 			'bddb_personal_review' => array(	'name' => 'bddb_personal_review',
@@ -115,7 +75,6 @@ class BDDB_Editor {
 			'bddb_publish_time' => array(	'name' => 'bddb_publish_time',
 											'label' => '出版时间',
 											'size' => 16,
-											'comment' => '',
 											'sanitize_callback' => array($this, 'sanitize_publish_time'),
 											'placeholder' => 'YYYY-MM',
 											),
@@ -144,13 +103,22 @@ class BDDB_Editor {
 		}
 	}
 	
-	//外部接口
+	/********    外部函数 开始    ********/
+	/******  直接调用的外部函数 开始  ******/
+	/**
+	 * 后台初始化。
+	 * @access public
+	 * @since 0.1.0
+	 * @ref		bddb_admin_init()
+	 */
 	public function admin_init() {
+		//统一到一个函数中方便查找。
 		add_action ( 'save_post', array($this, 'update_all_items'), 10, 2);
 		add_filter ( 'wp_insert_post_data', array($this, 'generate_content'), 10, 2);
 		add_action( 'wp_ajax_bddb_get_pic', array($this, 'download_pic') );
 		add_action( 'wp_ajax_bddb_get_scovers', array($this, 'download_serial_pics'));
 		add_filter( 'manage_posts_columns', array($this,'get_admin_edit_headers'), 10, 2);
+		//TODO：下面8个钩子，是meta用的。meta类型是手动添加的，会触发edit的钩子，tax不是，不能触发。想办法整合。
 		add_action( 'manage_movie_posts_custom_column', array($this, 'manage_movie_admin_columns'), 10, 2);
 		add_action( 'manage_book_posts_custom_column', array($this, 'manage_book_admin_columns'), 10, 2);
 		add_action( 'manage_game_posts_custom_column', array($this, 'manage_game_admin_columns'), 10, 2);
@@ -159,15 +127,26 @@ class BDDB_Editor {
 		add_filter( 'manage_edit-book_sortable_columns', array($this, 'add_book_sortable_columns'));
 		add_filter( 'manage_edit-game_sortable_columns', array($this, 'add_game_sortable_columns'));
 		add_filter( 'manage_edit-album_sortable_columns', array($this, 'add_album_sortable_columns'));
+		//meta排序
 		add_action( 'pre_get_posts', array($this, 'sort_custom_column_query') );
+		//tax排序
+		add_filter( 'posts_clauses', array($this, 'custom_taxonomy_posts_clauses'), 10, 2 );
+		//下面两个钩子可能以后会用到，暂时留着。
+		//add_filter( 'manage_posts_columns', array($this, 'redefine_pl_headers'));
+		//add_filter( 'manage_posts_custom_column', array($this, 'reorder_taxonomy_output'),10,2);
 	}
+	/******  直接调用的外部函数 结束  ******/
+
+	/******  钩子调用的外部函数 开始  ******/
 	/**
 	 * 创建编辑盒子。
 	 * @access public
+	 * @param	object	$pt		post
+	 * @ref		action::register_meta_box_cb
 	 * @since 0.0.1
 	 */
-	public function add_meta_box() {
-		if(!$this->self_post_type) {
+	public function add_meta_box($pt) {
+		if(!$this->set_working_mode($pt->post_type)) {
 			return;
 		}
 		switch($this->self_post_type){
@@ -186,15 +165,72 @@ class BDDB_Editor {
 			default:
 			return;
 		}
-		$title = sprintf("完善%s信息", $addi);
+		//工作状态box，使用最后一个参数，默认加到侧边。
 		add_meta_box('bddbstsdiv', '状态显示', array($this, 'show_status_meta_box'), NULL, 'side');
 		add_meta_box('bddbcommondiv', $title, array($this, 'show_meta_box'));
 	}
-	
+
 	/**
-	 * 显示图片工具
+	 * 保存时更新追加的内容。
+	 * @access public
+	 * @param int $post_ID	正在编辑的post_ID
+	 * @param object $post	正在编辑的post
+	 * @ref		action::save_post
+	 * @since 0.0.1
+	 */
+	public function update_all_items($post_ID, $post) {
+		//验证信息在meta_box里
+		if (!isset( $_POST['bddb_nonce'] ) || !wp_verify_nonce( $_POST['bddb_nonce'], basename( __FILE__ ) ) )
+			return;
+		if (empty($this->self_post_type)){
+			$this->set_working_mode($post->post_type);
+		}
+		if (!is_array($this->total_items)) {
+			return;
+		}
+		foreach ($this->total_items as $item) {
+			//$item = array_merge( $this->default_item, $item );
+			if ('tax' == $item['type']) {
+				$term_str = $this->update_terms($post_ID, $item);
+				//TODO:boolean_meta这个类型有些鸡肋
+			}elseif('meta' == $item['type'] || 'boolean_meta' == $item['type']) {
+				$meta_str = $this->update_meta($post_ID, $item);
+			}
+		}
+	}
+
+	/**
+	 * 根据附加项内容生成文章正文。
+	 * @access public
+	 * @param array $data		要保存的post_data
+	 * @param array $postarr	还没有落地的post_data
+	 * @return array	$data
+	 * @ref	filter::wp_insert_post_data
+	 * @since 0.0.1
+	 */
+	public function generate_content($data, $postarr ) {
+		if (!isset($postarr['post_type']) || 
+			!in_array($postarr['post_type'], array('movie', 'book', 'game', 'album'))) {
+			return $data;
+		}
+		//使用_POST中的数据,它们来自box控件
+		//主要更新post_content的内容
+		$this->set_working_mode($postarr['post_type']);
+		//post_content中保存ID，方便其它post通过ID调用。
+		$data['post_content'] = 'ID:'.$postarr['ID']."\n";
+		foreach ($this->total_items as $item) {
+			if (isset($_POST[$item['name']]) && !empty($_POST[$item['name']]) ) {
+				$data['post_content'] .= sprintf("%s:%s\n",$item['label'], $_POST[$item['name']]);
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * 显示图片工具的callback
 	 * @access public
 	 * @param object $post	正在编辑的wp的post
+	 * @ref		add_meta_box()
 	 * @since 0.0.1
 	 */
 	public function show_status_meta_box($post) {
@@ -216,6 +252,7 @@ class BDDB_Editor {
 		}elseif('album' == $post->post_type) {
 			$val_str = get_post_meta($post->ID, 'bddb_score_douban', true);
 		}
+		//TODO：可以做成动态改。
 		$catch_status=(''==$val_str) ? '网页未抓取' : '网页已抓取';
 		$t_class=(''==$val_str) ? "pic" : "no-pic";
 		
@@ -230,6 +267,7 @@ class BDDB_Editor {
 	 * 显示编辑盒子。
 	 * @access public
 	 * @param object $post	正在编辑的wp的post
+	 * @ref		add_meta_box()
 	 * @since 0.0.1
 	 */
 	public function show_meta_box($post) {
@@ -284,12 +322,13 @@ class BDDB_Editor {
 		}
 		echo '</table></div>';
 	}
-	
+
 	/**
 	 * 后台类别列表增加标题。
 	 * @access public
 	 * @param string 	$columns	修改前的标题
 	 * @param string 	$post_type	list的种类
+	 * @ref		filter::manage_posts_columns
 	 * @since 0.1.0
 	 */
 	public function get_admin_edit_headers($columns, $post_type) {
@@ -298,12 +337,14 @@ class BDDB_Editor {
 				return $columns;
 			}
 		}
+		//先删掉日期再加回来，让日期保持在最后一列。
 		unset($columns['date']);
 		foreach ($this->total_items as $arg) {
 			if ($arg['show_admin_column'] && $arg['type'] == 'meta') {
 				$columns[$arg['name']] = $arg['label'];
 			}
 		}
+		//TODO：tax能否统一处理
 		$columns['date'] = 'Date';
 		return $columns;
 	}
@@ -313,6 +354,7 @@ class BDDB_Editor {
 	 * @access public
 	 * @param string 	$column_name	列标题
 	 * @param string 	$id				post_ID
+	 * @ref		action::manage_{$post_type}_posts_custom_column
 	 * @since 0.1.0
 	 */
 	public function manage_movie_admin_columns($column_name, $id){
@@ -324,6 +366,7 @@ class BDDB_Editor {
 	 * @access public
 	 * @param string 	$column_name	列标题
 	 * @param string 	$id				post_ID
+	 * @ref		action::manage_{$post_type}_posts_custom_column
 	 * @since 0.1.0
 	 */
 	public function manage_book_admin_columns($column_name, $id){
@@ -335,6 +378,7 @@ class BDDB_Editor {
 	 * @access public
 	 * @param string 	$column_name	列标题
 	 * @param string 	$id				post_ID
+	 * @ref		action::manage_{$post_type}_posts_custom_column
 	 * @since 0.1.0
 	 */
 	public function manage_game_admin_columns($column_name, $id){
@@ -346,38 +390,17 @@ class BDDB_Editor {
 	 * @access public
 	 * @param string 	$column_name	列标题
 	 * @param string 	$id				post_ID
+	 * @ref		action::manage_{$post_type}_posts_custom_column
 	 * @since 0.1.0
 	 */
 	public function manage_album_admin_columns($column_name, $id){
 		$this->get_column('album',$column_name, $id);
 	}
-	
-	/**
-	 * 后台类别列表增加显示内容。
-	 * @access public
-	 * @param string 	$post_type
-	 * @param string 	$column_name	列标题
-	 * @param string 	$id				post_ID
-	 * @since 0.1.0
-	 */
-	private function get_column($post_type, $column_name, $id){
-		$this->set_working_mode($post_type);
-		if (!array_key_exists($column_name, $this->total_items)){
-			echo "not found";
-		}else{
-			$arg = $this->total_items[$column_name];
-			if ('meta'==$arg['type']) {
-				echo get_post_meta($id, $column_name, true);
-			} else {
-				echo $arg['type'];
-			}
-		}
-	}
-	
 	/**
 	 * 后台类别列表增加排序属性。
 	 * @access public
 	 * @param array 	$columns	已经存在的排序列
+	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
 	 */
 	public function add_movie_sortable_columns($columns){
@@ -387,18 +410,17 @@ class BDDB_Editor {
 	 * 后台类别列表增加排序属性。
 	 * @access public
 	 * @param array 	$columns	已经存在的排序列
+	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
 	 */
 	public function add_book_sortable_columns($columns){
-		$columns['taxonomy-b_region'] = 'b_region';
-		$columns['taxonomy-b_p_writer'] = 'b_p_writer';
-		$columns['taxonomy-b_misc_brand'] = 'b_misc_brand';
 		return $this->set_sortalbe_columns('book', $columns);
 	}
 	/**
 	 * 后台类别列表增加排序属性。
 	 * @access public
 	 * @param array 	$columns	已经存在的排序列
+	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
 	 */
 	public function add_game_sortable_columns($columns){
@@ -408,282 +430,89 @@ class BDDB_Editor {
 	 * 后台类别列表增加排序属性。
 	 * @access public
 	 * @param array 	$columns	已经存在的排序列
+	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
 	 */
 	public function add_album_sortable_columns($columns){
 		return $this->set_sortalbe_columns('album', $columns);
 	}
-	
 
-	public function sort_custom_column_query($query){
-		$orderby = $query->get( 'orderby' );
-
-		if ( 'bddb_view_time' == $orderby ) {
-
-			$meta_query = array(
-				'relation' => 'OR',
-				array(
-					'key' => 'bddb_view_time',
-					'compare' => 'NOT EXISTS', // see note above
-				),
-				array(
-					'key' => 'bddb_view_time',
-				),
-			);
-
-			$query->set( 'meta_query', $meta_query );
-			$query->set( 'orderby', 'meta_value' );
-		}
-		if ( 'bddb_personal_rating' == $orderby ) {
-
-			$meta_query = array(
-				'relation' => 'OR',
-				array(
-					'key' => 'bddb_personal_rating',
-					'compare' => 'NOT EXISTS', // see note above
-					'type' => 'numeric',
-				),
-				array(
-					'key' => 'bddb_personal_rating',
-				),
-			);
-
-			$query->set( 'meta_query', $meta_query );
-			$query->set( 'orderby', 'meta_value' );
-		}
-	}
-	
 	/**
-	 * 后台类别列表增加排序属性。
-	 * @access private
-	 * @param string 	$post_type
-	 * @param array 	$columns	已经存在的排序列
+	 * 更改meta类型列的排序方法。
+	 * @access public
+	 * @param object 	$query		WP_Query
+	 * @ref		action::pre_get_posts
 	 * @since 0.1.0
 	 */
-	private function set_sortalbe_columns($post_type, $columns){
+	public function sort_custom_column_query($query){
+		$orderby = $query->get( 'orderby' );
+		//这个值是register_type的时候注册的，默认没改过，也就是type本身。
+		$post_type = $query->get( 'post_type' );
 		$this->set_working_mode($post_type);
-		foreach($this->total_items as $arg) {
-			if ($arg['show_admin_column']){
-				$columns[$arg['name']] = $arg['name'];
+		if (isset($this->total_items[$orderby]) && $this->total_items[$orderby]['show_admin_column']) {
+			$item = $this->total_items[$orderby];
+			if ('meta' == $item['type']) {
+				$meta_query = array(
+					//不存在或者按照名排序，任何一个条件都不能省略。
+					'relation' => 'OR',
+					array(
+						'key' => $item['name'],
+						'compare' => 'NOT EXISTS',
+					),
+					array(
+						'key' => $item['name'],
+					),
+				);
+				//如果是数字类型，转化成数字排序，这就是无法整合进tax排序函数的原因。
+				if ('number' == $item['inputstyle']) {
+					$meta_query[1]['type'] = 'numeric';
+				}
+				$query->set( 'meta_query', $meta_query );
+				$query->set( 'orderby', 'meta_value' );
 			}
 		}
-		return $columns;
-	}
-	
-	//优化函数
-	/**
-	 * 优化个人评分。
-	 * @access protected
-	 * @param string $str	编辑框中的评分
-	 * @return string	-1~100的十进制字符串
-	 * @since 0.0.1
-	 */
-	protected function sanitize_personal_rating($str) {
-		$int = intval($str);
-		if ($int < 0 || $int >100) {
-			return '-1';
-		} else {
-			return strval($int);
-		}
-	}
-	
-	/**
-	 * 优化原名。如果输入参数为空,则把显示名复制到原名上
-	 * @access protected
-	 * @param string $str	编辑框中的原名
-	 * @return string	原名
-	 * @since 0.0.1
-	 */
-	protected function sanitize_original_name($str) {
-		if ($str == "" && isset($_POST['bddb_display_name'])) {
-			$str = htmlentities($_POST['bddb_display_name']);
-		}
-		return $str;
-	}
-	
-	/**
-	 * 优化评价。如果输入参数为空,则显示“无聊到无话可说”
-	 * @access protected
-	 * @param string $str	编辑框中的原名
-	 * @return string	原名
-	 * @since 0.0.1
-	 */
-	protected function sanitize_personal_review($str) {
-		if ($str == "" && isset($_POST['bddb_display_name'])) {
-			$str = "没有评价。";
-		}
-		return $str;
-	}
-	/**
-	 * 优化出品时间。改为年-月格式。如果只输入年则默认定位到该年1月
-	 * @access protected
-	 * @param string $str	编辑框中的出品年份
-	 * @return string	修改后的出品年份
-	 * @since 0.0.1
-	 */
-	protected function sanitize_publish_time($str) {
-		if (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
-			$str = date("Y-m", strtotime($str));
-		}
-		if (!strpos($str,"-")&&intval($str)>1904) {
-			$str .= '-01';
-		}
-		return $str;
-	}
-	
-	/**
-	 * 优化系列作品的封面列表。
-	 * @access 	protected
-	 * @param 	string $str	编辑框中的所有封面地址
-	 * @return 	string	优化后的封面地址
-	 * @since 0.0.1
-	 */
-	protected function sanitize_series_covers($str) {
-		//之前油猴采集到的链接用逗号分隔，替换成分号。
-		$str = str_replace(",", ";", $str);
-		return $this->sanitize_link($str);
-	}
-	/**
-	 * 优化链接输入。
-	 * @access 	protected
-	 * @param 	string $str	编辑框中的所有封面地址
-	 * @return 	string	优化后的封面地址
-	 * @since 0.0.1
-	 */
-	protected function sanitize_link($str) {
-		return htmlspecialchars_decode($str);
-	}
-	/**
-	 * 优化人名输入。
-	 * @access 	protected
-	 * @param 	string $str	编辑框中的人名
-	 * @return 	string	优化后的人名
-	 * @since 0.0.1
-	 */
-	protected function sanitize_name($str) {
-		if (strpos($str, ',')) {
-			$arr_person = explode(",", $str);
-			if (count($arr_person) > 10) {
-				$arr_person = array_slice($arr_person, 0, 10);
-				$str = implode(', ',$arr_person);
-			}
-		}		
-		return str_replace(".","·", $str);
 	}
 
 	/**
-	 * 优化接触时间，不填时默认为当天。
-	 * @access protected
-	 * @param string $str	编辑框中的接触时间
-	 * @return string	观影/阅读/游戏/欣赏时间
-	 * @since 0.0.1
-	 */
-	protected function sanitize_view_time($str) {
-		if ('' == $str) {
-			$str = date('Y-m');
-		} elseif (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
-			$str = date("Y-m", strtotime($str));
-		}
-		return $str;
-	}
-	
-	//优化函数
-	/**
-	 * 优化花费时间，不填时默认0。
+	 * posts_clauses 的回调函数。
 	 * @access public
-	 * @param string $str	编辑框中的花费时间
-	 * @return string	花费时间
-	 * @since 0.0.1
+	 * @param	array	$pieces		钩子要求固定
+	 * @param	object	$query		钩子要求固定
+	 * @return	array	$pieces
+	 * @ref		filter：：posts_clauses
+	 * @since	0.1.5
 	 */
-	protected function sanitize_cost_time($str) {
-		$int = intval($str);
-		if ($int <= 0) {
-			$str = '0';
+	public function custom_taxonomy_posts_clauses( $pieces, $query ) {
+		if ( ! is_admin() || ! $query->is_main_query() ) {
+			return $pieces;
 		}
-		return $str;
+		global $wpdb;
+		$post_type = $query->get( 'post_type' );
+		$orderby = $query->get( 'orderby' );
+		$this->set_working_mode($post_type);
+		if (!isset($this->total_items[$orderby])||
+			!$this->total_items[$orderby]['show_admin_column'] || 
+			'tax' != $this->total_items[$orderby]['type']) {
+			return $pieces;
+		}
+		//TODO：尝试把meta的sort合并到这里
+		$order = strtoupper( $query->get( 'order' ) );
+		if ($order != 'DESC') $order = 'ASC';
+		$pieces[ 'join' ] .= ' LEFT JOIN ' . $wpdb->term_relationships . ' AS tr ON ' . $wpdb->posts . '.ID = tr.object_id'
+		. ' LEFT JOIN ' . $wpdb->term_taxonomy . ' AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id'
+		. ' LEFT JOIN ' . $wpdb->terms . ' AS t ON tt.term_id = t.term_id';
+		$pieces[ 'fields' ] .= ', group_concat(t.name ORDER BY t.name ' . $order . ') AS ' . $orderby;
+		$pieces[ 'groupby' ] = $wpdb->posts . '.ID';
+		$pieces[ 'orderby' ] = $orderby . ' ' . $order . ', ' . $wpdb->posts . '.post_date DESC';
+		
+		return $pieces;
 	}
-	
-	/**
-	 * 优化丛书本数，不填时默认为非丛书，设成1本。
-	 * @access protected
-	 * @param string $str	编辑框中的丛书本数
-	 * @return string	丛书本数
-	 * @since 0.0.1
-	 */
-	protected function sanitize_series_total($str) {
-		$int = intval($str);
-		if ($int <= 0) {
-			$str = '1';
-		}
-		return $str;
-	}
-	
-	/**
-	 * 更新追加的内容。
-	 * @access public
-	 * @param int $post_ID	正在编辑的post_ID
-	 * @param object $post	正在编辑的post
-	 * @since 0.0.1
-	 */
-	public function update_all_items($post_ID, $post) {
-		if (!isset( $_POST['bddb_nonce'] ) || !wp_verify_nonce( $_POST['bddb_nonce'], basename( __FILE__ ) ) )
-			return;
-		if (empty($this->self_post_type)){
-			$this->set_working_mode($post->post_type);
-		}
-		if (!is_array($this->total_items)) {
-			return;
-		}
-		foreach ($this->total_items as $item) {
-			//$item = array_merge( $this->default_item, $item );
-			if ('tax' == $item['type']) {
-				$term_str = $this->update_terms($post_ID, $item);
-			}elseif('meta' == $item['type'] || 'boolean_meta' == $item['type']) {
-				$meta_str = $this->update_meta($post_ID, $item);
-			}
-		}
-	}
-	
-	/**
-	 * 根据附加项内容生成文章正文。
-	 * @access public
-	 * @param array $data	要保存的post_data
-	 * @param array $post	还没有落地的post_data
-	 * @since 0.0.1
-	 */
-	public function generate_content($data, $postarr ) {
-		if (!isset($postarr['post_type']) || 
-			!in_array($postarr['post_type'], array('movie', 'book', 'game', 'album'))) {
-			return $data;
-		}
-		//使用_POST中的数据,它们来自box控件
-		$this->set_working_mode($postarr['post_type']);
-		$data['post_content'] = 'ID:'.$postarr['ID']."\n";
-		foreach ($this->total_items as $item) {
-			if (isset($_POST[$item['name']]) && !empty($_POST[$item['name']]) ) {
-				$data['post_content'] .= sprintf("%s:%s\n",$item['label'], $_POST[$item['name']]);
-			}
-		}
-		return $data;
-	}
-	
-	//说明栏中的特殊项
-	/**
-	 * 获取封面的按钮。
-	 * @access protected
-	 * @param object $post	
-	 * @since 0.0.1
-	 */
-	protected function echo_poster_button( $post ) {
-		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
-		$names = bddb_get_poster_names($post->post_type, $post->ID);
-		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" id="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button>';
-		return $btn_get;
-	}
-	
+
+	/******    AJAX回调函数 开始    ******/
 	/**
 	 * 获取封面的Callback。
 	 * @access public
+	 * @ref		AJAX::bddb_get_pic
 	 * @since 0.0.1
 	 */
 	 public function download_pic(){
@@ -731,9 +560,10 @@ class BDDB_Editor {
 		$image->save($thumbnail_full_name);
 	 }
 	 
-	 /**
-	 * 获取系列封面的Callback。
+	/**
+	 * 获取系列封面的AJAX的Callback。
 	 * @access public
+	 * @ref		AJAX::bddb_get_scovers
 	 * @since 0.0.8
 	 */
 	 public function download_serial_pics(){
@@ -780,13 +610,254 @@ class BDDB_Editor {
 			$image->save($dest);
 		}
 	 }
-	 
-	 
+	/******    AJAX回调函数 结束    ******/
+
+	//TODO
+	public function redefine_pl_headers($columns) {
+		return $columns;
+	}
+	//TODO
+	public function reorder_taxonomy_output($column_name, $id) {
+		$taxonomy = $column_name;
+	}
+	/******  钩子调用的外部函数 结束  ******/
+
+	/********    外部函数 结束    ********/
+
+
+	/********    私有函数 开始    ********/
+	/**
+	 * 后台类别列表增加显示内容。
+	 * @access public
+	 * @param string 	$post_type
+	 * @param string 	$column_name	列标题
+	 * @param string 	$id				post_ID
+	 * @ref		manage_movie_admin_columns()
+	 * @ref		manage_book_admin_columns()
+	 * @ref		manage_game_admin_columns()
+	 * @ref		manage_album_admin_columns()
+	 * @since 0.1.0
+	 */
+	private function get_column($post_type, $column_name, $id){
+		$this->set_working_mode($post_type);
+		if (!array_key_exists($column_name, $this->total_items)){
+			echo "not found";
+		}else{
+			$arg = $this->total_items[$column_name];
+			if ('meta'==$arg['type']) {
+				echo get_post_meta($id, $column_name, true);
+			} else {
+				echo '-';
+			}
+		}
+	}
+	
+
+	/**
+	 * 后台类别列表增加排序属性。
+	 * @access private
+	 * @param string 	$post_type
+	 * @param array 	$columns	已经存在的排序列
+	 * @since 0.1.0
+	 */
+	private function set_sortalbe_columns($post_type, $columns){
+		$this->set_working_mode($post_type);
+		foreach($this->total_items as $arg) {
+			if ($arg['show_admin_column'] && 'tax' == $arg['type']){
+				//taxonomy-XXX是注册taxonomy时,'show_admin_column'=true时自动添加的。
+				$columns['taxonomy-'.$arg['name']] = $arg['name'];
+			}
+			if ($arg['show_admin_column'] && 'meta' == $arg['type']){
+				$columns[$arg['name']] = $arg['name'];
+			}
+		}
+		return $columns;
+	}
+
+	/****   保存选项的优化回调函数 开始   ****/
+	/**
+	 * 优化个人评分。
+	 * @access protected
+	 * @param string $str	编辑框中的评分
+	 * @return string	-1~100的十进制字符串
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_personal_rating($str) {
+		$int = intval($str);
+		if ($int < 0 || $int >100) {
+			return '-1';
+		} else {
+			return strval($int);
+		}
+	}
+	
+	/**
+	 * 优化原名。如果输入参数为空,则把显示名复制到原名上
+	 * @access protected
+	 * @param string $str	编辑框中的原名
+	 * @return string	原名
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_original_name($str) {
+		if ($str == "" && isset($_POST['bddb_display_name'])) {
+			$str = htmlentities($_POST['bddb_display_name']);
+		}
+		return $str;
+	}
+	
+	/**
+	 * 优化评价。如果输入参数为空,则显示“没有评价”
+	 * @access protected
+	 * @param string $str	编辑框中的原名
+	 * @return string	原名
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_personal_review($str) {
+		if ($str == "" && isset($_POST['bddb_display_name'])) {
+			$str = "没有评价。";
+		}
+		return $str;
+	}
+	/**
+	 * 优化出品时间。改为年-月格式。如果只输入年则默认定位到该年1月
+	 * @access protected
+	 * @param string $str	编辑框中的出品年份
+	 * @return string	修改后的出品年份
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_publish_time($str) {
+		//TODO：空字符串会转成1970
+		if (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
+			$str = date("Y-m", strtotime($str));
+		}
+		if (!strpos($str,"-")&&intval($str)>1904) {
+			$str .= '-01';
+		}
+		return $str;
+	}
+	
+	/**
+	 * 优化系列作品的封面列表。
+	 * @access 	protected
+	 * @param 	string $str	编辑框中的所有封面地址
+	 * @return 	string	优化后的封面地址
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_series_covers($str) {
+		//之前油猴采集到的链接用逗号分隔，替换成分号。
+		$str = str_replace(",", ";", $str);
+		return $this->sanitize_link($str);
+	}
+	/**
+	 * 优化链接输入。
+	 * @access 	protected
+	 * @param 	string $str	编辑框中的所有地址
+	 * @return 	string	优化后的地址
+	 	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_link($str) {
+		return htmlspecialchars_decode($str);
+	}
+	/**
+	 * 优化人名输入。
+	 * @access 	protected
+	 * @param 	string $str	编辑框中的人名
+	 * @return 	string	优化后的人名
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_name($str) {
+		if (strpos($str, ',')) {
+			//TODO:10改为可以设置的limit，进而通过option定义
+			$arr_person = explode(",", $str);
+			if (count($arr_person) > 10) {
+				$arr_person = array_slice($arr_person, 0, 10);
+				$str = implode(', ',$arr_person);
+			}
+		}		
+		return str_replace(".","·", $str);
+	}
+
+	/**
+	 * 优化接触时间，不填时默认为当天。
+	 * @access protected
+	 * @param string $str	编辑框中的接触时间
+	 * @return string	观影/阅读/游戏/欣赏时间
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_view_time($str) {
+		if ('' == $str) {
+			$str = date('Y-m');
+		} elseif (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
+			$str = date("Y-m", strtotime($str));
+		}
+		return $str;
+	}
+
+	/**
+	 * 优化花费时间，不填时默认0。
+	 * @access public
+	 * @param string $str	编辑框中的花费时间
+	 * @return string	花费时间
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_cost_time($str) {
+		$int = intval($str);
+		if ($int <= 0) {
+			$str = '0';
+		}
+		return $str;
+	}
+	
+	/**
+	 * 优化丛书本数，不填时默认为非丛书，设成1本。
+	 * @access protected
+	 * @param string $str	编辑框中的丛书本数
+	 * @return string	丛书本数
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.0.1
+	 */
+	protected function sanitize_series_total($str) {
+		$int = intval($str);
+		if ($int <= 0) {
+			$str = '1';
+		}
+		return $str;
+	}
+
+	/****   保存选项的优化回调函数 结束   ****/
+
+	/**** comment 列的特殊回调函数 开始 ****/
+	/**
+	 * 获取封面的按钮。
+	 * @access protected
+	 * @param object $post
+	 * @return	string	显示用字符串
+	 * @ref 	$this->show_meta_box()->iscallable('comment')
+	 * @since 0.0.1
+	 */
+	protected function echo_poster_button( $post ) {
+		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
+		$names = bddb_get_poster_names($post->post_type, $post->ID);
+		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" id="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button>';
+		return $btn_get;
+	}
+
 	
 	/**
 	 * 抓取按钮。
 	 * @access protected
-	 * @param object $post	
+	 * @param object $post
+	 * @return	string	显示用字符串
+	 * @ref 	$this->show_meta_box()->iscallable('comment')
 	 * @since 0.0.1
 	 */
 	protected function echo_fetch_button($post) {
@@ -799,7 +870,9 @@ class BDDB_Editor {
 	/**
 	 * 取多张封面按钮。
 	 * @access protected
-	 * @param object $post	
+	 * @param object $post
+	 * @return	string	显示用字符串
+	 * @ref 	$this->show_meta_box()->iscallable('comment')
 	 * @since 0.0.8
 	 */
 	protected function echo_series_covers_button($post) {
@@ -815,6 +888,8 @@ class BDDB_Editor {
 	 * @access private
 	 * @param int $id	正在编辑的post_ID
 	 * @param array $item	要更新的条目
+	 * @return	string	显示用字符串
+	 * @ref 	$this->show_meta_box()->iscallable('comment')
 	 * @since 0.1.0
 	 */
 	private function get_tax_hint_str($id, $item) {
@@ -822,6 +897,7 @@ class BDDB_Editor {
 			return '';
 		}
 		$ret = '';
+		//TODO：数量改为可配置
 		$arg = array(	'taxonomy'=>$item['name'],
 						'hide_empty'=>false,
 						'orderby'=>'id',
@@ -849,13 +925,16 @@ class BDDB_Editor {
 		}
 		return $ret;
 	}
+	/**** comment 列的特殊回调函数 结束 ****/
 
-	//私有工具函数
+	/******      工具函数 开始      ******/
 	/**
-	 * 更新分类项目。
+	 * 更新term项目。
 	 * @access private
 	 * @param int $post_ID	正在编辑的post_ID
 	 * @param array $item	要更新的条目
+	 * @return	string	更新后的内容
+	 * @ref $this->update_all_items()
 	 * @since 0.0.1
 	 */
 	private function update_terms($post_ID, $item) {
@@ -872,10 +951,12 @@ class BDDB_Editor {
 	}
 
 	/**
-	 * 更新分类项目。
+	 * 更新meta项目。
 	 * @access private
 	 * @param int $post_ID	正在编辑的post_ID
 	 * @param array $item	要更新的条目
+	 * @return	string	更新后的内容
+	 * @ref $this->update_all_items()
 	 * @since 0.0.1
 	 */
 	private function update_meta($post_ID, $item) {
@@ -903,23 +984,12 @@ class BDDB_Editor {
 		return $strMetaVal;
 	}
 	
-	//设定工作模式相关
-	/**
-	 * 为项目添加默认值。
-	 * @access protected
-	 * @since 0.0.1
-	 */
-	protected function merge_default_column($inItem) {
-		if (!is_array($inItem)){
-			return $this->default_item;
-		}
-		return array_merge($this->default_item, $inItem);
-	}
-	
 	/**
 	 * 根据post_type设置工作模式,主要是设定好每个种类的条目。
 	 * @param string $post_type
-	 * @access private
+	 * @return	bool	成功
+	 * @access	private
+	 * @mention	每个外部和回调函数都需要种类支撑，所以外部函数都需要先调用set_working_mode
 	 * @since 0.1.0
 	 */
 	private function set_working_mode($post_type){
@@ -937,9 +1007,26 @@ class BDDB_Editor {
 		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
 		return true;
 	}
+	
+	/**
+	 * 为项目添加默认值。
+	 * @access protected
+	 * @return	array		
+	 * @param	array		$inItem
+	 * @ref 	$this->set_working_mode()->array_map
+	 * @since 0.0.1
+	 */
+	protected function merge_default_column($inItem) {
+		if (!is_array($inItem)){
+			return $this->default_item;
+		}
+		return array_merge($this->default_item, $inItem);
+	}
+	
 	/**
 	 * 设置电影的表示条目。
 	 * @access private
+	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
 	private function set_additional_items_movie() {
@@ -952,19 +1039,21 @@ class BDDB_Editor {
 											'size' => 16,
 											'type' => 'tax',
 											'comment' => '',
+											'show_admin_column' => true,
 											),
 			'm_p_director'		=>	array(	'name' => 'm_p_director',
 											'label' => '导演',
 											'size' => 16,
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
-											//'show_admin_column' => true,
+											'show_admin_column' => true,
 											),
 			'm_p_actor'			=>	array(	'name' => 'm_p_actor',
 											'label' => '主要演员',
 											'size' => 32,
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
+											'show_admin_column' => true,
 											),
 			'm_genre'			=>	array(	'name' => 'm_genre',
 											'label' => '类型',
@@ -995,6 +1084,7 @@ class BDDB_Editor {
 											'size' => 16,
 											'type' => 'tax',
 											'placeholder'=>'豆瓣250,IMDB250,露点,三级,R级',
+											'show_admin_column' => true,
 											),
 			'bddb_id_douban'		=>	array(	'name' => 'bddb_id_douban',
 											'label' => '豆瓣ID',
@@ -1031,6 +1121,7 @@ class BDDB_Editor {
 	/**
 	 * 设置电影的表示条目。
 	 * @access private
+	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
 	private function set_additional_items_book() {
@@ -1042,14 +1133,15 @@ class BDDB_Editor {
 											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
-											'comment' => '',
+											'show_admin_column' => true,
 											),
 			'b_p_writer'		=>	array(	'name' => 'b_p_writer',
 											'label' => '作者',
 											'size' => 16,
 											'type' => 'tax',
-											'comment'=>'<strong>*必填</strong>',
+											'comment'=>'<strong>*作者和编者至少填一项</strong>',
 											'sanitize_callback' => array($this, 'sanitize_name'),
+											'show_admin_column' => true,
 											),
 			'b_p_translator'	=>	array(	'name' => 'b_p_translator',
 											'label' => '译者',
@@ -1083,7 +1175,8 @@ class BDDB_Editor {
 											'comment'=>'默认为1',
 											'sanitize_callback' => array($this, 'sanitize_series_total'),
 											),
-			'bddb_id_douban'		=>	array(	'name' => 'bddb_id_douban',
+											//删？
+			'bddb_id_douban'	=>	array(	'name' => 'bddb_id_douban',
 											'label' => '豆瓣ID',
 											'size' => 16,
 											),
@@ -1099,6 +1192,7 @@ class BDDB_Editor {
 											'label' => '特殊头衔',
 											'size' => 16,
 											'type' => 'tax',
+											'show_admin_column' => true,
 											),
 			'b_bl_series'	=>	array(	'name' => 'b_bl_series',
 											'label' => '丛书',
@@ -1125,6 +1219,7 @@ class BDDB_Editor {
 	/**
 	 * 设置电影的表示条目。
 	 * @access private
+	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
 	private function set_additional_items_game() {
@@ -1136,18 +1231,19 @@ class BDDB_Editor {
 											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
-											'comment' => '',
 											),
 			'g_genre'		=>		array(	'name' => 'g_genre',
 											'label' => '类别',
 											'size' => 16,
 											'type' => 'tax',
+											'show_admin_column' => true,
 											),
 			'g_platform'	=>		array(	'name' => 'g_platform',
 											'label' => '机种',
 											'size' => 16,
 											'type' => 'tax',
 											'placeholder' => 'FC,MD,GB,GBC,GBA,SFC,ARC,PC,PS...',
+											'show_admin_column' => true,
 											),
 			'g_publisher'	=>		array(	'name' => 'g_publisher',
 											'label' => '制作方',
@@ -1191,6 +1287,7 @@ class BDDB_Editor {
 	/**
 	 * 设置电影的表示条目。
 	 * @access private
+	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
 	private function set_additional_items_album() {
@@ -1202,12 +1299,13 @@ class BDDB_Editor {
 											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
-											'comment' => '',
+											'show_admin_column' => true,
 											),
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'size' => 16,
 											'type' => 'tax',
+											'show_admin_column' => true,
 											),
 			'a_p_musician'	=>		array(	'name' => 'a_p_musician',
 											'label' => '音乐家',
@@ -1215,6 +1313,7 @@ class BDDB_Editor {
 											'type' => 'tax',
 											'placeholder'=>'演唱者/乐队/演奏家',
 											'sanitize_callback' => array($this, 'sanitize_name'),
+											'show_admin_column' => true,
 											),
 			'a_p_producer'	=>		array(	'name' => 'a_p_producer',
 											'label' => '制作人',
@@ -1222,7 +1321,7 @@ class BDDB_Editor {
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
-			'a_quantities'	=>		array(	'name' => 'a_quantities',
+			'a_quantities'	=>		array(	'name' => 'a_quantity',
 											'label' => '专辑规格',
 											'size' => 16,
 											'type' => 'tax',
@@ -1253,5 +1352,7 @@ class BDDB_Editor {
 		);
 		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
+	/******      工具函数 结束      ******/
+	/********    私有函数 结束    ********/
 };
 

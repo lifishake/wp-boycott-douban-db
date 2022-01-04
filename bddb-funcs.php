@@ -1,9 +1,12 @@
 <?php
-
+/**
+ * 外部接口
+*/
 add_action('admin_print_footer_scripts','bddb_quicktags');
 
+//从第n个位置?始?找
 function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) { 
-	$start=$n; //莉守ｬｬn荳ｪ菴咲ｽｮ蠑蟋区衍謇ｾ
+	$start=$n; //从第n个位置?始?找
 	$data=array(); 
 	for($i=0;$i<$count;$i++) {
 		$start=strpos($str,$start_str,$start);
@@ -39,6 +42,7 @@ function bddbt_substr_n_pos($str,$find,$n){
     return $str;
 }
 
+//供主??用，最好在page里，不要?用the_post
 function bddb_the_gallery($post_type) {
 	if (!in_array($post_type, array('movie','book','game','album'))) {
         the_content();
@@ -48,6 +52,7 @@ function bddb_the_gallery($post_type) {
 	$tl->the_gallery();
 }
 
+//short_code
 function bddb_quicktags(){
 ?>
 	<script type="text/javascript" charset="utf-8">

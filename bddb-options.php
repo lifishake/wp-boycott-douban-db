@@ -27,13 +27,6 @@ function bddb_settings_init(  ) {
 		'default' => $s->default_options(),
 	);
   register_setting( 'bddb_settings_group', 'bddb_settings', $arg);
-  //register_setting( 'bddb_movie_tab', 'bddb_settings' );
-  //register_setting( 'bddb_settings', 'm_omdb_key' );
-  /*
-    register_setting( 'bddb_book_tab', 'bddb_settings' );
-  register_setting( 'bddb_game_tab', 'bddb_settings' );
-  register_setting( 'bddb_album_tab', 'bddb_settings' );
-  */
 
   add_settings_section(
   'bddb_pluginPage_section',
@@ -103,7 +96,7 @@ function bddb_settings_init(  ) {
 		'bddb_m_omdb_key_render',
 		'bddb_movie_tab',
 		'bddb_movie_section'
-	);  
+	);
   
   add_settings_field(
   'bddb_b_max_serial_count',
@@ -128,54 +121,6 @@ function bddb_settings_init(  ) {
   'bddb_album_tab',
   'bddb_album_section'
   );
-  /*
-  add_settings_field(
-  'bddb_text_field_0',
-  __( 'Settings field description', 'pewae.com' ),
-  'bddb_text_field_0_render',
-  'pluginPage',
-  'bddb_pluginPage_section'
-  );
-
-  add_settings_field(
-  'bddb_radio_field_1',
-  __( 'Settings field description', 'pewae.com' ),
-  'bddb_radio_field_1_render',
-  'pluginPage',
-  'bddb_pluginPage_section'
-  );
-
-
-}
-
-
-function bddb_text_field_0_render(  ) {
-
-  $options = get_option( 'bddb_settings' );
-  ?>
-  <input type='text' name='bddb_settings[bddb_text_field_0]' value='<?php echo $options['bddb_text_field_0']; ?>'>
-  <?php
-
-}
-
-
-
-  add_settings_field(
-  'bddb_radio_field_1',
-  __( 'Settings field description', 'apip' ),
-  'bddb_radio_field_1_render',
-  'bddb_option_group',
-  'bddb_pluginPage_section'
-  );
-
-  add_settings_field(
-  'bddb_textarea_field_2',
-  __( 'Settings field description', 'apip' ),
-  'bddb_textarea_field_2_render',
-  'bddb_option_group',
-  'bddb_pluginPage_section'
-  );*/
-
 
 }
 
@@ -185,9 +130,9 @@ function bddb_basic_setting_render(  ) {
 	$options = $global_option_class->get_options();
   ?>
   <span>当前TAX版本号：</span>
-  <input type='text' name='bddb_settings[tax_version]' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
+  <input type='text' name='bddb_settings[tax_version]' readonly='readonly' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
   <span>当前TYPE版本号：</span>
-  <input type='text' name='bddb_settings[type_version]' size='24' value='<?php echo $options['type_version']; ?>'/>
+  <input type='text' name='bddb_settings[type_version]' readonly='readonly' size='24' value='<?php echo $options['type_version']; ?>'/>
   <?php
 }
 

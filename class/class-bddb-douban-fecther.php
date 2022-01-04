@@ -1,6 +1,6 @@
 <?php
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
-//http://localhost/chaos/wp-content/gallery/Sample/MrCharacter.jpg
+
 function trim_fetched_item($value) {
     $value = trim($value);
     $value = str_replace(array("[", "]", "&nbsp;", ""),array("【", "】", "", "N/A"), $value);
@@ -17,12 +17,29 @@ if (!function_exists('TrimArray')) {
 	}
 }
 
+/**
+ * 抓取类
+ */
 class BDDB_DoubanFetcher{
-	protected	$type;
+	//成员列表
+	protected	$type;	//类型
+	/**
+	 * 构造函数。
+	 * @access public
+	 * @param	string	$in_type	可以为空
+	 * @since 0.0.1
+	 */
 	public function __construct($in_type = ''){
 		$this->type = $in_type;
 	}//__construct
-			
+
+	/**
+	 * 构造函数。
+	 * @access public
+	 * @param	string	$url	可以为空
+	 * @return array
+	 * @since 0.0.1
+	 */
 	public function fetch($url = '') {
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
 		if ('' === $url || '' === $dou_id) {
@@ -36,6 +53,7 @@ class BDDB_DoubanFetcher{
 				$this->type = "album";
 			} elseif (strpos($url, "imdb.com")){
 				$this->type = "movie";
+				//直接走imdb
 				return $this->fetch_from_omdb($url);
 			} else {
 				return $ret;
@@ -43,6 +61,14 @@ class BDDB_DoubanFetcher{
 		}
 		return $this->fetch_from_douban_page($url);
 	}
+	
+	/**
+	 * 从omdb获取。
+	 * @access private
+	 * @param	string	$url	可以为空
+	 * @return array
+	 * @since 0.0.1
+	 */
 	private function fetch_from_omdb($url) {
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter');
 		preg_match('/tt[0-9][0-9]*/',$url, $ids);
@@ -57,7 +83,14 @@ class BDDB_DoubanFetcher{
 		$ret['result'] = 'OK';
 		return $ret;
 	}
-		
+	
+	/**
+	 * 抓取豆瓣页面。
+	 * @access private
+	 * @param	string	$url	可以为空
+	 * @return array
+	 * @since 0.0.1
+	 */
 	private function fetch_from_douban_page($url) {
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
 		$response = @wp_remote_get( 
@@ -84,7 +117,13 @@ class BDDB_DoubanFetcher{
 		return $ret;
 	}
 		
-		
+	/**
+	 * 解析豆瓣页面内容。
+	 * @access private
+	 * @param	string	$body	页面html内容
+	 * @return array
+	 * @since 0.0.1
+	 */
 	private function parse_douban_body($body) {
 		$fetch = array(
 			'pic' => '',
@@ -253,130 +292,211 @@ class BDDB_DoubanFetcher{
 			return $fetch;
 		}//parse_douban_body
 		
-		private function get_detail_douban_pic($pic_mass){
-			sleep(15);
-			$response = @wp_remote_get( 
-				htmlspecialchars_decode($pic_mass), 
-				array( 'timeout'  => 10000, ) 
-			);
-			if ( is_wp_error( $response ) || !is_array($response) ) {
-				return $pic_mass;
-			}
-			$body = wp_remote_retrieve_body($response);
-			preg_match('/<div class="cover"[\s\S]+?<\/div>/', $body, $matches);
-			if (is_array($matches)) {
-				preg_match('/(?<=src=").*?(?=")/',$matches[0],$match_imgs);
-				if (is_array($match_imgs)) {
-					return trim($match_imgs[0]);
-				}
-			}
+	/**
+	 * 解析豆瓣页面内容。
+	 * @access private
+	 * @param	string	$pic_mass	页面html内容
+	 * @return array
+	 * @since 0.0.1
+	*/	
+	private function get_detail_douban_pic($pic_mass){
+		sleep(15);
+		//防止被豆瓣当成恶意IP
+		$response = @wp_remote_get( 
+			htmlspecialchars_decode($pic_mass), 
+			array( 'timeout'  => 10000, ) 
+		);
+		if ( is_wp_error( $response ) || !is_array($response) ) {
 			return $pic_mass;
 		}
-
-		private function trim_year_month($y) {
-			if (strpos($y, "-")<=3) {
-				return $y;
+		$body = wp_remote_retrieve_body($response);
+		preg_match('/<div class="cover"[\s\S]+?<\/div>/', $body, $matches);
+		if (is_array($matches)) {
+			preg_match('/(?<=src=").*?(?=")/',$matches[0],$match_imgs);
+			if (is_array($match_imgs)) {
+				return trim($match_imgs[0]);
 			}
-			$parts = explode("-", $y);
-			return $parts[0]."-".$parts[1];
 		}
-		
-		private function trim_contry_title($c){
-			return str_replace(array("中国","/"),array("",","),$c);
-		}
+		return $pic_mass;
+	}
 
-		private function get_from_omdb($id, $input=0){
-			$default = array(
-				'pic' => '',
-				'average_score' => '',
-				'director' => '',
-				'actor' => '',
-				'screenwriter' => '',
-				'genre' => '',
-				'pubdate' => '',
-				'original_name' => '',
-				'imdbid' => '',
-				'country' => '',
-			);
-			if (!$input) {
-				$output = $default;
-			}else{
-				$output = wp_parse_args($input, $default);
-			}
-			if (''==$id || strpos($id, "tt")!=0) {
-				return $output;
-			}
-			$settings = new BDDB_Settings();
-			$api_key = $settings->get_omdb_key();
-			$url = "https://www.omdbapi.com/?i=".$id."&apikey=".$api_key;
-			$response = @wp_remote_get($url);
-			if (is_wp_error($response))
-			{
-				return $output;
-			}
-			$content = json_decode(wp_remote_retrieve_body($response),true);
-			$output['original_name'] = $content['Title'];
-			$output['imdb_score'] = $content['imdbRating'];
-			if ('' == $output['pic']) $output['pic'] = $content['Poster'];
-			if ('' == $output['director']) $output['director'] = $this->translate_directors($content['Director']);
-			if ('' == $output['actor']) $output['actor'] = $this->translate_directors($content['Actors']);
-			if ('' == $output['genre']) $output['genre'] = $this->translate_m_genres($content['Genre']);
-			if ('' == $output['country']) $output['country'] = $this->translate_contries($content['Country']);
-			if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($content['Year']);
+	/**
+	 * 修改日期格式。
+	 * @access private
+	 * @param	string	$pic_mass	页面html内容
+	 * @return string
+	 * @since 0.0.1
+	*/
+	private function trim_year_month($y) {
+		if (strpos($y, "-")<=3) {
+			return $y;
+		}
+		$parts = explode("-", $y);
+		return $parts[0]."-".$parts[1];
+	}
+	
+	/**
+	 * 修改地区格式。
+	 * @access private
+	 * @param	string	$pic_mass	页面html内容
+	 * @return string
+	 * @since 0.0.1
+	*/
+	private function trim_contry_title($c){
+		return str_replace(array("中国","/"),array("",","),$c);
+	}
+
+	/**
+	 * 从omdb获取。
+	 * @access private
+	 * @param	string	$pic_mass	页面html内容
+	 * @return string
+	 * @since 0.0.1
+	*/
+	private function get_from_omdb($id, $input=0){
+		$default = array(
+			'pic' => '',
+			'average_score' => '',
+			'director' => '',
+			'actor' => '',
+			'screenwriter' => '',
+			'genre' => '',
+			'pubdate' => '',
+			'original_name' => '',
+			'imdbid' => '',
+			'country' => '',
+		);
+		if (!$input) {
+			$output = $default;
+		}else{
+			$output = wp_parse_args($input, $default);
+		}
+		if (''==$id || strpos($id, "tt")!=0) {
 			return $output;
 		}
-		private function tax_slugs_to_names($tax, $slugs){
-			$ret = strtolower($slugs);
-			$srcs = TrimArray(explode(',', $slugs));
+		$settings = new BDDB_Settings();
+		$api_key = $settings->get_omdb_key();
+		if(empty($api_key)) {
+			return $output;
+		}
+		//TODO：：判断是否设置了key
+		$url = "https://www.omdbapi.com/?i=".$id."&apikey=".$api_key;
+		$response = @wp_remote_get($url);
+		if (is_wp_error($response))
+		{
+			return $output;
+		}
+		$content = json_decode(wp_remote_retrieve_body($response),true);
+		$output['original_name'] = $content['Title'];
+		$output['imdb_score'] = $content['imdbRating'];
+		if ('' == $output['pic']) $output['pic'] = $content['Poster'];
+		if ('' == $output['director']) $output['director'] = $this->translate_directors($content['Director']);
+		if ('' == $output['actor']) $output['actor'] = $this->translate_directors($content['Actors']);
+		if ('' == $output['genre']) $output['genre'] = $this->translate_m_genres($content['Genre']);
+		if ('' == $output['country']) $output['country'] = $this->translate_contries($content['Country']);
+		if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($content['Year']);
+		return $output;
+	}
+	
+	/**
+	 * 根据tax的内容获取文字。
+	 * @access private
+	 * @param	string	$pic_mass	页面html内容
+	 * @return string
+	 * @since 0.0.1
+	*/
+	private function tax_slugs_to_names($tax, $slugs){
+		$ret = strtolower($slugs);
+		$srcs = TrimArray(explode(',', $slugs));
+		//需要先手动设置好slug
+		if ('region' == $tax) {
+			switch ($this->type) {
+				case 'movie':
+				default:
+				$tax = 'm_region';
+				break;
+				case 'book':
+				$tax = 'b_region';
+				break;
+				case 'game':
+				$tax = 'g_region';
+				break;
+				case 'album':
+				$tax = 'a_region';
+				break;
+			}
+		}
+		$got_terms = get_terms(array(	'taxonomy'=>$tax,
+										'hide_empty'=>false,
+										'slug'=>$srcs));
+		foreach ($got_terms as $term) {
+			$ret = str_replace($term->slug, $term->name, $ret);
+		}
+		return $ret;
+	}
+	private function translate_directors($in_str){
+		return $in_str;
+	}
+	/**
+	 * 转换地区。
+	 * @access private
+	 * @param	string	$in_str	转换前内容（英）
+	 * @return string
+	 * @since 0.0.1
+	*/
+	private function translate_contries($in_str){
+		return $this->tax_slugs_to_names('region', $in_str);
+	}
 
-			$got_terms = get_terms(array(	'taxonomy'=>$tax,
-											'hide_empty'=>false,
-									 		'slug'=>$srcs));
-			foreach ($got_terms as $term) {
-				$ret = str_replace($term->slug, $term->name, $ret);
-			}
-			return $ret;
+	/**
+	 * 转换类型。
+	 * @access private
+	 * @param	string	$in_str	转换前内容（英）
+	 * @return string
+	 * @since 0.0.1
+	*/
+	private function translate_m_genres($in_str){
+		return $this->tax_slugs_to_names('m_genre', $in_str);
+	}
+
+	/**
+	 * 内容转字符串。
+	 * @access private
+	 * @param	array	$items	要排列的内容
+	 * @return string
+	 * @since 0.0.1
+	*/
+	private function items_implode($items) {
+		if (!is_array($items)) {
+			return $items;
 		}
-		private function translate_directors($in_str){
-			return $in_str;
-		}
-		private function translate_contries($in_str){
-			return $this->tax_slugs_to_names('country', $in_str);
-		}
-		private function translate_m_genres($in_str){
-			return $this->tax_slugs_to_names('m_genre', $in_str);
-		}
-		private function items_implode($items) {
-			if (!is_array($items)) {
-				return $items;
-			}
-			$count = count($items);
-			if (0 == $count) {
-				return "";
-			}
-			if ($count > 8) {
-				$items = array_slice($items, 0, 16);
-			}
-			$items = array_map('trim_fetched_item', $items);
-			if (1 == $count) {
-				return $items[0];
-			} else {
-				return implode(",",$items);
-			}
-		}//items_implode
-		
-		
-		private function fetch_douban_people_str ($from_str, $to_str, $base_str) {
-			$pos_start = strpos($base_str, $from_str);
-			$pos_end = strpos($base_str, $to_str, $pos_start);
-			if ( $pos_start>0 && $pos_end > $pos_start) {
-				$people_str = substr($base_str, $pos_start, ($pos_end - $pos_start) + strlen($to_str) );
-				preg_match_all( '/(?<=>).*?(?=<\/a>)/', $people_str, $matches);
-				if (is_array($matches) && count($matches)>0 && is_array($matches[0]) ) {
-					return $this->items_implode($matches[0]);
-				}
-			}
+		$count = count($items);
+		if (0 == $count) {
 			return "";
-		}//fetch_douban_people_str
+		}
+		if ($count > 8) {
+			$items = array_slice($items, 0, 16);
+		}
+		$items = array_map('trim_fetched_item', $items);
+		if (1 == $count) {
+			return $items[0];
+		} else {
+			return implode(",",$items);
+		}
+	}//items_implode
+		
+		
+	private function fetch_douban_people_str ($from_str, $to_str, $base_str) {
+		$pos_start = strpos($base_str, $from_str);
+		$pos_end = strpos($base_str, $to_str, $pos_start);
+		if ( $pos_start>0 && $pos_end > $pos_start) {
+			$people_str = substr($base_str, $pos_start, ($pos_end - $pos_start) + strlen($to_str) );
+			preg_match_all( '/(?<=>).*?(?=<\/a>)/', $people_str, $matches);
+			if (is_array($matches) && count($matches)>0 && is_array($matches[0]) ) {
+				return $this->items_implode($matches[0]);
+			}
+		}
+		return "";
+	}//fetch_douban_people_str
 }//class
 

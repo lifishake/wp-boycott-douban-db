@@ -7,28 +7,27 @@ class BDDB_Common_Template {
 	//成员列表
 	protected $common_items;		/*四种档案都包括的共通项目*/
 	protected $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
-	protected $self_post_type;			/*档案自身的种类*/
-	protected $self_post_id;
-	protected $default_item;
+	protected $self_post_type;		/*档案自身的种类*/
+	protected $default_item;		/*选项默认值*/
 	
 	/**
 	 * 构造函数。
-	 * @access protected
-	 * @param	array	$settings	reserved
+	 * @access public
+	 * @param	array	$post_type	影书游碟之一，或者不设置
 	 * @since 0.0.1
 	 */
 	public function __construct($post_type = false){
 		$this->default_item = array(
 			'name' => '',
-			'label' => '',
+			'label' => '',		//显示在冒号左侧的名字
 			'type' => 'meta',
-			'priority' => false,
-			'sort' => 'ASC',
-			'ctype' => '',
-			'summary' => false,
-			'summary_callback' => false,
-			'panel' => false,
-			'panel_callback' => false,
+			'priority' => false,	//排序优先级
+			'sort' => 'ASC',		//升降
+			'ctype' => '',			//特殊排序规则
+			'summary' => false,		//插入显示。
+			'summary_callback' => false,	//插入显示的特殊处理回调
+			'panel' => false,		//上墙
+			'panel_callback' => false,	//上墙回调
 		);
 		$this->common_items = array(
 			'bddb_display_name' => array(	'name' => 'bddb_display_name',
@@ -75,14 +74,11 @@ class BDDB_Common_Template {
 		$this->set_working_mode($post_type);
 	}
 	
-	public function get_common_items(){
-		return $this->common_items;
-	}
-	
 	/********    外部函数 开始    ********/
 	/**
 	 * 显示照片墙，被主题调用。
 	 * @access	public
+	 * @ref		bddb_the_gallery()
 	 * @since	0.0.1
 	 */
 	public function the_gallery() {
@@ -111,7 +107,7 @@ class BDDB_Common_Template {
 	 * @param	array	$atts	短代码属性，该函数中只包括一个$id。
 	 * @access	public
 	 * @since	0.1.4
-	 * @see		add_shortcode()
+	 * @ref		add_shortcode()
 	 */
 	public function show_record($atts, $content = null) {
 		extract( $atts );
@@ -168,12 +164,13 @@ class BDDB_Common_Template {
 	}
 	/********    外部函数 结束    ********/
 
-	/********    内部函数 开始    ********/
+	/********    私有函数 开始    ********/
 	/**
 	 * 读取term的值。
 	 * @access	private
 	 * @param	string	$tax_name	taxonomy名。
 	 * @param	int		$id			postID。
+	 * @return	string	要读取的taxonomy的值
 	 * @since	0.0.1
 	 */
 	private function get_tax_str($tax_name, $id) {
@@ -193,6 +190,7 @@ class BDDB_Common_Template {
 	 * @access	private
 	 * @param	string	$meta_name	meta名。
 	 * @param	int		$id			postID。
+	 * @return	string	要读取的meta的值
 	 * @since	0.0.1
 	 */
 	private function get_meta_str($meta_name, $id) {
@@ -206,8 +204,8 @@ class BDDB_Common_Template {
 	 * @access	private
 	 * @param	string	$post_type	要显示的bddb种类。
 	 * @since	0.1.4
-	 * @see		__construct()
-	 * @see		show_record()
+	 * @ref		__construct()
+	 * @ref		show_record()
 	 */
 	private function set_working_mode($post_type) {
 		if (!in_array($post_type, array('movie', 'book', 'game', 'album'))) {
@@ -224,7 +222,7 @@ class BDDB_Common_Template {
 	 * 追加和修改movie类型的显示和排序。
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		set_working_mode()
+	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_movie_items() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
@@ -299,7 +297,7 @@ class BDDB_Common_Template {
 	 * 追加和修改book类型的显示和排序。
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		set_working_mode()
+	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_book_items() {
 		$this->common_items['bddb_display_name']['label'] = '书名';
@@ -382,7 +380,7 @@ class BDDB_Common_Template {
 	 * 追加和修改game类型的显示和排序。
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		set_working_mode()
+	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_game_items() {
 		$this->common_items['bddb_display_name']['label'] = '游戏名';
@@ -441,7 +439,7 @@ class BDDB_Common_Template {
 	 * 追加和修改album类型的显示和排序。
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		set_working_mode()
+	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_album_items() {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
@@ -471,7 +469,7 @@ class BDDB_Common_Template {
 											'label' => '制作人',
 											'type' => 'tax',
 											),
-			'a_quantities'	=>		array(	'name' => 'a_quantities',
+			'a_quantity'	=>		array(	'name' => 'a_quantity',
 											'label' => '专辑规格',
 											'type' => 'tax',
 											'panel'	=> '10',
@@ -495,11 +493,11 @@ class BDDB_Common_Template {
 
 	/**
 	 * 为项目添加默认值。被set_working_mode中的array_map函数回调。
+	 * @return array
 	 * @access	protected
 	 * @param	array	inItem	显示用的单个项目
 	 * @since	0.0.1
-	 * @see		set_working_mode()
-	 * @trace	set_working_mode()->array_map()
+	 * @ref		set_working_mode()->array_map()
 	 */
 	protected function merge_default_column($inItem) {
 		if (!is_array($inItem)){
@@ -510,12 +508,14 @@ class BDDB_Common_Template {
 
 	/**
 	 * 生成相册检索用的的排序参数。
+	 * @return string
 	 * @access	private
 	 * @since	0.0.1
 	 * @see		the_gallery()
 	 */
 	private function get_order_args() {
 		$ret = array();
+		//TODO:画面点击后AJAX变化
 		array_multisort( array_column($this->total_items,'priority'), array_column($this->total_items,'name'), $this->total_items);
 		foreach ($this->total_items as $key=>$item ) {
 			if (!$item['priority']) {
@@ -538,6 +538,7 @@ class BDDB_Common_Template {
 	/**
 	 * 生成相册画面的图片以及上墙显示的信息。
 	 * @param	int		$id			post_ID
+	 * @return string
 	 * @access	private
 	 * @since	0.0.1
 	 * @see		the_gallery()
@@ -562,6 +563,7 @@ class BDDB_Common_Template {
 		}else{
 			$thumb_url = $obj_name->nopic_thumb_url;
 		}
+		//TODO：自己不做lazyload，通过lazyload的script加载情况判断是否支持，可以做成option项
 		$is_lazy = wp_script_is("apip-js-lazyload");
 		if (!$is_lazy) {
 			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}' alt='{$alt}' /></a>";
@@ -575,10 +577,10 @@ class BDDB_Common_Template {
 	/**
 	 * 生成上墙显示的电影信息。
 	 * @param	int		$id			post_ID
+	 * @return string
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		get_poster_for_gallery()
-	 * @trace	the_gallery->get_poster_for_gallery
+	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
 	 */
 	private function get_movie_panel_info($id) {
 		//title
@@ -600,6 +602,14 @@ class BDDB_Common_Template {
 		return $detail_str;
 	}
 
+	/**
+	 * 生成上墙显示的书籍信息。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
+	 */
 	private function get_book_panel_info($id) {
 		//title
 		$detail_str = $this->get_panel_title($id);
@@ -618,9 +628,27 @@ class BDDB_Common_Template {
 		$detail_str .= '<div class="bddb-disp-review" id="bddb-gallery-review">'.$this->get_meta_str('bddb_personal_review', $id).'</div>';
 		return $detail_str;
 	}
+
+	/**
+	 * 生成上墙显示的游戏信息。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
+	 */
 	private function get_game_panel_info($id) {
 		return '';
 	}
+
+	/**
+	 * 生成上墙显示的专辑信息。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
+	 */
 	private function get_album_panel_info($id) {
 		return '';
 	}
@@ -628,9 +656,10 @@ class BDDB_Common_Template {
 	/**
 	 * 生成上墙显示的标题。
 	 * @param	int		$id			post_ID
+	 * @return string
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		get_xxx_info()
+	 * @ref		get_xxx_info()
 	 */
 	private function get_panel_title($id) {
 		$name_dsp = $this->get_meta_str('bddb_display_name', $id);
@@ -641,9 +670,10 @@ class BDDB_Common_Template {
 	/**
 	 * 生成上墙显示的个人评星。
 	 * @param	int		$id			post_ID
+	 * @return string
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		get_xxx_info()
+	 * @ref		get_xxx_info()
 	 */
 	private function get_panel_rating_stars($id) {
 		$stars='';
@@ -668,9 +698,10 @@ class BDDB_Common_Template {
 	/**
 	 * 生成上墙显示的其它内容。
 	 * @param	int		$id			post_ID
+	 * @return string	多行
 	 * @access	private
 	 * @since	0.0.1
-	 * @see		get_xxx_info()
+	 * @ref		get_xxx_panel_info()
 	 */
 	private function panel_common_loop($id) {
 		$panel_str = '';
@@ -699,9 +730,25 @@ class BDDB_Common_Template {
 		}
 		return $panel_str;
 	}
+	/**
+	 * 生成电影摘要显示的其它内容。
+	 * @param	int		$id			post_ID
+	 * @return string	摘要字符串，多行
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 */
 	private function get_movie_abstract($id) {
 		return $this->abstract_common_loop($id);
 	}
+	/**
+	 * 生成书籍摘要显示的其它内容。
+	 * @param	int		$id			post_ID
+	 * @return string	摘要字符串，多行
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 */
 	private function get_book_abstract($id) {
 		return $this->abstract_common_loop($id);
 	}
@@ -711,6 +758,14 @@ class BDDB_Common_Template {
 	private function get_album_abstract($id) {
 		return '';
 	}
+	/**
+	 * 生成系列书籍摘要显示的其它内容。
+	 * @param	int		$id			post_ID
+	 * @return string	摘要字符串，多行
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		show_record()->get_{$this->self_post_type}_abstract_series
+	 */
 	private function get_book_abstract_series($id) {
 		$template = '<div class="abstract-left">%s</div>%s';
 		$abs_str = $this->abstract_common_loop($id);
@@ -729,6 +784,15 @@ class BDDB_Common_Template {
 		}
 		return sprintf($template, $abs_str, $images);
 	}
+	
+	/**
+	 * 生成摘要显示的其它内容。
+	 * @param	int		$id			post_ID
+	 * @return string	摘要字符串，多行
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 */
 	private function abstract_common_loop($id){
 		$abs_str = '';
 		foreach ($this->total_items as $key=>$item ) {
@@ -754,7 +818,15 @@ class BDDB_Common_Template {
 		}
 		return $abs_str;
 	}
-	
+
+	/**
+	 * 生成摘要显示外部评星的字符串。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 */
 	private function get_summary_social_stars($id) {
 		$src_score_social = '0';
 		$src_score_social_float = 0.0;
@@ -798,6 +870,16 @@ class BDDB_Common_Template {
 	
 	
 	/****   显示处理用内部回调函数 开始   ****/
+	/**
+	 * 显示影片特殊属性图标。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string	只有图标部分，不包括前后的html标签
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		summary_callback()->display_movie_misc
+	 * @ref		panel_callback()->panel_movie_misc
+	 */
 	private function movie_misc_special($id, $item) {
 		$feature='';
 		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
@@ -806,6 +888,7 @@ class BDDB_Common_Template {
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
 			switch($slug) {
 				case 'sanji':
+				//三级与限制级使用相同图标
 					$img = BDDB_PLUGIN_URL.'img/restricted.png';
 					/*go through*/
 				case 'cat':
@@ -821,7 +904,19 @@ class BDDB_Common_Template {
 		}
 		return $feature;
 	}
+
+	/**
+	 * 显示条目原名。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string	只有文字部分，不包括前后的html标签
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		summary_callback()->display_original_name
+	 * @ref		panel_callback()->panel_original_name
+	 */
 	private function original_name_special($id, $item) {
+		//原名与显示名一致时不显示
 		$val = $this->get_meta_str($item['name'], $id);
 		$name_str = get_post_meta($id, 'bddb_display_name', true);
 		if (empty($val)||empty($name_str)) {
@@ -832,7 +927,19 @@ class BDDB_Common_Template {
 		}
 		return $val;
 	}
+	
+	/**
+	 * 显示书籍册数。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string	只有文字，不包括前后的html标签
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		summary_callback()->display_book_series_total
+	 * @ref		panel_callback()->panel_book_series_total
+	 */
 	private function book_series_total_special($id, $item) {
+		//非系列时不显示
 		$val = $this->get_meta_str($item['name'], $id);
 		$is_series = $this->get_meta_str('b_bl_series', $id);
 		if (empty($is_series)||empty($val)){
@@ -840,9 +947,21 @@ class BDDB_Common_Template {
 		}
 		return $val;
 	}
+
+	/**
+	 * 显示书籍出版时间。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string	只有文字，不包括前后的html标签
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		summary_callback()->display_book_publish_time
+	 * @ref		panel_callback()->panel_book_publish_time
+	 */
 	private function book_publish_time_special($id, $item) {
 		$val = $this->get_meta_str($item['name'], $id);
 		$is_series = $this->get_meta_str('b_bl_series',$id);
+		//非系列时显示一个出版时间，系列时显示XX-XX
 		if (empty($val)) return false;
 		if(!empty($is_series)){
 			$val2 = $this->get_meta_str('b_pub_time_end', $id);
@@ -858,6 +977,17 @@ class BDDB_Common_Template {
 		}
 		return $val;
 	}
+	
+	/**
+	 * 显示书籍特殊属性图标。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string	只有图标部分，不包括前后的html标签
+	 * @access	private
+	 * @since	0.0.1
+	 * @ref		summary_callback()->display_book_misc
+	 * @ref		panel_callback()->panel_book_misc
+	 */
 	public function book_misc_special($id, $item) {
 		$feature='';
 		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
@@ -877,12 +1007,31 @@ class BDDB_Common_Template {
 		return $feature;
 	}
 	
+	/**
+	 * 显示电影出版时间。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		summary_callback()
+	 */
 	protected function display_movie_publish_time($id, $item) {
+		//只显示年
 		$val = $this->get_meta_str($item['name'], $id);
 		if (!$val) return false;
 		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], substr($val,0,4));
 	}
 	
+	/**
+	 * 显示电影特殊图标。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		summary_callback()
+	 */
 	protected function display_movie_misc($id, $item) {
 		$val = $this->movie_misc_special($id, $item);
 		if (empty($val)) {
@@ -891,6 +1040,15 @@ class BDDB_Common_Template {
 		return sprintf('<span class="abs-list">%s</span>', $val);
 	}
 
+	/**
+	 * 显示电影原名。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		summary_callback()
+	 */
 	protected function display_original_name($id, $item) {
 		$val = $this->original_name_special($id, $item);
 		if (empty($val)) {
@@ -899,6 +1057,15 @@ class BDDB_Common_Template {
 		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
 	}
 
+	/**
+	 * 显示书籍特殊图标。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		summary_callback()
+	 */
 	protected function display_book_misc($id, $item) {
 		$val = $this->book_misc_special($id, $item);
 		if (empty($val)) {
@@ -907,6 +1074,15 @@ class BDDB_Common_Template {
 		return sprintf('<span class="abs-list">%s</span>', $val);
 	}
 
+	/**
+	 * 显示书籍出版时间。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		summary_callback()
+	 */
 	protected function display_book_publish_time($id, $item) {
 		$val = $this->book_publish_time_special($id, $item);
 		if (empty($val)) {
@@ -914,6 +1090,16 @@ class BDDB_Common_Template {
 		}
 		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
 	}
+
+	/**
+	 * 显示书籍系列册数。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		summary_callback()
+	 */
 	protected function display_book_series_total($id, $item) {
 		$val = $this->book_series_total_special($id, $item);
 		if (empty($val)) {
@@ -922,6 +1108,15 @@ class BDDB_Common_Template {
 		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
 	}
 
+	/**
+	 * 上墙电影特殊图标。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		panel_callback()
+	 */
 	protected function panel_movie_misc($id, $item) {
 		$val = $this->movie_misc_special($id, $item);
 		if (empty($val)) {
@@ -930,6 +1125,15 @@ class BDDB_Common_Template {
 		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
 	}
 
+	/**
+	 * 上墙书籍出版时间。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		panel_callback()
+	 */
 	protected function panel_book_publish_time($id, $item) {
 		$val = $this->book_publish_time_special($id, $item);
 		if (empty($val)) {
@@ -938,6 +1142,15 @@ class BDDB_Common_Template {
 		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
 	}
 
+	/**
+	 * 上墙书籍册数。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		panel_callback()
+	 */
 	protected function panel_book_series_total($id, $item) {
 		$val = $this->book_series_total_special($id, $item);
 		if (empty($val)) {
@@ -946,6 +1159,15 @@ class BDDB_Common_Template {
 		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
 	}
 
+	/**
+	 * 上墙原名。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		panel_callback()
+	 */
 	protected function panel_original_name($id, $item) {
 		$val = $this->original_name_special($id, $item);
 		if (empty($val)) {
@@ -953,7 +1175,16 @@ class BDDB_Common_Template {
 		}
 		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
 	}
-
+	
+	/**
+	 * 上墙书籍特殊图标。
+	 * @param	int		$id			post_ID
+	 * @param	int		$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.0.1
+	 * @ref		panel_callback()
+	 */
 	protected function panel_book_misc($id, $item) {
 		$val = $this->book_misc_special($id, $item);
 		if (empty($val)) {
@@ -962,6 +1193,6 @@ class BDDB_Common_Template {
 		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
 	}
 	/****   显示处理用内部回调函数 结束   ****/
-	/********    内部函数 结束    ********/
+	/********    私有函数 结束    ********/
 };
 //movie/brand
