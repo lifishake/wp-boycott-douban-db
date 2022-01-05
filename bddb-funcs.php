@@ -1,12 +1,12 @@
 <?php
 /**
- * ŠO•”ÚŒû
+ * å¤–éƒ¨æŽ¥å£
 */
 add_action('admin_print_footer_scripts','bddb_quicktags');
 
-//˜¸‘æn˜¢ˆÊ’u?Žn?Q
+//ä»Žç¬¬nä¸ªä½ç½®å¼€å§‹æŸ¥æ‰¾
 function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) { 
-	$start=$n; //˜¸‘æn˜¢ˆÊ’u?Žn?Q
+	$start=$n; //ä»Žç¬¬nä¸ªä½ç½®å¼€å§‹æŸ¥æ‰¾
 	$data=array(); 
 	for($i=0;$i<$count;$i++) {
 		$start=strpos($str,$start_str,$start);
@@ -42,7 +42,7 @@ function bddbt_substr_n_pos($str,$find,$n){
     return $str;
 }
 
-//‹ŸŽå??—pCÅDÝpage—¢C•s—v?—pthe_post
+//ä¾›ä¸»é¢˜ä½¿ç”¨ï¼Œæœ€å¥½åœ¨pageé‡Œï¼Œä¸è¦ä½¿ç”¨the_post
 function bddb_the_gallery($post_type) {
 	if (!in_array($post_type, array('movie','book','game','album'))) {
         the_content();
