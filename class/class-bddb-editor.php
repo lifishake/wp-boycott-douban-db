@@ -117,27 +117,32 @@ class BDDB_Editor {
 		add_filter ( 'wp_insert_post_data', array($this, 'generate_content'), 10, 2);
 		add_action( 'wp_ajax_bddb_get_pic', array($this, 'download_pic') );
 		add_action( 'wp_ajax_bddb_get_scovers', array($this, 'download_serial_pics'));
-		add_filter( 'manage_posts_columns', array($this,'get_admin_edit_headers'), 10, 2);
-		//TODO：下面8个钩子，是meta用的。meta类型是手动添加的，会触发edit的钩子，tax不是，不能触发。想办法整合。
-		add_action( 'manage_movie_posts_custom_column', array($this, 'manage_movie_admin_columns'), 10, 2);
-		add_action( 'manage_book_posts_custom_column', array($this, 'manage_book_admin_columns'), 10, 2);
-		add_action( 'manage_game_posts_custom_column', array($this, 'manage_game_admin_columns'), 10, 2);
-		add_action( 'manage_album_posts_custom_column', array($this, 'manage_album_admin_columns'), 10, 2);
+		//追加meta标题
+		add_filter( 'manage_posts_columns', array($this,'add_meta_headers'), 10, 2);
+		//显示meta
+		add_action( 'manage_posts_custom_column', array($this, 'show_custom_meta_value'), 10, 2 );
+		
 		add_filter( 'manage_edit-movie_sortable_columns', array($this, 'add_movie_sortable_columns'));
 		add_filter( 'manage_edit-book_sortable_columns', array($this, 'add_book_sortable_columns'));
 		add_filter( 'manage_edit-game_sortable_columns', array($this, 'add_game_sortable_columns'));
 		add_filter( 'manage_edit-album_sortable_columns', array($this, 'add_album_sortable_columns'));
-		//meta排序
-		add_action( 'pre_get_posts', array($this, 'sort_custom_column_query') );
-		//tax排序
-		add_filter( 'posts_clauses', array($this, 'custom_taxonomy_posts_clauses'), 10, 2 );
-		//下面两个钩子可能以后会用到，暂时留着。
-		//add_filter( 'manage_posts_columns', array($this, 'redefine_pl_headers'));
-		//add_filter( 'manage_posts_custom_column', array($this, 'reorder_taxonomy_output'),10,2);
+		//重写meta排序
+		add_action( 'pre_get_posts', array($this, 'resort_meta_column_query') );
+		//tax分类过滤
+		add_action( 'restrict_manage_posts', array($this, 'add_taxonomy_filter_ddl'), 10, 2 );
+		//
+		add_filter( 'edit_posts_per_page', array($this, 'modify_list_per_page'), 10, 2 );
+
 	}
 	/******  直接调用的外部函数 结束  ******/
 
 	/******  钩子调用的外部函数 开始  ******/
+	public function modify_list_per_page($per_page, $post_type) {
+		if (in_array($post_type, array('movie','book','game','album'))) {
+			$per_page = 50;
+		}
+		return $per_page;
+	}
 	/**
 	 * 创建编辑盒子。
 	 * @access public
@@ -332,7 +337,7 @@ class BDDB_Editor {
 	 * @ref		filter::manage_posts_columns
 	 * @since 0.1.0
 	 */
-	public function get_admin_edit_headers($columns, $post_type) {
+	public function add_meta_headers($columns, $post_type) {
 		if (!$this->self_post_type){
 			if (!$this->set_working_mode($post_type)){
 				return $columns;
@@ -345,7 +350,6 @@ class BDDB_Editor {
 				$columns[$arg['name']] = $arg['label'];
 			}
 		}
-		//TODO：tax能否统一处理
 		$columns['date'] = 'Date';
 		return $columns;
 	}
@@ -355,47 +359,15 @@ class BDDB_Editor {
 	 * @access public
 	 * @param string 	$column_name	列标题
 	 * @param string 	$id				post_ID
-	 * @ref		action::manage_{$post_type}_posts_custom_column
-	 * @since 0.1.0
-	 */
-	public function manage_movie_admin_columns($column_name, $id){
-		$this->get_column('movie',$column_name, $id);
-	}
-	
-	/**
-	 * 后台类别列表增加显示内容。
-	 * @access public
-	 * @param string 	$column_name	列标题
-	 * @param string 	$id				post_ID
-	 * @ref		action::manage_{$post_type}_posts_custom_column
-	 * @since 0.1.0
-	 */
-	public function manage_book_admin_columns($column_name, $id){
-		$this->get_column('book',$column_name, $id);
-	}
-	
-	/**
-	 * 后台类别列表增加显示内容。
-	 * @access public
-	 * @param string 	$column_name	列标题
-	 * @param string 	$id				post_ID
-	 * @ref		action::manage_{$post_type}_posts_custom_column
-	 * @since 0.1.0
-	 */
-	public function manage_game_admin_columns($column_name, $id){
-		$this->get_column('game',$column_name, $id);
-	}
-	
-	/**
-	 * 后台类别列表增加显示内容。
-	 * @access public
-	 * @param string 	$column_name	列标题
-	 * @param string 	$id				post_ID
-	 * @ref		action::manage_{$post_type}_posts_custom_column
-	 * @since 0.1.0
-	 */
-	public function manage_album_admin_columns($column_name, $id){
-		$this->get_column('album',$column_name, $id);
+	 * @ref		action::manage_posts_custom_column
+	 * @since 0.2.0
+	 */	
+	public function show_custom_meta_value($column_name, $id) {
+		$out = get_post_meta($id, $column_name, true);
+		if (empty($out)) {
+			$out = '&#8212;';
+		}
+		echo $out;
 	}
 	/**
 	 * 后台类别列表增加排序属性。
@@ -445,7 +417,7 @@ class BDDB_Editor {
 	 * @ref		action::pre_get_posts
 	 * @since 0.1.0
 	 */
-	public function sort_custom_column_query($query){
+	public function resort_meta_column_query($query){
 		$orderby = $query->get( 'orderby' );
 		//这个值是register_type的时候注册的，默认没改过，也就是type本身。
 		$post_type = $query->get( 'post_type' );
@@ -466,7 +438,8 @@ class BDDB_Editor {
 				);
 				//如果是数字类型，转化成数字排序，这就是无法整合进tax排序函数的原因。
 				if ('number' == $item['inputstyle']) {
-					$meta_query[1]['type'] = 'numeric';
+					$meta_query[1]['type'] = 'NUMERIC';
+					$meta_query[0]['type'] = 'NUMERIC';
 				}
 				$query->set( 'meta_query', $meta_query );
 				$query->set( 'orderby', 'meta_value' );
@@ -475,38 +448,34 @@ class BDDB_Editor {
 	}
 
 	/**
-	 * posts_clauses 的回调函数。
+	 * 显示taxonomy的下拉列表。
 	 * @access public
-	 * @param	array	$pieces		钩子要求固定
-	 * @param	object	$query		钩子要求固定
-	 * @return	array	$pieces
-	 * @ref		filter：：posts_clauses
-	 * @since	0.1.5
+	 * @param string 	$post_type
+	 * @param array		$switch		未使用
+	 * @ref		action::pre_get_posts
+	 * @since 0.1.0
 	 */
-	public function custom_taxonomy_posts_clauses( $pieces, $query ) {
-		if ( ! is_admin() || ! $query->is_main_query() ) {
-			return $pieces;
+	public function add_taxonomy_filter_ddl($post_type, $which){
+		if (!$this->set_working_mode($post_type)) {
+			return;
 		}
-		global $wpdb;
-		$post_type = $query->get( 'post_type' );
-		$orderby = $query->get( 'orderby' );
-		$this->set_working_mode($post_type);
-		if (!isset($this->total_items[$orderby])||
-			!$this->total_items[$orderby]['show_admin_column'] || 
-			'tax' != $this->total_items[$orderby]['type']) {
-			return $pieces;
+		foreach ($this->total_items as $key=>$item){
+			if ($item['type'] != 'tax' || !$item['show_admin_column']) {
+				continue;
+			}
+			$selection = isset($_GET[$key])?$_GET[$key]:'';
+			echo '<label class="screen-reader-text" for="'.$key.'">Filter by '.$key.'</label>';
+			$dropdown_arg = array(
+				'show_option_all' => get_taxonomy($key)->labels->all_items,
+				'orderby' => 'count',
+				'order' => 'DESC',
+				'name' => $key,
+				'value_field' => 'slug',
+				'taxonomy' => $key,
+				'selected' => $selection,
+			);
+			wp_dropdown_categories($dropdown_arg);
 		}
-		//TODO：尝试把meta的sort合并到这里
-		$order = strtoupper( $query->get( 'order' ) );
-		if ($order != 'DESC') $order = 'ASC';
-		$pieces[ 'join' ] .= ' LEFT JOIN ' . $wpdb->term_relationships . ' AS tr ON ' . $wpdb->posts . '.ID = tr.object_id'
-		. ' LEFT JOIN ' . $wpdb->term_taxonomy . ' AS tt ON tr.term_taxonomy_id = tt.term_taxonomy_id'
-		. ' LEFT JOIN ' . $wpdb->terms . ' AS t ON tt.term_id = t.term_id';
-		$pieces[ 'fields' ] .= ', group_concat(t.name ORDER BY t.name ' . $order . ') AS ' . $orderby;
-		$pieces[ 'groupby' ] = $wpdb->posts . '.ID';
-		$pieces[ 'orderby' ] = $orderby . ' ' . $order . ', ' . $wpdb->posts . '.post_date DESC';
-		
-		return $pieces;
 	}
 
 	/******    AJAX回调函数 开始    ******/
@@ -612,48 +581,12 @@ class BDDB_Editor {
 		}
 	 }
 	/******    AJAX回调函数 结束    ******/
-
-	//TODO
-	public function redefine_pl_headers($columns) {
-		return $columns;
-	}
-	//TODO
-	public function reorder_taxonomy_output($column_name, $id) {
-		$taxonomy = $column_name;
-	}
 	/******  钩子调用的外部函数 结束  ******/
 
 	/********    外部函数 结束    ********/
 
 
 	/********    私有函数 开始    ********/
-	/**
-	 * 后台类别列表增加显示内容。
-	 * @access public
-	 * @param string 	$post_type
-	 * @param string 	$column_name	列标题
-	 * @param string 	$id				post_ID
-	 * @ref		manage_movie_admin_columns()
-	 * @ref		manage_book_admin_columns()
-	 * @ref		manage_game_admin_columns()
-	 * @ref		manage_album_admin_columns()
-	 * @since 0.1.0
-	 */
-	private function get_column($post_type, $column_name, $id){
-		$this->set_working_mode($post_type);
-		if (!array_key_exists($column_name, $this->total_items)){
-			echo "not found";
-		}else{
-			$arg = $this->total_items[$column_name];
-			if ('meta'==$arg['type']) {
-				echo get_post_meta($id, $column_name, true);
-			} else {
-				echo '-';
-			}
-		}
-	}
-	
-
 	/**
 	 * 后台类别列表增加排序属性。
 	 * @access private
@@ -664,10 +597,6 @@ class BDDB_Editor {
 	private function set_sortalbe_columns($post_type, $columns){
 		$this->set_working_mode($post_type);
 		foreach($this->total_items as $arg) {
-			if ($arg['show_admin_column'] && 'tax' == $arg['type']){
-				//taxonomy-XXX是注册taxonomy时,'show_admin_column'=true时自动添加的。
-				$columns['taxonomy-'.$arg['name']] = $arg['name'];
-			}
 			if ($arg['show_admin_column'] && 'meta' == $arg['type']){
 				$columns[$arg['name']] = $arg['name'];
 			}
@@ -1232,6 +1161,7 @@ class BDDB_Editor {
 											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
+											'show_admin_column' => true,
 											),
 			'g_genre'		=>		array(	'name' => 'g_genre',
 											'label' => '类别',
