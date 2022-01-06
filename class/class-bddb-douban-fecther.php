@@ -391,7 +391,7 @@ class BDDB_DoubanFetcher{
 		$output['imdb_score'] = $content['imdbRating'];
 		if ('' == $output['pic']) $output['pic'] = $content['Poster'];
 		if ('' == $output['director']) $output['director'] = $this->translate_directors($content['Director']);
-		if ('' == $output['actor']) $output['actor'] = $this->translate_directors($content['Actors']);
+		if ('' == $output['actor']) $output['actor'] = $this->translate_actors($content['Actors']);
 		if ('' == $output['genre']) $output['genre'] = $this->translate_m_genres($content['Genre']);
 		if ('' == $output['country']) $output['country'] = $this->translate_contries($content['Country']);
 		if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($content['Year']);
@@ -435,7 +435,12 @@ class BDDB_DoubanFetcher{
 		return $ret;
 	}
 	private function translate_directors($in_str){
-		return $in_str;
+		$in_str = str_replace(" ","-",trim($in_str));
+		return $this->tax_slugs_to_names('m_p_director', $in_str);
+	}
+	private function translate_actors($in_str){
+		$in_str = str_replace(" ","-",trim($in_str));
+		return $this->tax_slugs_to_names('m_p_actor', $in_str);
 	}
 	/**
 	 * 转换地区。
@@ -445,6 +450,7 @@ class BDDB_DoubanFetcher{
 	 * @since 0.0.1
 	*/
 	private function translate_contries($in_str){
+		$in_str = str_replace(" ","-",trim($in_str));
 		return $this->tax_slugs_to_names('region', $in_str);
 	}
 
