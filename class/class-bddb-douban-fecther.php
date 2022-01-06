@@ -398,6 +398,11 @@ class BDDB_DoubanFetcher{
 		return $output;
 	}
 	
+	protected function my_space_replace($in_str) {
+		$in_str = str_replace(" ","-",trim($in_str));
+		return $in_str;
+	}
+
 	/**
 	 * 根据tax的内容获取文字。
 	 * @access private
@@ -408,6 +413,7 @@ class BDDB_DoubanFetcher{
 	private function tax_slugs_to_names($tax, $slugs){
 		$ret = strtolower($slugs);
 		$srcs = TrimArray(explode(',', $slugs));
+		$srcs = array_map(array($this, 'my_space_replace'), $srcs);
 		//需要先手动设置好slug
 		if ('region' == $tax) {
 			switch ($this->type) {
@@ -426,6 +432,7 @@ class BDDB_DoubanFetcher{
 				break;
 			}
 		}
+
 		$got_terms = get_terms(array(	'taxonomy'=>$tax,
 										'hide_empty'=>false,
 										'slug'=>$srcs));
@@ -435,11 +442,9 @@ class BDDB_DoubanFetcher{
 		return $ret;
 	}
 	private function translate_directors($in_str){
-		$in_str = str_replace(" ","-",trim($in_str));
 		return $this->tax_slugs_to_names('m_p_director', $in_str);
 	}
 	private function translate_actors($in_str){
-		$in_str = str_replace(" ","-",trim($in_str));
 		return $this->tax_slugs_to_names('m_p_actor', $in_str);
 	}
 	/**
@@ -450,7 +455,6 @@ class BDDB_DoubanFetcher{
 	 * @since 0.0.1
 	*/
 	private function translate_contries($in_str){
-		$in_str = str_replace(" ","-",trim($in_str));
 		return $this->tax_slugs_to_names('region', $in_str);
 	}
 
