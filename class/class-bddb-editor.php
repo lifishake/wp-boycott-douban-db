@@ -466,7 +466,8 @@ class BDDB_Editor {
 			$selection = isset($_GET[$key])?$_GET[$key]:'';
 			echo '<label class="screen-reader-text" for="'.$key.'">Filter by '.$key.'</label>';
 			$dropdown_arg = array(
-				'show_option_all' => get_taxonomy($key)->labels->all_items,
+				'show_option_none' => get_taxonomy($key)->labels->all_items,
+				'option_none_value' => '',
 				'orderby' => 'count',
 				'order' => 'DESC',
 				'name' => $key,
