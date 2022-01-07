@@ -462,8 +462,8 @@ class BDDB_DoubanFetcher{
 			$got_items = get_terms(array(	'taxonomy'=>$tax,
 										'hide_empty'=>false,
 										'slug'=>$slug));
-			if (is_wp_error($got_items)) {
-				$got[] = $srcs[i];
+			if (is_wp_error($got_items) || empty($got_items)) {
+				$got[] = $srcs[$i];
 			} else {
 				$got[] = $got_items[0]->name;
 			}
