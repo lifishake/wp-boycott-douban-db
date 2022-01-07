@@ -42,7 +42,31 @@ class BDDB_DoubanFetcher{
 	 */
 	public function fetch($url = '') {
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
-		if ('' === $url || '' === $dou_id) {
+		if ('' === $url ) {
+			return $ret;
+		}elseif('test'==$url) {
+			$ret['content']='aaaa';
+			$fetch = array(
+				'title' => '',
+				'pic' => '',
+				'average_score' => '',
+				'director' => '',
+				'actor' => '',
+				'genre' => '',
+				'pubdate' => '',
+				'country' => '',
+				'original_name' => '',
+				'imdbid' => '',
+				'screenwriter' => '',
+				'author' => '',
+				'translator' => '',
+				'artist' => '',
+				'series_total' => '',
+			);
+			$aarrstr = 'charlie cho, faye wong';
+			$actors = $this->translate_actors($aarrstr);
+			$ret['result']=$fetch;
+			$ret['result']['actor'] = $actors;
 			return $ret;
 		}elseif ('' !== $url) {
 			if (strpos($url, "movie.douban.com")) {
@@ -413,7 +437,7 @@ class BDDB_DoubanFetcher{
 	private function tax_slugs_to_names($tax, $slugs){
 		$ret = strtolower($slugs);
 		$srcs = TrimArray(explode(',', $slugs));
-		$srcs = array_map(array($this, 'my_space_replace'), $srcs);
+		$os = array_map(array($this, 'my_space_replace'), $srcs);
 		//需要先手动设置好slug
 		if ('region' == $tax) {
 			switch ($this->type) {
@@ -432,13 +456,20 @@ class BDDB_DoubanFetcher{
 				break;
 			}
 		}
-
-		$got_terms = get_terms(array(	'taxonomy'=>$tax,
+		$got = array();
+		$i = 0;
+		foreach ($os as $slug) {
+			$got_items = get_terms(array(	'taxonomy'=>$tax,
 										'hide_empty'=>false,
-										'slug'=>$srcs));
-		foreach ($got_terms as $term) {
-			$ret = str_replace($term->slug, $term->name, $ret);
+										'slug'=>$slug));
+			if (is_wp_error($got_items)) {
+				$got[] = $srcs[i];
+			} else {
+				$got[] = $got_items[0]->name;
+			}
+			$i++;
 		}
+		$ret = implode(", ", $got);
 		return $ret;
 	}
 	private function translate_directors($in_str){
