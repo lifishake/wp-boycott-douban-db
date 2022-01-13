@@ -419,6 +419,15 @@ class BDDB_DoubanFetcher{
 		if ('' == $output['genre']) $output['genre'] = $this->translate_m_genres($content['Genre']);
 		if ('' == $output['country']) $output['country'] = $this->translate_contries($content['Country']);
 		if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($content['Year']);
+		if (strpos($output['country'],'中国')||
+			strpos($output['country'],'香港')||
+			strpos($output['country'],'台湾')||
+			strpos($output['country'],'china')||
+			strpos($output['country'],'hong kong')||
+			strpos($output['country'],'taiwan')
+		){
+			$output['original_name'] = '';
+		}
 		return $output;
 	}
 	

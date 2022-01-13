@@ -41,6 +41,9 @@ class BDDB_Common_Template {
 											'panel' => '01',
 											'panel_callback' => array($this, 'panel_original_name'),
 											),
+			'bddb_aka' 			 => array(	'name' => 'bddb_aka',
+											'label' => '别名',
+											),
 			'bddb_personal_review' => array(	'name' => 'bddb_personal_review',
 											'label' => '简评',
 											),
@@ -388,6 +391,8 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel'] = '11';
 		$this->common_items['bddb_view_time']['label'] = '接触年月';
 		$this->common_items['bddb_view_time']['panel'] = '01';
+		$this->common_items['bddb_aka']['panel'] = '02';
+		$this->common_items['bddb_aka']['summary'] = '02';
 		$add_items = array(
 			'g_region' => array(			'name' => 'g_region',
 											'label' => '地区',
@@ -399,19 +404,19 @@ class BDDB_Common_Template {
 											'label' => '类别',
 											'type' => 'tax',
 											'summary' => '06',
-											'panel' => '03',
+											'panel' => '04',
 											),
 			'g_platform'	=>		array(	'name' => 'g_platform',
 											'label' => '机种',
 											'type' => 'tax',
 											'summary' => '04',
-											'panel' => '02',
+											'panel' => '03',
 											),
 			'g_publisher'	=>		array(	'name' => 'g_publisher',
 											'label' => '制作方',
 											'type' => 'tax',
 											'summary' => '05',
-											'panel' => '04',
+											'panel' => '05',
 											),
 			'g_p_producer'	=>		array(	'name' => 'g_p_producer',
 											'label' => '制作人',
@@ -426,7 +431,7 @@ class BDDB_Common_Template {
 											'priority' => '09',
 											'sort' => 'DESC',
 											'ctype' => 'numeric',
-											'panel' => '05',
+											'panel' => '06',
 											),
 			'g_score_ign'	=>		array(	'name' => 'g_score_ign',
 											'label' => 'IGN评分',
