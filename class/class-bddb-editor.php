@@ -18,6 +18,8 @@ class BDDB_Editor {
 	private $self_post_type;		/*档案自身的种类*/
 	private $default_item;			/*单条档案对应的默认值*/
 	private $options;				/*配置选项，在set_working_mode时被设置*/
+	private $qe_start;				/*quick_edit 开始项*/
+	private $qe_end;				/*quick_edit 结束项*/
 
 	/**
 	 * 构造函数。
@@ -44,6 +46,8 @@ class BDDB_Editor {
 			'show_admin_column' => false,
 		);
 		$this->self_post_type = false;
+		$this->qe_start = false;
+		$this->qe_end = false;
 		$this->common_items = array(
 			'bddb_display_name' => array(	'name' => 'bddb_display_name',
 											'label' => '表示名',
@@ -60,6 +64,10 @@ class BDDB_Editor {
 											'label' => '原名',
 											'comment' => '译作时选填，如果不填则默认与项目名相同。',
 											'sanitize_callback' => array($this,'sanitize_original_name')
+											),
+			'bddb_aka' 			 => array(	'name' => 'bddb_aka',
+											'label' => '别名',
+											'placeholder' => '多个别名用“,”分割',
 											),
 			'bddb_external_link' => array(	'name' => 'bddb_external_link',
 											'label' => '外部链接',
@@ -130,13 +138,40 @@ class BDDB_Editor {
 		add_action( 'pre_get_posts', array($this, 'resort_meta_column_query') );
 		//tax分类过滤
 		add_action( 'restrict_manage_posts', array($this, 'add_taxonomy_filter_ddl'), 10, 2 );
-		//
+		//修改每页显示数量
 		add_filter( 'edit_posts_per_page', array($this, 'modify_list_per_page'), 10, 2 );
+		//
+		add_action('quick_edit_custom_box', array($this, 'add_quickedit_items'), 10, 2);
 
 	}
 	/******  直接调用的外部函数 结束  ******/
 
 	/******  钩子调用的外部函数 开始  ******/
+	public function add_quickedit_items($column_name, $post_type) {
+		$this->set_working_mode($post_type);
+		if (isset($this->total_items[$column_name])) {
+			$item = $this->total_items[$column_name];
+		}
+		else {
+			return;
+		}
+		if (!$item['show_admin_column'] || 'meta' !== $item['type']) {
+			return;
+		}
+		if ($column_name == $this->qe_start) {
+			wp_nonce_field( 'bddb_q_edit_nonce', 'bddb_nonce' );
+			echo '<fieldset class="inline-edit-col-center"><div class="inline-edit-col"><div class="inline-edit-group wp-clearfix">';
+		}
+		
+		echo '<label class="alignleft">
+					<span class="title">'.$item['label'].'</span>
+					<span class="input-text-wrap"><input type="text" name="'.$column_name.'" value=""></span>
+				</label>';
+		if ($column_name == $this->qe_end) {
+			echo '</div></div></fieldset>';
+		}
+	}
+	
 	public function modify_list_per_page($per_page, $post_type) {
 		if (in_array($post_type, array('movie','book','game','album'))) {
 			$per_page = 50;
@@ -904,6 +939,7 @@ class BDDB_Editor {
 				$strMetaVal = '';
 			}
 		}
+	
 		if ( isset($item['sanitize_callback']) && is_callable($item['sanitize_callback'])) {
 			$strMetaVal = call_user_func( $item['sanitize_callback'], $strMetaVal);
 		}
@@ -950,6 +986,16 @@ class BDDB_Editor {
 	protected function merge_default_column($inItem) {
 		if (!is_array($inItem)){
 			return $this->default_item;
+		}
+		if( isset($inItem['show_admin_column']) &&
+			!empty($inItem['show_admin_column']) &&
+			(!isset($inItem['type'])|| 'tax' != $inItem['type'])) {
+			if (!$this->qe_start) {
+				$this->qe_start = $inItem['name'];
+				$this->qe_end = $inItem['name'];
+			}else {
+				$this->qe_end = $inItem['name'];
+			}
 		}
 		return array_merge($this->default_item, $inItem);
 	}
