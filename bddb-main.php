@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.2.5
+ * Version:     0.2.6
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -171,10 +171,15 @@ function bddb_admin_init() {
 //js和css初始化
 function bddb_scripts() {
 	if (is_page(array('moviesgallery','booksgallery','gamesgallery','albumsgallery'))) {
+		$s = new BDDB_Settings();
 		wp_enqueue_script( 'bddb-fancy', BDDB_PLUGIN_URL . 'js/fancybox.umd.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-color-thief', BDDB_PLUGIN_URL . 'js/color-thief.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20211123', true );
 		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css' );
+		if ($s->get_local_lazyload()){
+			wp_enqueue_script('bddb-js-lazyload', BDDB_PLUGIN_URL . 'js/unveil-ui.min.js', array(), '20210117', true);
+		}
+		wp_localize_script('bddb-fancy-func','locallazy',$s->get_local_lazyload());
 		if (is_page('albumsgallery')) {
 			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-square.css' );
 		}else {

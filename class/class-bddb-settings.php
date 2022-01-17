@@ -19,6 +19,7 @@ class BDDB_Settings{
 			'poster_width'=>400,
 			'thumbnail_width'=>100,
 			'b_max_serial_count'=>18,
+			'local_lazyload'=>0,
 			//TODO
 			'general_order' => array(
 				'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
@@ -103,6 +104,10 @@ class BDDB_Settings{
 	public function get_tax_version(){
 		$options = $this->get_options();
 		return $options['tax_version'];
+	}
+	public function get_local_lazyload(){
+		$options = $this->get_options();
+		return $options['local_lazyload'];
 	}
 	public function update_tax_version($version){
 		$options = $this->get_options();

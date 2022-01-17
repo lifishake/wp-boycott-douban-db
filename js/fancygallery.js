@@ -3,6 +3,12 @@
 //Fancybox.defaults.hideClass = fancybox-fadeOut;
 //Fancybox.defaults.click = next;
 
+jQuery( document ).ready( function( $ ) {
+	if (1==locallazy) {
+		$( 'img[data-unveil="true"]' ).unveil( 200 );
+	}
+});
+
 function dec_to_hex_string(dec, length) {
     var hex = dec.toString(16).toUpperCase();
     if (hex.length < length) {
