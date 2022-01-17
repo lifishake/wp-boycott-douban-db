@@ -570,6 +570,8 @@ class BDDB_Common_Template {
 		}
 		//TODO：自己不做lazyload，通过lazyload的script加载情况判断是否支持，可以做成option项
 		$is_lazy = wp_script_is("apip-js-lazyload");
+		$s = new BDDB_Settings();
+		$is_lazy = ($is_lazy || $s->get_local_lazyload());
 		if (!$is_lazy) {
 			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}' alt='{$alt}' /></a>";
 		}else{

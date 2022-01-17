@@ -209,6 +209,11 @@ class BDDB_Editor {
 		//工作状态box，使用最后一个参数，默认加到侧边。
 		add_meta_box('bddbstsdiv', '状态显示', array($this, 'show_status_meta_box'), NULL, 'side');
 		add_meta_box('bddbcommondiv', $title, array($this, 'show_meta_box'));
+		//使用APIP函数，增加手动做成slug按钮。
+		if (function_exists('apip_title_hex_meta_box')){
+			remove_meta_box('slugdiv', $this->self_post_type, 'normal');
+			add_meta_box('apipslugdiv', 'Slug to unicode', 'apip_title_hex_meta_box', $this->self_post_type, 'normal', 'core');
+		}
 	}
 
 	/**
