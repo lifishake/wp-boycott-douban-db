@@ -313,6 +313,11 @@ class BDDB_DoubanFetcher{
 			if (strpos($fetch['pic'], 'type=R')>0) {
 				$fetch['pic'] = $this->get_detail_douban_pic($fetch['pic']);
 			}
+			if (strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("大陆",'utf-8'))===0 ||
+				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("香港",'utf-8'))===0 || 
+				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("台湾",'utf-8'))===0) {
+				$fetch['original_name'] = '';
+			}
 			return $fetch;
 		}//parse_douban_body
 		
@@ -419,12 +424,12 @@ class BDDB_DoubanFetcher{
 		if ('' == $output['genre']) $output['genre'] = $this->translate_m_genres($content['Genre']);
 		if ('' == $output['country']) $output['country'] = $this->translate_contries($content['Country']);
 		if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($content['Year']);
-		if (strpos($output['country'],'中国')||
-			strpos($output['country'],'香港')||
-			strpos($output['country'],'台湾')||
-			strpos($output['country'],'china')||
-			strpos($output['country'],'hong kong')||
-			strpos($output['country'],'taiwan')
+		if (strpos($output['country'],'中国') === 0||
+			strpos($output['country'],'香港') === 0||
+			strpos($output['country'],'台湾') === 0||
+			strpos($output['country'],'china') === 0||
+			strpos($output['country'],'hong kong')=== 0||
+			strpos($output['country'],'taiwan') === 0
 		){
 			$output['original_name'] = '';
 		}
