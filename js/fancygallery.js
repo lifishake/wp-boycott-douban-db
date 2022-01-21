@@ -4,7 +4,7 @@
 //Fancybox.defaults.click = next;
 
 jQuery( document ).ready( function( $ ) {
-	if (1==locallazy) {
+	if (1==locallazy.enabled) {
 		$( 'img[data-unveil="true"]' ).unveil( 200 );
 	}
 });
