@@ -554,6 +554,7 @@ class BDDB_Common_Template {
 		$detail_str = '';
 		array_multisort( array_column($this->total_items,'panel'), array_column($this->total_items,'name'), $this->total_items);
 		//get_xxx_info
+		$info_str = "";
 		if (is_callable(array($this,"get_{$this->self_post_type}_panel_info"))) {
 			$info_str .= call_user_func(array($this,"get_{$this->self_post_type}_panel_info"), $id);
 		}
@@ -880,7 +881,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示影片特殊属性图标。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string	只有图标部分，不包括前后的html标签
 	 * @access	private
 	 * @since	0.0.1
@@ -915,7 +916,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示条目原名。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array		$item		条目
 	 * @return string	只有文字部分，不包括前后的html标签
 	 * @access	private
 	 * @since	0.0.1
@@ -938,7 +939,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示书籍册数。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string	只有文字，不包括前后的html标签
 	 * @access	private
 	 * @since	0.0.1
@@ -958,7 +959,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示书籍出版时间。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string	只有文字，不包括前后的html标签
 	 * @access	private
 	 * @since	0.0.1
@@ -988,7 +989,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示书籍特殊属性图标。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string	只有图标部分，不包括前后的html标签
 	 * @access	private
 	 * @since	0.0.1
@@ -1017,7 +1018,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示电影出版时间。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1033,7 +1034,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示电影特殊图标。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1050,7 +1051,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示电影原名。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1067,7 +1068,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示书籍特殊图标。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1084,7 +1085,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示书籍出版时间。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1101,7 +1102,7 @@ class BDDB_Common_Template {
 	/**
 	 * 显示书籍系列册数。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1118,7 +1119,7 @@ class BDDB_Common_Template {
 	/**
 	 * 上墙电影特殊图标。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1135,7 +1136,7 @@ class BDDB_Common_Template {
 	/**
 	 * 上墙书籍出版时间。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1152,7 +1153,7 @@ class BDDB_Common_Template {
 	/**
 	 * 上墙书籍册数。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1169,7 +1170,7 @@ class BDDB_Common_Template {
 	/**
 	 * 上墙原名。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1
@@ -1186,7 +1187,7 @@ class BDDB_Common_Template {
 	/**
 	 * 上墙书籍特殊图标。
 	 * @param	int		$id			post_ID
-	 * @param	int		$item		条目
+	 * @param	array	$item		条目
 	 * @return string
 	 * @access	protected
 	 * @since	0.0.1

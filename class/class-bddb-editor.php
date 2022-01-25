@@ -79,6 +79,7 @@ class BDDB_Editor {
 											'label' => '图片链接',
 											'comment'=> array($this, 'echo_poster_button'),
 											'placeholder' => 'http://',
+											'sanitize_callback' => array($this,'sanitize_post_link')
 											),
 			'bddb_publish_time' => array(	'name' => 'bddb_publish_time',
 											'label' => '出版时间',
@@ -405,7 +406,9 @@ class BDDB_Editor {
 	public function show_custom_meta_value($column_name, $id) {
 		$out = get_post_meta($id, $column_name, true);
 		if (empty($out)) {
-			$out = '&#8212;';
+			if (0 != $out) {
+				$out = '&#8212;';
+			}
 		}
 		echo $out;
 	}
@@ -543,8 +546,12 @@ class BDDB_Editor {
 		if (file_exists($thumbnail_full_name)) {
 			unlink($thumbnail_full_name);
 		}
+		$piclink = htmlspecialchars_decode($_POST['piclink']);
+		if (strpos($piclink, "doubanio.com")> 0 && strpos($piclink,".webp")>0){
+			$piclink = str_replace(".webp", ".jpg", $piclink);
+		}
 		$response = @wp_remote_get( 
-				htmlspecialchars_decode($_POST['piclink']), 
+				$piclink, 
 				array( 
 					'timeout'  => 3000, 
 					'stream'   => true, 
@@ -804,6 +811,35 @@ class BDDB_Editor {
 		return $str;
 	}
 
+	/**
+	 * 优化电影类型。
+	 * @access protected
+	 * @param string $str	编辑框中的电影类型
+	 * @return string	电影类型
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.2.9
+	 */
+	protected function sanitize_m_genre($str) {
+		$str = str_replace("纪录片", "纪录", $str);
+		return $str;
+	}
+
+	/**
+	 * 优化图片链接。
+	 * @access protected
+	 * @param string $str	编辑框中的图片链接
+	 * @return string	图片链接
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.2.9
+	 */
+	protected function sanitize_post_link($str) {
+		//https://img2.doubanio.com/view/photo/m/public/p2164971433.webp
+		if (strpos($str, "doubanio.com")> 0 && strpos($str,".webp")>0){
+			$str = str_replace(".webp", ".jpg", $str);
+		}
+		return $str;
+	}
+
 	/****   保存选项的优化回调函数 结束   ****/
 
 	/**** comment 列的特殊回调函数 开始 ****/
@@ -915,6 +951,9 @@ class BDDB_Editor {
 		$taxonomy_name = $item['name'];
 		if (isset($_POST[$taxonomy_name])) {
 			$new_terms_str = htmlentities($_POST[$taxonomy_name]);
+			if ( isset($item['sanitize_callback']) && is_callable($item['sanitize_callback'])) {
+				$new_terms_str = call_user_func( $item['sanitize_callback'], $new_terms_str);
+			}
 			wp_set_post_terms($post_ID, $new_terms_str, $taxonomy_name);
 			return $new_terms_str;
 		}
@@ -1041,6 +1080,7 @@ class BDDB_Editor {
 											'label' => '类型',
 											'size' => 16,
 											'type' => 'tax',
+											'sanitize_callback' => array($this, 'sanitize_m_genre'),
 											'placeholder' => '剧情,动作,喜剧,恐怖,历史,战争,犯罪...',
 											),
 			'm_publisher'		=>	array(	'name' => 'm_publisher',
