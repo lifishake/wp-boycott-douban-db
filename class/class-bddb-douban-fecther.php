@@ -329,7 +329,7 @@ class BDDB_DoubanFetcher{
 	 * @since 0.0.1
 	*/	
 	private function get_detail_douban_pic($pic_mass){
-		sleep(15);
+		sleep(12);
 		//防止被豆瓣当成恶意IP
 		$response = @wp_remote_get( 
 			htmlspecialchars_decode($pic_mass), 
