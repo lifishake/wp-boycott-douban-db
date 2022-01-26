@@ -680,7 +680,7 @@ class BDDB_Editor {
 	 */
 	protected function sanitize_original_name($str) {
 		if ($str == "" && isset($_POST['bddb_display_name'])) {
-			$str = htmlentities($_POST['bddb_display_name']);
+			$str = htmlspecialchars(stripslashes($_POST['bddb_display_name']), ENT_QUOTES);
 		}
 		return $str;
 	}
@@ -950,7 +950,7 @@ class BDDB_Editor {
 		}
 		$taxonomy_name = $item['name'];
 		if (isset($_POST[$taxonomy_name])) {
-			$new_terms_str = htmlentities($_POST[$taxonomy_name]);
+			$new_terms_str = htmlspecialchars(stripslashes ($_POST[$taxonomy_name]), ENT_QUOTES);
 			if ( isset($item['sanitize_callback']) && is_callable($item['sanitize_callback'])) {
 				$new_terms_str = call_user_func( $item['sanitize_callback'], $new_terms_str);
 			}
@@ -976,7 +976,7 @@ class BDDB_Editor {
 		$meta_name = $item['name'];
 		$strMetaVal = '';
 		if (isset($_POST[$meta_name])) {
-			$strMetaVal = htmlentities($_POST[$meta_name]);
+			$strMetaVal = htmlspecialchars(stripslashes($_POST[$meta_name]),ENT_QUOTES);
 		}
 		if ('boolean_meta' == $item['type']) {
 			if ($strMetaVal !== '1') {
