@@ -85,7 +85,13 @@ jQuery(document).ready(function($) {
                 }
                 the_input = document.getElementsByName("m_region");
                 if (the_input.length == 1 && response.result.country.length > 0){
-                    the_input[0].value = response.result.country;
+                    $str_regin = response.result.country;
+                    $iPos = $str_regin.indexOf(",");
+                    if ($iPos>0) {
+                        the_input[0].value = $str_regin.substring(0, $iPos );
+                    }else {
+                        the_input[0].value = response.result.country;
+                    }
                 }
                 the_input = document.getElementsByName("m_genre");
                 if (the_input.length == 1 && response.result.genre.length > 0){
