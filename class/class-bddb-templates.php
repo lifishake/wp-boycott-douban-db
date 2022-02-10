@@ -252,6 +252,7 @@ class BDDB_Common_Template {
 											'type' => 'tax',
 											'summary' => '03',			//插入显示。
 											'panel' => '12',			//上墙显示。
+											'panel_callback' => array($this, 'panel_movie_people'),
 											),
 			'm_genre' => array(	'name' => 'm_genre',
 											'label' => '类型',
@@ -265,12 +266,10 @@ class BDDB_Common_Template {
 			'm_p_screenwriter' => array(	'name' => 'm_p_screenwriter',
 											'label' => '编剧',
 											'type' => 'tax',
-											'panel' => '13',			//上墙显示。
 											),
 			'm_p_musician' => array(	'name' => 'm_p_musician',
 											'label' => '配乐',
 											'type' => 'tax',
-											'panel' => '14',			//上墙显示。
 											),
 			'm_misc_brand' => array(	'name' => 'm_misc_brand',
 											'label' => 'TOBEDELETE',
@@ -576,7 +575,8 @@ class BDDB_Common_Template {
 		if (!$is_lazy) {
 			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}' alt='{$alt}' /></a>";
 		}else{
-			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' data-unveil='true' alt='{$alt}' /></a>";
+			$ts = "?ts=".strval(time() + mt_rand(0,9999));
+			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' data-unveil='true' alt='{$alt}' /></a>";
 		}
 		return $ret;
 	
@@ -896,14 +896,12 @@ class BDDB_Common_Template {
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
 			switch($slug) {
 				case 'sanji':
-				//三级与限制级使用相同图标
-					$img = BDDB_PLUGIN_URL.'img/restricted.png';
-					/*go through*/
 				case 'cat':
 				case 'dou250':
 				case '404':
 				case 'restricted':
 				case 'imdb250':
+				case 'remake':
 					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
 				break;
 				default:
@@ -1114,6 +1112,37 @@ class BDDB_Common_Template {
 			return false;
 		}
 		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+	}
+
+	/**
+	 * 上墙电影人名过长。（暂时只用于演员）
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string
+	 * @access	protected
+	 * @since	0.3.2
+	 * @ref		panel_callback()
+	 */
+	protected function panel_movie_people($id, $item) {
+		$val_str = '';
+		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'names'));
+		if (is_wp_error($str_array))
+			return '';
+		foreach ($str_array as $str_name) {
+			if (!empty($val_str)) {
+				$val_str .= ", ";
+			}
+			$p1 = mb_strrpos($str_name, ".");
+			$p2 = mb_strrpos($str_name, " ");
+			$p3 = mb_strrpos($str_name, "·");
+			$p = $p1>0?$p1:($p2>0?$p2:($p3>0?$p3:0));
+			if ( mb_strlen($str_name) >= 7 &&
+				$p > 0) {
+					$str_name = mb_substr($str_name, $p+1);
+				}
+			$val_str .= $str_name;
+		}
+		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val_str);
 	}
 
 	/**

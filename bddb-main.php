@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.3.1
+ * Version:     0.3.2
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -192,7 +192,7 @@ function bddb_scripts() {
 
 /* 统一处理后台相关的脚本 */
 function bddb_admin_scripts() {
-    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220127', true);
+    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220210', true);
     wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css' );
     wp_deregister_style( 'open-sans' );
     wp_register_style( 'open-sans', false );

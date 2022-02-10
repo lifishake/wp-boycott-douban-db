@@ -54,6 +54,10 @@ jQuery(document).ready(function($) {
                 var the_input = document.getElementsByName("bddb_display_name");
                 if (the_input.length == 1 && response.result.title.length > 0){
                     the_input[0].value = response.result.title;
+					the_input = document.getElementById("title");
+					if (the_input.value.length == 0) {
+						the_input.value = response.result.title;
+					}
                 }
                 the_input = document.getElementsByName("bddb_original_name");
                 if (the_input.length == 1 && response.result.original_name.length > 0){
@@ -161,7 +165,7 @@ jQuery(document).ready(function($) {
             data: data,
             cache: false,
             success:function(response){
-				$("#img_poster_thumbnail").attr('src',dest_pic);
+				$("#img_poster_thumbnail").attr('src',dest_pic+"?tl="+Math.random());
                 mybar.value="图片取得成功.";
             },
             beforeSend: function () {
