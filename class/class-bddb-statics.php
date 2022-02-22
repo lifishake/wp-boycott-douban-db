@@ -9,7 +9,7 @@ class BDDB_Statics {
 
 	/**
 	 * 构造函数
-	 * @access public
+	 * @public
 	 * @since 0.1.1
 	 */
 	public function __construct(){
@@ -262,7 +262,7 @@ class BDDB_Statics {
 	/******  直接调用的外部函数 开始  ******/
 	/**
 	 * 检查已经存在的分类法，注册分类法。
-	 * @access public
+	 * @public
 	 * @since 0.1.1
 	 * @ref		bddb_init_actions()
 	 */
@@ -300,7 +300,7 @@ class BDDB_Statics {
 
 	/**
 	 * 检查已经存在的种类。
-	 * @access public
+	 * @public
 	 * @ref		bddb_init_actions()
 	 * @since 0.1.1
 	 */
@@ -337,7 +337,7 @@ class BDDB_Statics {
 
 	/**
 	 * 后台初始化。
-	 * @access public
+	 * @public
 	 * @since 0.1.1
 	 * @ref		bddb_admin_init()
 	 */
@@ -351,7 +351,7 @@ class BDDB_Statics {
 	/******  钩子调用的外部函数 开始  ******/
 	/**
 	 * Plugin页面追加配置选项。
-	 * @access public
+	 * @public
 	 * @param	array	$action_links	可执行标签，回调固定
 	 * @param	string	$plugin_file	文件名，回调固定
 	 * @ref		admin_init()
@@ -369,7 +369,7 @@ class BDDB_Statics {
 
 	/**
 	 * 创建后台统计小工具。
-	 * @access public
+	 * @public
 	 * @ref		admin_init()
 	 * @ref		action::wp_user_dashboard_setup
 	 * @ref		action::add_dashboard_widget
@@ -384,7 +384,7 @@ class BDDB_Statics {
 
 	/**
 	 * dashboard页面创建统计小工具。
-	 * @access public
+	 * @public
 	 * @ref		add_dashboard_widget()
 	 * @mention	可以做成option项，各个项目的配比也可以做成option项
 	 * @since 0.1.2
@@ -429,7 +429,7 @@ class BDDB_Statics {
 
 	/**
 	 * array_map回调，获取type支持的taxonomies。
-	 * @access protected
+	 * @protected
 	 * @param	array	$tax_item	单个taxonomy
 	 * @ref		check_types()
 	 * @since 0.1.1
@@ -446,7 +446,7 @@ class BDDB_Statics {
 
 	/**
 	 * 显示不同种类的小工具区域。
-	 * @access private
+	 * @private
 	 * @param	array	$pts	post objects
 	 * @param	string	$post_type,'bddb'时不按分类，取最新更新；其余取最新发布。
 	 * @ref		dashboard_widget_div()
@@ -488,7 +488,7 @@ class BDDB_Statics {
 
 	/**
 	 * 比较分类法版本号，版本号不同时调用对应的版本升级函数。
-	 * @access private
+	 * @private
 	 * @since 0.1.5
 	 */
 	private function tax_diff(){
@@ -511,7 +511,7 @@ class BDDB_Statics {
 
 	/**
 	 * taxo升级函数20220101。
-	 * @access protected
+	 * @protected
 	 * @param	object		$op setting类，用于操作option信息。
 	 * @since 0.1.7
 	 */

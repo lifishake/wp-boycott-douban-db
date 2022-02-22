@@ -1,4 +1,15 @@
 <?php
+/**
+ * @file	class-bddb-templates.php
+ * @class	BDDB_DoubanFetcher
+ * @brief	内容显示用类，包括gallery显示和嵌入文章显示
+ * @date	2021-12-21
+ * @author	大致
+ * @version	0.3.3
+ * @since	0.0.1
+ * 
+ */
+
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 
 function trim_fetched_item($value) {
@@ -24,8 +35,8 @@ class BDDB_DoubanFetcher{
 	//成员列表
 	protected	$type;	//类型
 	/**
-	 * 构造函数。
-	 * @access public
+	 * @brief	构造函数。
+	 * @public
 	 * @param	string	$in_type	可以为空
 	 * @since 0.0.1
 	 */
@@ -34,11 +45,12 @@ class BDDB_DoubanFetcher{
 	}//__construct
 
 	/**
-	 * 构造函数。
-	 * @access public
+	 * @brief	构造函数。
+	 * @public
 	 * @param	string	$url	可以为空
-	 * @return array
-	 * @since 0.0.1
+	 * @return	array
+	 * @since	0.0.1
+	 * @version	0.3.3
 	 */
 	public function fetch($url = '') {
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
@@ -68,7 +80,12 @@ class BDDB_DoubanFetcher{
 			$ret['result']=$fetch;
 			$ret['result']['actor'] = $actors;
 			return $ret;
-		}elseif ('' !== $url) {
+		}else{
+			$pos = mb_strrpos($url, "?");
+			//去掉问号
+			if ($pos > 0){
+				$url = mb_strcut($url, 0, $pos);
+			}
 			if (strpos($url, "movie.douban.com")) {
 				$this->type = "movie";
 			} elseif (strpos($url, "book.douban.com")) {
@@ -80,15 +97,30 @@ class BDDB_DoubanFetcher{
 				//直接走imdb
 				return $this->fetch_from_omdb($url);
 			} else {
-				return $ret;
+				if (strpos($url, "tt") !== false) {
+					$this->type = "movie";
+					//直接走imdb
+					$url = "https://www.imdb.com/title/".$url;
+					return $this->fetch_from_omdb($url);
+				} elseif (is_numeric($url)) {
+					if ("movie" === $this->type) {
+						$url = "https://movie.douban.com/subject/".$url;
+					} elseif ("book" === $this->type) {
+						$url = "https://book.douban.com/subject/".$url;
+					} elseif ("album" === $this->type) {
+						$url = "https://music.douban.com/subject/".$url;
+					}
+				} else {
+					return $ret;
+				}
 			}
 		}
 		return $this->fetch_from_douban_page($url);
 	}
 	
 	/**
-	 * 从omdb获取。
-	 * @access private
+	 * @brief	从omdb获取。
+	 * @private
 	 * @param	string	$url	可以为空
 	 * @return array
 	 * @since 0.0.1
@@ -109,8 +141,8 @@ class BDDB_DoubanFetcher{
 	}
 	
 	/**
-	 * 抓取豆瓣页面。
-	 * @access private
+	 * @brief	抓取豆瓣页面。
+	 * @private
 	 * @param	string	$url	可以为空
 	 * @return array
 	 * @since 0.0.1
@@ -140,10 +172,10 @@ class BDDB_DoubanFetcher{
 		$ret['content']['dou_id'] = substr($url, strrpos($url, "/")+1);
 		return $ret;
 	}
-		
+
 	/**
-	 * 解析豆瓣页面内容。
-	 * @access private
+	 * @brief	解析豆瓣页面内容。
+	 * @private
 	 * @param	string	$body	页面html内容
 	 * @return array
 	 * @since 0.0.1
@@ -187,7 +219,7 @@ class BDDB_DoubanFetcher{
 				//电影：导演，演员，类型，上映时间，imdb链接
 				$info_grep_keys = array(
 					array('pattern'=>'/(?<="v:directedBy"\>).*?(?=\<)/', 'item'=>'director'), 
-					array('pattern'=>'/(?<="v:starring"\>).*?(?=\<)/', 'item'=>'actor'),
+					array('pattern'=>'/(?<="v:starring"\>).*?(?=\<)/', 'item'=>'actor', 'sanitize_callback'=>array($this, 'translate_actors')),
 					array('pattern'=>'/(?<="v:genre"\>).*?(?=\<)/', 'item'=>'genre'),
 					array('pattern'=>'/(?<=\<span property="v:initialReleaseDate" content=").*?(?=\")/', 'item'=>'pubdate', 'sanitize_callback'=>array($this, 'trim_year_month')),
 					array('pattern'=>'/(?<=\<span class=[\',\"]pl[\',\"]\>制片国家\/地区:\<\/span\>).*?(?=\<br\/\>)/', 'item'=>'country', 'sanitize_callback'=>array($this, 'trim_contry_title')),
@@ -322,8 +354,8 @@ class BDDB_DoubanFetcher{
 		}//parse_douban_body
 		
 	/**
-	 * 解析豆瓣页面内容。
-	 * @access private
+	 * @brief	解析豆瓣页面内容。
+	 * @private
 	 * @param	string	$pic_mass	页面html内容
 	 * @return array
 	 * @since 0.0.1
@@ -350,8 +382,8 @@ class BDDB_DoubanFetcher{
 	}
 
 	/**
-	 * 修改日期格式。
-	 * @access private
+	 * @brief	修改日期格式。
+	 * @private
 	 * @param	string	$pic_mass	页面html内容
 	 * @return string
 	 * @since 0.0.1
@@ -365,8 +397,8 @@ class BDDB_DoubanFetcher{
 	}
 	
 	/**
-	 * 修改地区格式。
-	 * @access private
+	 * @brief	修改地区格式。
+	 * @private
 	 * @param	string	$pic_mass	页面html内容
 	 * @return string
 	 * @since 0.0.1
@@ -376,8 +408,8 @@ class BDDB_DoubanFetcher{
 	}
 
 	/**
-	 * 从omdb获取。
-	 * @access private
+	 * @brief	从omdb获取。
+	 * @private
 	 * @param	string	$pic_mass	页面html内容
 	 * @return string
 	 * @since 0.0.1
@@ -436,21 +468,31 @@ class BDDB_DoubanFetcher{
 		return $output;
 	}
 	
+	/**
+	 * @brief	字符串替换。
+	 * @private
+	 * @param	string	$pic_mass	页面html内容
+	 * @return string
+	 * @since 0.2.1
+	*/
 	protected function my_space_replace($in_str) {
 		$in_str = str_replace(" ","-",trim($in_str));
 		return $in_str;
 	}
 
 	/**
-	 * 根据tax的内容获取文字。
-	 * @access private
-	 * @param	string	$pic_mass	页面html内容
-	 * @return string
-	 * @since 0.0.1
+	 * @brief	根据tax的内容获取文字。
+	 * @private
+	 * @param	string	$tax			分类法slug
+	 * @param	array	$imaged_slugs	取得的内容想象成slug
+	 * @return	string
+	 * @since	0.0.1
+	 * @version	0.3.3
 	*/
-	private function tax_slugs_to_names($tax, $slugs){
-		$ret = strtolower($slugs);
-		$srcs = TrimArray(explode(',', $slugs));
+	private function tax_slugs_to_names($tax, $imaged_slugs){
+		$ret = strtolower($imaged_slugs);
+		$srcs = TrimArray(explode(',', $imaged_slugs));
+		$old = $srcs;
 		$os = array_map(array($this, 'my_space_replace'), $srcs);
 		//需要先手动设置好slug
 		if ('region' == $tax) {
@@ -472,16 +514,20 @@ class BDDB_DoubanFetcher{
 		}
 		$got = array();
 		$i = 0;
+		$limit = 10;
 		foreach ($os as $slug) {
 			$got_items = get_terms(array(	'taxonomy'=>$tax,
-										'hide_empty'=>false,
-										'slug'=>$slug));
+											'hide_empty'=>false,
+											'slug'=>$slug));
 			if (is_wp_error($got_items) || empty($got_items)) {
-				$got[] = $srcs[$i];
+				$got[] = $old[$i];
 			} else {
 				$got[] = $got_items[0]->name;
 			}
 			$i++;
+			if ($i == $limit){
+				break;
+			}
 		}
 		$ret = implode(", ", $got);
 		return $ret;
@@ -493,8 +539,8 @@ class BDDB_DoubanFetcher{
 		return $this->tax_slugs_to_names('m_p_actor', $in_str);
 	}
 	/**
-	 * 转换地区。
-	 * @access private
+	 * @brief	转换地区。
+	 * @private
 	 * @param	string	$in_str	转换前内容（英）
 	 * @return string
 	 * @since 0.0.1
@@ -504,8 +550,8 @@ class BDDB_DoubanFetcher{
 	}
 
 	/**
-	 * 转换类型。
-	 * @access private
+	 * @brief	转换类型。
+	 * @private
 	 * @param	string	$in_str	转换前内容（英）
 	 * @return string
 	 * @since 0.0.1
@@ -515,8 +561,8 @@ class BDDB_DoubanFetcher{
 	}
 
 	/**
-	 * 内容转字符串。
-	 * @access private
+	 * @brief	内容转字符串。
+	 * @private
 	 * @param	array	$items	要排列的内容
 	 * @return string
 	 * @since 0.0.1
@@ -539,8 +585,7 @@ class BDDB_DoubanFetcher{
 			return implode(",",$items);
 		}
 	}//items_implode
-		
-		
+
 	private function fetch_douban_people_str ($from_str, $to_str, $base_str) {
 		$pos_start = strpos($base_str, $from_str);
 		$pos_end = strpos($base_str, $to_str, $pos_start);
