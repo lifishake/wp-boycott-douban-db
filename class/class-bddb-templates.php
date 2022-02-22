@@ -1,8 +1,16 @@
 <?php
 
 /**
- * 内容显示用类
+ * @file	class-bddb-templates.php
+ * @class	BDDB_Common_Template
+ * @brief	内容显示用类，包括gallery显示和嵌入文章显示
+ * @date	2021-12-21
+ * @author	大致
+ * @version	0.3.3
+ * @since	0.0.1
+ * 
  */
+ 
 class BDDB_Common_Template {
 	//成员列表
 	protected $common_items;		/*四种档案都包括的共通项目*/
@@ -11,10 +19,11 @@ class BDDB_Common_Template {
 	protected $default_item;		/*选项默认值*/
 	
 	/**
-	 * 构造函数。
-	 * @access public
-	 * @param	array	$post_type	影书游碟之一，或者不设置
-	 * @since 0.0.1
+	 * @brief	构造函数。
+	 * @public
+	 * @param	string	$post_type	影书游碟之一，或者不设置
+	 * @since	0.0.1
+	 * @version	0.0.1
 	 */
 	public function __construct($post_type = false){
 		$this->default_item = array(
@@ -79,10 +88,11 @@ class BDDB_Common_Template {
 	
 	/********    外部函数 开始    ********/
 	/**
-	 * 显示照片墙，被主题调用。
-	 * @access	public
-	 * @ref		bddb_the_gallery()
+	 * @brief	显示照片墙，被主题调用。
+	 * @public
+	 * @see		bddb_the_gallery()
 	 * @since	0.0.1
+	 * @version	0.0.1
 	 */
 	public function the_gallery() {
 		//meta_quary 'key' compare  EXISTS compare
@@ -106,11 +116,12 @@ class BDDB_Common_Template {
 	
 	
 	/**
-	 * 转换插入文章中的shortcode，被回调调用。
+	 * @brief	转换插入文章中的shortcode，被回调调用。
 	 * @param	array	$atts	短代码属性，该函数中只包括一个$id。
-	 * @access	public
+	 * @public
 	 * @since	0.1.4
-	 * @ref		add_shortcode()
+	 * @version	0.1.4
+	 * @see		add_shortcode()
 	 */
 	public function show_record($atts, $content = null) {
 		extract( $atts );
@@ -169,12 +180,13 @@ class BDDB_Common_Template {
 
 	/********    私有函数 开始    ********/
 	/**
-	 * 读取term的值。
-	 * @access	private
+	 * @brief	读取term的值。
+	 * @private
 	 * @param	string	$tax_name	taxonomy名。
 	 * @param	int		$id			postID。
 	 * @return	string	要读取的taxonomy的值
 	 * @since	0.0.1
+	 * @version	0.0.1
 	 */
 	private function get_tax_str($tax_name, $id) {
 		$val_str = '';
@@ -189,12 +201,13 @@ class BDDB_Common_Template {
 		return $val_str;
 	}
 	/**
-	 * 读取meta的值。
-	 * @access	private
+	 * @brief	读取meta的值。
+	 * @private
 	 * @param	string	$meta_name	meta名。
 	 * @param	int		$id			postID。
 	 * @return	string	要读取的meta的值
 	 * @since	0.0.1
+	 * @version	0.0.1
 	 */
 	private function get_meta_str($meta_name, $id) {
 		$val_str = get_post_meta($id, $meta_name, true);
@@ -203,12 +216,13 @@ class BDDB_Common_Template {
 
 
 	/**
-	 * 设置模板的类型。
-	 * @access	private
+	 * @brief	设置模板的类型。
+	 * @private
 	 * @param	string	$post_type	要显示的bddb种类。
 	 * @since	0.1.4
-	 * @ref		__construct()
-	 * @ref		show_record()
+	 * @version	0.1.4
+	 * @see		__construct()
+	 * @see		show_record()
 	 */
 	private function set_working_mode($post_type) {
 		if (!in_array($post_type, array('movie', 'book', 'game', 'album'))) {
@@ -222,10 +236,11 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 追加和修改movie类型的显示和排序。
-	 * @access	private
+	 * @brief	追加和修改movie类型的显示和排序。
+	 * @private
 	 * @since	0.0.1
-	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
+	 * @version	0.0.1
+	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_movie_items() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
@@ -296,10 +311,11 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 追加和修改book类型的显示和排序。
-	 * @access	private
+	 * @brief	追加和修改book类型的显示和排序。
+	 * @private
 	 * @since	0.0.1
-	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
+	 * @version	0.0.1
+	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_book_items() {
 		$this->common_items['bddb_display_name']['label'] = '书名';
@@ -379,10 +395,11 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 追加和修改game类型的显示和排序。
-	 * @access	private
+	 * @brief	追加和修改game类型的显示和排序。
+	 * @private
 	 * @since	0.0.1
-	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
+	 * @version	0.0.1
+	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_game_items() {
 		$this->common_items['bddb_display_name']['label'] = '游戏名';
@@ -440,10 +457,11 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 追加和修改album类型的显示和排序。
-	 * @access	private
+	 * @brief	追加和修改album类型的显示和排序。
+	 * @private
 	 * @since	0.0.1
-	 * @ref		set_working_mode()->add_{$this->self_post_type}_items
+	 * @version	0.0.1
+	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_album_items() {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
@@ -496,12 +514,13 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 为项目添加默认值。被set_working_mode中的array_map函数回调。
+	 * @brief	为项目添加默认值。被set_working_mode中的array_map函数回调。
 	 * @return array
-	 * @access	protected
+	 * @protected
 	 * @param	array	inItem	显示用的单个项目
 	 * @since	0.0.1
-	 * @ref		set_working_mode()->array_map()
+	 * @version	0.0.1
+	 * @see		set_working_mode()->array_map()
 	 */
 	protected function merge_default_column($inItem) {
 		if (!is_array($inItem)){
@@ -513,8 +532,9 @@ class BDDB_Common_Template {
 	/**
 	 * 生成相册检索用的的排序参数。
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
+	 * @version	0.0.1
 	 * @see		the_gallery()
 	 */
 	private function get_order_args() {
@@ -540,11 +560,12 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 生成相册画面的图片以及上墙显示的信息。
+	 * @brief	生成相册画面的图片以及上墙显示的信息。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
+	 * @version	0.0.1
 	 * @see		the_gallery()
 	 */
 	private function get_poster_for_gallery($id) {
@@ -583,12 +604,13 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 生成上墙显示的电影信息。
+	 * @brief	生成上墙显示的电影信息。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
+	 * @version	0.0.1
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
 	 */
 	private function get_movie_panel_info($id) {
 		//title
@@ -611,12 +633,13 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 生成上墙显示的书籍信息。
+	 * @brief	生成上墙显示的书籍信息。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
+	 * @version	0.0.1
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
 	 */
 	private function get_book_panel_info($id) {
 		//title
@@ -638,36 +661,39 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 生成上墙显示的游戏信息。
+	 * @brief	生成上墙显示的游戏信息。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
+	 * @version	0.0.1
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
 	 */
 	private function get_game_panel_info($id) {
 		return '';
 	}
 
 	/**
-	 * 生成上墙显示的专辑信息。
+	 * @brief	生成上墙显示的专辑信息。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
+	 * @version	0.0.1
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
 	 */
 	private function get_album_panel_info($id) {
 		return '';
 	}
 	
 	/**
-	 * 生成上墙显示的标题。
+	 * @brief	生成上墙显示的标题。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		get_xxx_info()
+	 * @version	0.0.1
+	 * @see		get_xxx_info()
 	 */
 	private function get_panel_title($id) {
 		$name_dsp = $this->get_meta_str('bddb_display_name', $id);
@@ -676,12 +702,13 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 生成上墙显示的个人评星。
+	 * @brief	生成上墙显示的个人评星。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		get_xxx_info()
+	 * @version	0.0.1
+	 * @see		get_xxx_info()
 	 */
 	private function get_panel_rating_stars($id) {
 		$stars='';
@@ -704,12 +731,13 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 生成上墙显示的其它内容。
+	 * @brief	生成上墙显示的其它内容。
 	 * @param	int		$id			post_ID
 	 * @return string	多行
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		get_xxx_panel_info()
+	 * @version	0.0.1
+	 * @see		get_xxx_panel_info()
 	 */
 	private function panel_common_loop($id) {
 		$panel_str = '';
@@ -739,23 +767,25 @@ class BDDB_Common_Template {
 		return $panel_str;
 	}
 	/**
-	 * 生成电影摘要显示的其它内容。
+	 * @brief	生成电影摘要显示的其它内容。
 	 * @param	int		$id			post_ID
 	 * @return string	摘要字符串，多行
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 * @version	0.0.1
+	 * @see		show_record()->get_{$this->self_post_type}_abstract
 	 */
 	private function get_movie_abstract($id) {
 		return $this->abstract_common_loop($id);
 	}
 	/**
-	 * 生成书籍摘要显示的其它内容。
+	 * @brief	生成书籍摘要显示的其它内容。
 	 * @param	int		$id			post_ID
 	 * @return string	摘要字符串，多行
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 * @version	0.0.1
+	 * @see		show_record()->get_{$this->self_post_type}_abstract
 	 */
 	private function get_book_abstract($id) {
 		return $this->abstract_common_loop($id);
@@ -767,12 +797,13 @@ class BDDB_Common_Template {
 		return '';
 	}
 	/**
-	 * 生成系列书籍摘要显示的其它内容。
+	 * @brief	生成系列书籍摘要显示的其它内容。
 	 * @param	int		$id			post_ID
 	 * @return string	摘要字符串，多行
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		show_record()->get_{$this->self_post_type}_abstract_series
+	 * @version	0.0.1
+	 * @see		show_record()->get_{$this->self_post_type}_abstract_series
 	 */
 	private function get_book_abstract_series($id) {
 		$template = '<div class="abstract-left">%s</div>%s';
@@ -794,12 +825,13 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 生成摘要显示的其它内容。
+	 * @brief	生成摘要显示的其它内容。
 	 * @param	int		$id			post_ID
 	 * @return string	摘要字符串，多行
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 * @version	0.0.1
+	 * @see		show_record()->get_{$this->self_post_type}_abstract
 	 */
 	private function abstract_common_loop($id){
 		$abs_str = '';
@@ -828,12 +860,13 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 生成摘要显示外部评星的字符串。
+	 * @brief	生成摘要显示外部评星的字符串。
 	 * @param	int		$id			post_ID
 	 * @return string
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		show_record()->get_{$this->self_post_type}_abstract
+	 * @version	0.0.1
+	 * @see		show_record()->get_{$this->self_post_type}_abstract
 	 */
 	private function get_summary_social_stars($id) {
 		$src_score_social = '0';
@@ -879,14 +912,15 @@ class BDDB_Common_Template {
 	
 	/****   显示处理用内部回调函数 开始   ****/
 	/**
-	 * 显示影片特殊属性图标。
+	 * @brief	显示影片特殊属性图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string	只有图标部分，不包括前后的html标签
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		summary_callback()->display_movie_misc
-	 * @ref		panel_callback()->panel_movie_misc
+	 * @version	0.3.3
+	 * @see		summary_callback()->display_movie_misc
+	 * @see		panel_callback()->panel_movie_misc
 	 */
 	private function movie_misc_special($id, $item) {
 		$feature='';
@@ -902,6 +936,7 @@ class BDDB_Common_Template {
 				case 'restricted':
 				case 'imdb250':
 				case 'remake':
+				case 'cinema':
 					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
 				break;
 				default:
@@ -912,14 +947,15 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 显示条目原名。
+	 * @brief	显示条目原名。
 	 * @param	int		$id			post_ID
 	 * @param	array		$item		条目
 	 * @return string	只有文字部分，不包括前后的html标签
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		summary_callback()->display_original_name
-	 * @ref		panel_callback()->panel_original_name
+	 * @version	0.0.1
+	 * @see		summary_callback()->display_original_name
+	 * @see		panel_callback()->panel_original_name
 	 */
 	private function original_name_special($id, $item) {
 		//原名与显示名一致时不显示
@@ -935,14 +971,15 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 显示书籍册数。
+	 * @brief	显示书籍册数。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string	只有文字，不包括前后的html标签
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		summary_callback()->display_book_series_total
-	 * @ref		panel_callback()->panel_book_series_total
+	 * @version	0.0.1
+	 * @see		summary_callback()->display_book_series_total
+	 * @see		panel_callback()->panel_book_series_total
 	 */
 	private function book_series_total_special($id, $item) {
 		//非系列时不显示
@@ -955,14 +992,15 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 显示书籍出版时间。
+	 * @brief	显示书籍出版时间。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string	只有文字，不包括前后的html标签
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		summary_callback()->display_book_publish_time
-	 * @ref		panel_callback()->panel_book_publish_time
+	 * @version	0.0.1
+	 * @see		summary_callback()->display_book_publish_time
+	 * @see		panel_callback()->panel_book_publish_time
 	 */
 	private function book_publish_time_special($id, $item) {
 		$val = $this->get_meta_str($item['name'], $id);
@@ -985,14 +1023,15 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 显示书籍特殊属性图标。
+	 * @brief	显示书籍特殊属性图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string	只有图标部分，不包括前后的html标签
-	 * @access	private
+	 * @private
 	 * @since	0.0.1
-	 * @ref		summary_callback()->display_book_misc
-	 * @ref		panel_callback()->panel_book_misc
+	 * @version	0.0.1
+	 * @see		summary_callback()->display_book_misc
+	 * @see		panel_callback()->panel_book_misc
 	 */
 	public function book_misc_special($id, $item) {
 		$feature='';
@@ -1014,13 +1053,14 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 显示电影出版时间。
+	 * @brief	显示电影出版时间。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		summary_callback()
+	 * @version	0.0.1
+	 * @see		summary_callback()
 	 */
 	protected function display_movie_publish_time($id, $item) {
 		//只显示年
@@ -1030,13 +1070,14 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 显示电影特殊图标。
+	 * @brief	显示电影特殊图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		summary_callback()
+	 * @version	0.0.1
+	 * @see		summary_callback()
 	 */
 	protected function display_movie_misc($id, $item) {
 		$val = $this->movie_misc_special($id, $item);
@@ -1047,13 +1088,14 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 显示电影原名。
+	 * @brief	显示电影原名。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		summary_callback()
+	 * @version	0.0.1
+	 * @see		summary_callback()
 	 */
 	protected function display_original_name($id, $item) {
 		$val = $this->original_name_special($id, $item);
@@ -1064,13 +1106,14 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 显示书籍特殊图标。
+	 * @brief	显示书籍特殊图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		summary_callback()
+	 * @version	0.0.1
+	 * @see		summary_callback()
 	 */
 	protected function display_book_misc($id, $item) {
 		$val = $this->book_misc_special($id, $item);
@@ -1085,9 +1128,10 @@ class BDDB_Common_Template {
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		summary_callback()
+	 * @version	0.0.1
+	 * @see		summary_callback()
 	 */
 	protected function display_book_publish_time($id, $item) {
 		$val = $this->book_publish_time_special($id, $item);
@@ -1098,13 +1142,14 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 显示书籍系列册数。
+	 * @brief	显示书籍系列册数。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		summary_callback()
+	 * @version	0.0.1
+	 * @see		summary_callback()
 	 */
 	protected function display_book_series_total($id, $item) {
 		$val = $this->book_series_total_special($id, $item);
@@ -1115,13 +1160,15 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 上墙电影人名过长。（暂时只用于演员）
+	 * @brief	上墙电影人名过长。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
-	 * @access	protected
+	 * @return	string
+	 * @protected
 	 * @since	0.3.2
-	 * @ref		panel_callback()
+	 * @version	0.3.2
+	 * @remarks	暂时只用于演员
+	 * @see		panel_callback()
 	 */
 	protected function panel_movie_people($id, $item) {
 		$val_str = '';
@@ -1146,13 +1193,14 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 上墙电影特殊图标。
+	 * @brief	上墙电影特殊图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		panel_callback()
+	 * @version	0.0.1
+	 * @see		panel_callback()
 	 */
 	protected function panel_movie_misc($id, $item) {
 		$val = $this->movie_misc_special($id, $item);
@@ -1163,13 +1211,14 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 上墙书籍出版时间。
+	 * @brief	上墙书籍出版时间。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		panel_callback()
+	 * @version	0.0.1
+	 * @see		panel_callback()
 	 */
 	protected function panel_book_publish_time($id, $item) {
 		$val = $this->book_publish_time_special($id, $item);
@@ -1180,13 +1229,14 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 上墙书籍册数。
+	 * @brief	上墙书籍册数。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		panel_callback()
+	 * @version	0.0.1
+	 * @see		panel_callback()
 	 */
 	protected function panel_book_series_total($id, $item) {
 		$val = $this->book_series_total_special($id, $item);
@@ -1197,13 +1247,14 @@ class BDDB_Common_Template {
 	}
 
 	/**
-	 * 上墙原名。
+	 * @brief	上墙原名。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		panel_callback()
+	 * @version	0.0.1
+	 * @see		panel_callback()
 	 */
 	protected function panel_original_name($id, $item) {
 		$val = $this->original_name_special($id, $item);
@@ -1214,13 +1265,14 @@ class BDDB_Common_Template {
 	}
 	
 	/**
-	 * 上墙书籍特殊图标。
+	 * @brief	上墙书籍特殊图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
 	 * @return string
-	 * @access	protected
+	 * @protected
 	 * @since	0.0.1
-	 * @ref		panel_callback()
+	 * @version	0.0.1
+	 * @see		panel_callback()
 	 */
 	protected function panel_book_misc($id, $item) {
 		$val = $this->book_misc_special($id, $item);

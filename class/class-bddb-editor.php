@@ -23,7 +23,7 @@ class BDDB_Editor {
 
 	/**
 	 * 构造函数。
-	 * @access protected
+	 * @protected
 	 * @param	array	$post_type 不设置时大部分功能不能使用。
 	 * @since 0.0.1
 	 */
@@ -116,7 +116,7 @@ class BDDB_Editor {
 	/******  直接调用的外部函数 开始  ******/
 	/**
 	 * 后台初始化。
-	 * @access public
+	 * @public
 	 * @since 0.1.0
 	 * @ref		bddb_admin_init()
 	 */
@@ -181,7 +181,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 创建编辑盒子。
-	 * @access public
+	 * @public
 	 * @param	object	$pt		post
 	 * @ref		action::register_meta_box_cb
 	 * @since 0.0.1
@@ -219,7 +219,7 @@ class BDDB_Editor {
 
 	/**
 	 * 保存时更新追加的内容。
-	 * @access public
+	 * @public
 	 * @param int $post_ID	正在编辑的post_ID
 	 * @param object $post	正在编辑的post
 	 * @ref		action::save_post
@@ -248,7 +248,7 @@ class BDDB_Editor {
 
 	/**
 	 * 根据附加项内容生成文章正文。
-	 * @access public
+	 * @public
 	 * @param array $data		要保存的post_data
 	 * @param array $postarr	还没有落地的post_data
 	 * @return array	$data
@@ -275,7 +275,7 @@ class BDDB_Editor {
 
 	/**
 	 * 显示图片工具的callback
-	 * @access public
+	 * @public
 	 * @param object $post	正在编辑的wp的post
 	 * @ref		add_meta_box()
 	 * @since 0.0.1
@@ -312,7 +312,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 显示编辑盒子。
-	 * @access public
+	 * @public
 	 * @param object $post	正在编辑的wp的post
 	 * @ref		add_meta_box()
 	 * @since 0.0.1
@@ -372,7 +372,7 @@ class BDDB_Editor {
 
 	/**
 	 * 后台类别列表增加标题。
-	 * @access public
+	 * @public
 	 * @param string 	$columns	修改前的标题
 	 * @param string 	$post_type	list的种类
 	 * @ref		filter::manage_posts_columns
@@ -397,7 +397,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 后台类别列表增加显示内容。
-	 * @access public
+	 * @public
 	 * @param string 	$column_name	列标题
 	 * @param string 	$id				post_ID
 	 * @ref		action::manage_posts_custom_column
@@ -414,7 +414,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 后台类别列表增加排序属性。
-	 * @access public
+	 * @public
 	 * @param array 	$columns	已经存在的排序列
 	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
@@ -424,7 +424,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 后台类别列表增加排序属性。
-	 * @access public
+	 * @public
 	 * @param array 	$columns	已经存在的排序列
 	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
@@ -434,7 +434,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 后台类别列表增加排序属性。
-	 * @access public
+	 * @public
 	 * @param array 	$columns	已经存在的排序列
 	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
@@ -444,7 +444,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 后台类别列表增加排序属性。
-	 * @access public
+	 * @public
 	 * @param array 	$columns	已经存在的排序列
 	 * @ref		action::manage_{$this->screen->id}_sortable_columns
 	 * @since 0.1.0
@@ -455,7 +455,7 @@ class BDDB_Editor {
 
 	/**
 	 * 更改meta类型列的排序方法。
-	 * @access public
+	 * @public
 	 * @param object 	$query		WP_Query
 	 * @ref		action::pre_get_posts
 	 * @since 0.1.0
@@ -492,7 +492,7 @@ class BDDB_Editor {
 
 	/**
 	 * 显示taxonomy的下拉列表。
-	 * @access public
+	 * @public
 	 * @param string 	$post_type
 	 * @param array		$switch		未使用
 	 * @ref		action::pre_get_posts
@@ -525,7 +525,7 @@ class BDDB_Editor {
 	/******    AJAX回调函数 开始    ******/
 	/**
 	 * 获取封面的Callback。
-	 * @access public
+	 * @public
 	 * @ref		AJAX::bddb_get_pic
 	 * @since 0.0.1
 	 */
@@ -580,7 +580,7 @@ class BDDB_Editor {
 	 
 	/**
 	 * 获取系列封面的AJAX的Callback。
-	 * @access public
+	 * @public
 	 * @ref		AJAX::bddb_get_scovers
 	 * @since 0.0.8
 	 */
@@ -637,7 +637,7 @@ class BDDB_Editor {
 	/********    私有函数 开始    ********/
 	/**
 	 * 后台类别列表增加排序属性。
-	 * @access private
+	 * @private
 	 * @param string 	$post_type
 	 * @param array 	$columns	已经存在的排序列
 	 * @since 0.1.0
@@ -655,7 +655,7 @@ class BDDB_Editor {
 	/****   保存选项的优化回调函数 开始   ****/
 	/**
 	 * 优化个人评分。
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的评分
 	 * @return string	-1~100的十进制字符串
 	 * @ref		update_meta()->sanitize_callback
@@ -672,7 +672,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化原名。如果输入参数为空,则把显示名复制到原名上
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的原名
 	 * @return string	原名
 	 * @ref		update_meta()->sanitize_callback
@@ -687,7 +687,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化评价。如果输入参数为空,则显示“没有评价”
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的原名
 	 * @return string	原名
 	 * @ref		update_meta()->sanitize_callback
@@ -701,7 +701,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 优化出品时间。改为年-月格式。如果只输入年则默认定位到该年1月
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的出品年份
 	 * @return string	修改后的出品年份
 	 * @ref		update_meta()->sanitize_callback
@@ -720,7 +720,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化系列作品的封面列表。
-	 * @access 	protected
+	 * @protected
 	 * @param 	string $str	编辑框中的所有封面地址
 	 * @return 	string	优化后的封面地址
 	 * @ref		update_meta()->sanitize_callback
@@ -733,7 +733,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 优化链接输入。
-	 * @access 	protected
+	 * @protected
 	 * @param 	string $str	编辑框中的所有地址
 	 * @return 	string	优化后的地址
 	 	 * @ref		update_meta()->sanitize_callback
@@ -744,7 +744,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 优化人名输入。
-	 * @access 	protected
+	 * @protected
 	 * @param 	string $str	编辑框中的人名
 	 * @return 	string	优化后的人名
 	 * @ref		update_meta()->sanitize_callback
@@ -764,7 +764,7 @@ class BDDB_Editor {
 
 	/**
 	 * 优化接触时间，不填时默认为当天。
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的接触时间
 	 * @return string	观影/阅读/游戏/欣赏时间
 	 * @ref		update_meta()->sanitize_callback
@@ -781,7 +781,7 @@ class BDDB_Editor {
 
 	/**
 	 * 优化花费时间，不填时默认0。
-	 * @access public
+	 * @public
 	 * @param string $str	编辑框中的花费时间
 	 * @return string	花费时间
 	 * @ref		update_meta()->sanitize_callback
@@ -797,7 +797,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化丛书本数，不填时默认为非丛书，设成1本。
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的丛书本数
 	 * @return string	丛书本数
 	 * @ref		update_meta()->sanitize_callback
@@ -813,7 +813,7 @@ class BDDB_Editor {
 
 	/**
 	 * 优化电影类型。
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的电影类型
 	 * @return string	电影类型
 	 * @ref		update_meta()->sanitize_callback
@@ -826,7 +826,7 @@ class BDDB_Editor {
 
 	/**
 	 * 优化图片链接。
-	 * @access protected
+	 * @protected
 	 * @param string $str	编辑框中的图片链接
 	 * @return string	图片链接
 	 * @ref		update_meta()->sanitize_callback
@@ -845,7 +845,7 @@ class BDDB_Editor {
 	/**** comment 列的特殊回调函数 开始 ****/
 	/**
 	 * 获取封面的按钮。
-	 * @access protected
+	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @ref 	$this->show_meta_box()->iscallable('comment')
@@ -861,7 +861,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 抓取按钮。
-	 * @access protected
+	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @ref 	$this->show_meta_box()->iscallable('comment')
@@ -876,7 +876,7 @@ class BDDB_Editor {
 
 	/**
 	 * 取多张封面按钮。
-	 * @access protected
+	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @ref 	$this->show_meta_box()->iscallable('comment')
@@ -892,7 +892,7 @@ class BDDB_Editor {
 
 	/**
 	 * 为taxinomy类型的输入项增加辅助标签。
-	 * @access private
+	 * @private
 	 * @param int $id	正在编辑的post_ID
 	 * @param array $item	要更新的条目
 	 * @return	string	显示用字符串
@@ -937,7 +937,7 @@ class BDDB_Editor {
 	/******      工具函数 开始      ******/
 	/**
 	 * 更新term项目。
-	 * @access private
+	 * @private
 	 * @param int $post_ID	正在编辑的post_ID
 	 * @param array $item	要更新的条目
 	 * @return	string	更新后的内容
@@ -962,7 +962,7 @@ class BDDB_Editor {
 
 	/**
 	 * 更新meta项目。
-	 * @access private
+	 * @private
 	 * @param int $post_ID	正在编辑的post_ID
 	 * @param array $item	要更新的条目
 	 * @return	string	更新后的内容
@@ -999,7 +999,7 @@ class BDDB_Editor {
 	 * 根据post_type设置工作模式,主要是设定好每个种类的条目。
 	 * @param string $post_type
 	 * @return	bool	成功
-	 * @access	private
+	 * @private
 	 * @mention	每个外部和回调函数都需要种类支撑，所以外部函数都需要先调用set_working_mode
 	 * @since 0.1.0
 	 */
@@ -1021,7 +1021,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 为项目添加默认值。
-	 * @access protected
+	 * @protected
 	 * @return	array		
 	 * @param	array		$inItem
 	 * @ref 	$this->set_working_mode()->array_map
@@ -1046,7 +1046,7 @@ class BDDB_Editor {
 	
 	/**
 	 * 设置电影的表示条目。
-	 * @access private
+	 * @private
 	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
@@ -1142,7 +1142,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 设置电影的表示条目。
-	 * @access private
+	 * @private
 	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
@@ -1240,7 +1240,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 设置电影的表示条目。
-	 * @access private
+	 * @private
 	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
@@ -1309,7 +1309,7 @@ class BDDB_Editor {
 	}
 	/**
 	 * 设置电影的表示条目。
-	 * @access private
+	 * @private
 	 * @ref	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
