@@ -22,7 +22,7 @@ if (!function_exists('TrimArray')) {
 	function TrimArray($Input){
 		if (!is_array($Input)) {
 			$tmp = trim(strtolower($Input));
-			return str_replace(' ', '-', $tmp);
+			return $tmp;
 		}
 		return array_map('TrimArray', $Input);
 	}
