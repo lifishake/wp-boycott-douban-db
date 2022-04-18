@@ -125,6 +125,7 @@ class BDDB_Editor {
 		add_action ( 'save_post', array($this, 'update_all_items'), 10, 2);
 		add_filter ( 'wp_insert_post_data', array($this, 'generate_content'), 10, 2);
 		add_action( 'wp_ajax_bddb_get_pic', array($this, 'download_pic') );
+		add_action( 'wp_ajax_bddb_get_imdbpic', array($this, 'download_imdbpic') );
 		add_action( 'wp_ajax_bddb_get_scovers', array($this, 'download_serial_pics'));
 		//追加meta标题
 		add_filter( 'manage_posts_columns', array($this,'add_meta_headers'), 10, 2);
@@ -578,6 +579,59 @@ class BDDB_Editor {
 		$image->save($thumbnail_full_name);
 	 }
 	 
+	 /**
+	 * 获取封面的Callback。
+	 * @public
+	 * @ref		AJAX::bddb_get_imdbpic
+	 * @since 0.3.5
+	 */
+	 public function download_imdbpic(){
+		 if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['imdbno']) ) {
+			die();
+		}
+		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-imdbpic-".$_POST['id'])) { 
+			die();
+		}
+		$this->set_working_mode('movie');
+		$names = bddb_get_poster_names('movie', $_POST['id']);
+		$poster_full_name = $names->poster_name;
+		$thumbnail_full_name = $names->thumb_name;
+		if (file_exists($poster_full_name)) {
+			unlink($poster_full_name);
+		}
+		if (file_exists($thumbnail_full_name)) {
+			unlink($thumbnail_full_name);
+		}
+		
+		$omdbf = new BDDB_DoubanFetcher('movie');
+		$omdb_ret = $omdbf->fetch($_POST['imdbno']);
+		$piclink = $omdb_ret['content']['pic'];
+		$piclink = htmlspecialchars_decode($piclink);
+		$response = @wp_remote_get( 
+				$piclink, 
+				array( 
+					'timeout'  => 3000, 
+					'stream'   => true, 
+					'filename' => $poster_full_name 
+				) 
+			);
+		if ( is_wp_error( $response ) )
+		{
+			return false;
+		}
+		$full_width = intval($this->options['poster_width']);
+		$full_height = floor($full_width * 1.48);
+		$thumb_width = intval($this->options['thumbnail_width']);
+		$thumb_height = floor($thumb_width * 1.48);
+		$image = new Bddb_SimpleImage();
+		$image->load($poster_full_name);
+		$image->resize($full_width, $full_height);
+		$image->save($poster_full_name);
+		$image->resize($thumb_width, $thumb_height);
+		$image->save($thumbnail_full_name);
+	 }
+	 
+	 
 	/**
 	 * 获取系列封面的AJAX的Callback。
 	 * @public
@@ -891,6 +945,22 @@ class BDDB_Editor {
 	}
 
 	/**
+	 * 取imdb封面按钮。
+	 * @protected
+	 * @param object $post
+	 * @return	string	显示用字符串
+	 * @ref 	$this->show_meta_box()->iscallable('comment')
+	 * @since 0.3.5
+	 */
+	protected function echo_imdbpic_button($post) {
+		$nonce_str = wp_create_nonce('bddb-get-imdbpic-'.$post->ID);
+		$names = bddb_get_poster_names('movie', $post->ID);
+		$btn_get = '<button class="button" name="bddb_get_imdbpic_btn" type="button" id="'.$post->ID.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >imdb海报</button>';
+		return $btn_get;
+	}
+
+
+	/**
 	 * 为taxinomy类型的输入项增加辅助标签。
 	 * @private
 	 * @param int $id	正在编辑的post_ID
@@ -1125,6 +1195,7 @@ class BDDB_Editor {
 											),
 			'm_id_imdb'			=>	array(	'name' => 'm_id_imdb',
 											'label' => 'IMDB编号',
+											'comment' => array($this, 'echo_imdbpic_button'),
 											'size' => 16,
 											'type' => 'meta',
 											),

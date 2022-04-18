@@ -18,6 +18,7 @@ class BDDB_Settings{
 			'primary_common_order'=>'bddb_personal_rating',
 			'poster_width'=>400,
 			'thumbnail_width'=>100,
+			'thumbnails_per_page'=>48,
 			'b_max_serial_count'=>18,
 			'local_lazyload'=>0,
 			//TODO
@@ -88,6 +89,10 @@ class BDDB_Settings{
 		$options = $this->get_options();
 		//TODO：100：148是电影海报的规格，书籍应该略宽。
 		return floor($options['poster_width']*1.48);
+	}
+	public function get_thumbnails_per_page(){
+		$options = $this->get_options();
+		return $options['thumbnails_per_page'];
 	}
 	public function get_thumbnail_width(){
 		$options = $this->get_options();

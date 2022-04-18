@@ -26,7 +26,7 @@ function bddb_settings_init(  ) {
 		'sanitize_callback' => array($s, 'sanitize_options'),
 		'default' => $s->default_options(),
 	);
-  register_setting( 'bddb_settings_group', 'bddb_settings', $arg);
+	register_setting( 'bddb_settings_group', 'bddb_settings', $arg);
 
   add_settings_section(
   'bddb_pluginPage_section',
@@ -88,7 +88,7 @@ function bddb_settings_init(  ) {
   );
 
   //08
-    //-1
+	//-1
 	
 	add_settings_field(
 		'bddb_m_omdb_key',
@@ -124,18 +124,18 @@ function bddb_settings_init(  ) {
 
 }
 
-function bddb_basic_setting_render(  ) {
+function bddb_basic_setting_render(	 ) {
   //03
 	global $global_option_class;
 	$options = $global_option_class->get_options();
   ?>
-  <span>当前TAX版本号：</span>
-  <input type='text' name='bddb_settings[tax_version]' readonly='readonly' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
-  <span>当前TYPE版本号：</span>
-  <input type='text' name='bddb_settings[type_version]' readonly='readonly' size='24' value='<?php echo $options['type_version']; ?>'/><br />
-  <span>收藏页使用Lazyload：</span>
-  <input type='checkbox' name='bddb_settings[local_lazyload]' <?php checked( $options['local_lazyload'], 1 ); ?> value='1'/>
-  <?php
+	<span>当前TAX版本号：</span>
+	<input type='text' name='bddb_settings[tax_version]' readonly='readonly' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
+	<span>当前TYPE版本号：</span>
+	<input type='text' name='bddb_settings[type_version]' readonly='readonly' size='24' value='<?php echo $options['type_version']; ?>'/><br />
+	<span>收藏页使用Lazyload：</span>
+	<input type='checkbox' name='bddb_settings[local_lazyload]' <?php checked( $options['local_lazyload'], 1 ); ?> value='1'/>
+	<?php
 }
 
 
@@ -144,9 +144,9 @@ function bddb_basic_setting_render1(  ) {
 	global $global_option_class;
 	$options = $global_option_class->get_options();
   ?>
-  <span>    图片缓存路径：</span>
+  <span>	图片缓存路径：</span>
   <input type='text' name='bddb_settings[default_folder]' size='24' value='<?php echo $options['default_folder']; ?>'/><br />
-  <span>    默认排序：</span>
+  <span>	默认排序：</span>
   <select name="bddb_settings[primary_common_order] size=20" id="id_primary_common_order">
   <?php
 	$strs = array("1111","2222","3333","4444");
@@ -162,6 +162,7 @@ function bddb_poster_render() {
 	global $global_option_class;
 	$options = $global_option_class->get_options();
 ?>
+	<span>每页缓存海报数：</span><input type='text' name='bddb_settings[thumbnails_per_page]' size='24' value='<?php echo $options['thumbnails_per_page']; ?>'/></br>
 	<span>图像宽度：</span><input type='text' name='bddb_settings[poster_width]' size='24' value='<?php echo $options['poster_width']; ?>'/><br />
 	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' size='24' value='<?php echo $options['thumbnail_width']; ?>'/></br>
 	<span>海报宽高比: 1:1.48</span>
@@ -227,50 +228,50 @@ function bddb_settings_section_callback(  ) {
 }
 
 function bddb_extra_section_callback() {
-    echo '<span>一些基本设定项目，抄自多个插件</span>';
+	echo '<span>一些基本设定项目，抄自多个插件</span>';
 }
 
-function bddb_options_page(  ) {
+function bddb_options_page(	 ) {
 	global $global_option_class;
 	$global_option_class = new BDDB_Settings();
-        if( isset( $_GET[ 'tab' ] ) ) {
-            $active_tab = $_GET[ 'tab' ];
-        } else {
-            $active_tab = 'tab_option';
-        }
-        ?>
-    <div id="bddb_page_content" class="wrap bddb-option" >
+		if( isset( $_GET[ 'tab' ] ) ) {
+			$active_tab = $_GET[ 'tab' ];
+		} else {
+			$active_tab = 'tab_option';
+		}
+		?>
+	<div id="bddb_page_content" class="wrap bddb-option" >
   <h1><span>B</span>oycott <span>D</span>ouban <span>D</span>ata<span>b</span>ase</h1>
   <div class="description">This is description of the page.</div>
-            <?php settings_errors(); ?>
+			<?php settings_errors(); ?>
 
-            <h2 class="nav-tab-wrapper">
-                <a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_option" class="nav-tab <?php echo $active_tab == 'tab_option' ? 'nav-tab-active' : ''; ?>">基本功能</a>
-                <a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_movie" class="nav-tab <?php echo $active_tab == 'tab_movie' ? 'nav-tab-active' : ''; ?>">影片设定</a>
-                <a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_book" class="nav-tab <?php echo $active_tab == 'tab_book' ? 'nav-tab-active' : ''; ?>">书籍设定</a>
+			<h2 class="nav-tab-wrapper">
+				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_option" class="nav-tab <?php echo $active_tab == 'tab_option' ? 'nav-tab-active' : ''; ?>">基本功能</a>
+				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_movie" class="nav-tab <?php echo $active_tab == 'tab_movie' ? 'nav-tab-active' : ''; ?>">影片设定</a>
+				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_book" class="nav-tab <?php echo $active_tab == 'tab_book' ? 'nav-tab-active' : ''; ?>">书籍设定</a>
 				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_game" class="nav-tab <?php echo $active_tab == 'tab_game' ? 'nav-tab-active' : ''; ?>">游戏设定</a>
 				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_album" class="nav-tab <?php echo $active_tab == 'tab_album' ? 'nav-tab-active' : ''; ?>">专辑设定</a>
-            </h2>
-     <form action='options.php' method='post'>
+			</h2>
+	 <form action='options.php' method='post'>
   <?php
   settings_fields( 'bddb_settings_group' );
   switch($active_tab) {
-      case 'tab_option':
-      default:
-        do_settings_sections( 'bddb_option_tab' );
-        break;
-      case 'tab_movie':
-        do_settings_sections( 'bddb_movie_tab' );
-        break;
-      case 'tab_book':
-        do_settings_sections( 'bddb_book_tab' );
-        break;
-      case 'tab_game':
-        do_settings_sections( 'bddb_game_tab' );
-        break;
-      case 'tab_album':
-        do_settings_sections( 'bddb_album_tab' );
-        break;
+	  case 'tab_option':
+	  default:
+		do_settings_sections( 'bddb_option_tab' );
+		break;
+	  case 'tab_movie':
+		do_settings_sections( 'bddb_movie_tab' );
+		break;
+	  case 'tab_book':
+		do_settings_sections( 'bddb_book_tab' );
+		break;
+	  case 'tab_game':
+		do_settings_sections( 'bddb_game_tab' );
+		break;
+	  case 'tab_album':
+		do_settings_sections( 'bddb_album_tab' );
+		break;
   }
   submit_button();
   ?>
@@ -282,9 +283,9 @@ function bddb_options_page(  ) {
 }
 
 function bddb_test_field_render() {
-    ?>
-    <span>WP->is_ssl = <?php echo is_ssl()? 'YES':'NO'; ?> "wp_http_supports( array( 'ssl' ) )" = <?php echo wp_http_supports( array( 'ssl' ) )?'YES':'NO'; ?> </span>
-    <?php
+	?>
+	<span>WP->is_ssl = <?php echo is_ssl()? 'YES':'NO'; ?> "wp_http_supports( array( 'ssl' ) )" = <?php echo wp_http_supports( array( 'ssl' ) )?'YES':'NO'; ?> </span>
+	<?php
 }
 
 ?>

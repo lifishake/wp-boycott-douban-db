@@ -177,6 +177,39 @@ jQuery(document).ready(function($) {
 			},
         });
 	})
+	$('button[name="bddb_get_imdbpic_btn"]').click(function(){
+		var pic_bar = document.getElementsByName("m_id_imdb");
+		var dest_pic = this.getAttribute('dest_src');
+		if (pic_bar.length != 1) {
+			return;
+		}
+        $stsbox = document.getElementsByName('ajax-status');
+        var mybar = $stsbox[0];
+		var pic_link = pic_bar[0].value;
+		var data = {
+            action: 'bddb_get_imdbpic',
+            nonce: this.getAttribute('wpnonce'),
+            id:this.getAttribute('id'),
+			imdbno:pic_link,
+		};
+		$.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: data,
+            cache: false,
+            success:function(response){
+				$("#img_poster_thumbnail").attr('src',dest_pic+"?tl="+Math.random());
+                mybar.value="图片取得成功.";
+            },
+            beforeSend: function () {
+                $("#img_poster_thumbnail").attr('src','');
+				mybar.value="图片获得中...";
+			},
+            error: function(request) {
+				mybar.value="取图片异常.";
+			},
+        });
+	})
     $('button[name="bddb_get_scovers_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("b_series_covers");
 		var count_bar = document.getElementsByName("b_series_total");
