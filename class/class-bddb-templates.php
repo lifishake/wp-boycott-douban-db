@@ -6,7 +6,7 @@
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.6
+ * @version	0.3.7
  * @since	0.0.1
  * 
  */
@@ -98,6 +98,29 @@ class BDDB_Common_Template {
 		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
 		$this->get_gallery_page(1);
 		echo "</div>";
+	}
+	
+	/**
+	 * @brief	显示照片墙，ajax回调函数。
+	 * @public
+	 * @see		bddb_the_gallery()
+	 * @since	0.3.7
+	 * @version	0.3.7
+	 */
+	public function ajax_get_gallery_page() {
+		if (!isset($_POST['nonce']) || !isset($_POST['pid']) || !isset($_POST['type'])) {
+			die();
+		}
+		$page_id = $_POST['pid'];
+		$type = $_POST['type'];
+		if (!wp_verify_nonce($_POST['nonce'], 'bddb-gallery-wall-'.$type .$page_id)) {
+			die();
+		}
+		$this->set_working_mode($type);
+		echo "<div>";
+		$this->get_gallery_page($page_id);
+		echo "</div>";
+		die();
 	}
 	
 	/**
