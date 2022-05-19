@@ -135,9 +135,12 @@ function bddb_init_actions()
 	//Quick Tag追加
 	$tp = new BDDB_Common_Template();
 	add_shortcode('bddbr', array($tp, 'show_record'));
+	//ajax 显示 page 回调
+	add_action('wp_ajax_bddb_next_gallery_page', array($tp, 'ajax_get_gallery_page'));
 }
 
 /*取豆瓣信息的ajax回调函数*/
+//TODO 放进类中
 function bddb_douban_fetch() {
 	$resp = array('title' => 'here is the title', 'content' => 'finished') ;
 	if (!isset($_GET['nonce']) || !isset($_GET['id']) || !isset($_GET['ptype']) || !isset($_GET['doulink']) ) {
@@ -171,21 +174,25 @@ function bddb_admin_init() {
 //js和css初始化
 function bddb_scripts() {
 	if (is_page(array('moviesgallery','booksgallery','gamesgallery','albumsgallery'))) {
+		remove_action( 'wp_head','print_emoji_detection_script',7);
+		remove_action( 'wp_print_styles', 'print_emoji_styles');
 		$s = new BDDB_Settings();
 		wp_enqueue_script( 'bddb-fancy', BDDB_PLUGIN_URL . 'js/fancybox.umd.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-color-thief', BDDB_PLUGIN_URL . 'js/color-thief.js', array(), '20211123', true );
-		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20211123', true );
+		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20220519', true );
+		wp_localize_script( 'bddb-fancy-func', 'ajaxurl', admin_url('admin-ajax.php'));
 		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css' );
-		if ($s->get_local_lazyload()){
-			wp_enqueue_script('bddb-js-lazyload', BDDB_PLUGIN_URL . 'js/unveil-ui.min.js', array(), '20210117', true);
-		}
-		wp_localize_script('bddb-fancy-func','locallazy',array('enabled'=>$s->get_local_lazyload()));
 		if (is_page('albumsgallery')) {
 			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-square.css' );
 		}else {
 			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-oblong.css' );
 		}
-		wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css' );
+		if (bddb_is_debug_mode()) {
+			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery-debug.css' );
+		} else {
+			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css' );
+		}
+		
 	}
 	wp_enqueue_style( 'bddb-style-front', BDDB_PLUGIN_URL . 'css/bddb.css' );
 }

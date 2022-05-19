@@ -6,7 +6,7 @@
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.3
+ * @version	0.3.5
  * @since	0.0.1
  * 
  */
@@ -17,7 +17,7 @@ class BDDB_Common_Template {
 	protected $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
 	protected $self_post_type;		/*档案自身的种类*/
 	protected $default_item;		/*选项默认值*/
-	
+	protected $num_per_page;		/*每页显示数*/
 	/**
 	 * @brief	构造函数。
 	 * @public
@@ -92,26 +92,58 @@ class BDDB_Common_Template {
 	 * @public
 	 * @see		bddb_the_gallery()
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.3.5
 	 */
 	public function the_gallery() {
+		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
+		$this->get_gallery_page(1);
+		echo "</div>";
+	}
+	
+	/**
+	 * @brief	填充照片墙的某一页，被主题调用。
+	 * @public
+	 * @see		bddb_the_gallery()
+	 * @see		bddb_next_gallery_page()
+	 * @since	0.3.5
+	 * @version	0.3.5
+	 */
+	public function get_gallery_page($page_id) {
 		//meta_quary 'key' compare  EXISTS compare
 		$galleryargs = array(
-			'post_type' => $this->self_post_type,
-			'numberposts' => -1,
-			'post_status' => 'publish',
-		);
-		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
+				'post_type' => $this->self_post_type,
+				'posts_per_page' => $this->num_per_page,
+				'post_status' => 'publish',
+				'order' => 'DESC',
+				'include' => array(),
+				'exclude' => array(),
+				'meta_key' => '',
+				'meta_value' =>'',
+				'suppress_filters' => true,	//不确定有用
+				'ignore_sticky_posts' => true,
+				'fields' => 'ids',			//只返回id
+				'paged' => $page_id,
+			);
 		$order_args = $this->get_order_args();
-		$galleryargs['meta_query'] = $order_args['meta_query'];
-		$galleryargs['orderby'] = $order_args['orderby'];
-		$all_posts = get_posts($galleryargs);
+		$galleryargs = array_merge($galleryargs, $order_args);
+		$query = new WP_Query($galleryargs);
+		$all_posts = $query->get_posts();
+		$nonce = wp_create_nonce('bddb-gallery-wall-'.$this->self_post_type .($page_id+1));//用下一页的pid
+
 		foreach ($all_posts as $pt) {
-			echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt->ID}'>";
-			echo $this->get_poster_for_gallery($pt->ID);
+			if ($pt == end($all_posts)) {
+				if ($page_id == $query->max_num_pages) {
+					echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}' type='{$this->self_post_type}' pid='0' nonce=''>";
+				} else {
+					echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}' type='{$this->self_post_type}' pid='{$page_id}' nonce='{$nonce}'>";
+				}
+			} else {
+				echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}'>";
+			}
+			echo $this->get_poster_for_gallery($pt);
 			echo "</div>";
 		}
-		echo "</div>";
+
 	}
 	
 	
@@ -220,7 +252,7 @@ class BDDB_Common_Template {
 	 * @private
 	 * @param	string	$post_type	要显示的bddb种类。
 	 * @since	0.1.4
-	 * @version	0.1.4
+	 * @version	0.3.5
 	 * @see		__construct()
 	 * @see		show_record()
 	 */
@@ -233,6 +265,8 @@ class BDDB_Common_Template {
 			call_user_func(array($this, "add_{$this->self_post_type}_items")); 
 		}
 		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
+		$s = new BDDB_Settings();
+		$this->num_per_page = $s->get_thumbnails_per_page();
 	}
 
 	/**
@@ -589,16 +623,12 @@ class BDDB_Common_Template {
 		}else{
 			$thumb_url = $obj_name->nopic_thumb_url;
 		}
-		//TODO：自己不做lazyload，通过lazyload的script加载情况判断是否支持，可以做成option项
-		$is_lazy = wp_script_is("apip-js-lazyload");
+
 		$s = new BDDB_Settings();
-		$is_lazy = ($is_lazy || $s->get_local_lazyload());
-		if (!$is_lazy) {
-			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}' alt='{$alt}' /></a>";
-		}else{
-			$ts = "?ts=".strval(time() + mt_rand(0,9999));
-			$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' data-unveil='true' alt='{$alt}' /></a>";
-		}
+
+		$ts = "?ts=".strval(time() + mt_rand(0,9999));
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$alt}' /></a>";
+		
 		return $ret;
 	
 	}

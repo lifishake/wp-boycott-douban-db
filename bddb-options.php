@@ -133,8 +133,6 @@ function bddb_basic_setting_render(	 ) {
 	<input type='text' name='bddb_settings[tax_version]' readonly='readonly' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
 	<span>当前TYPE版本号：</span>
 	<input type='text' name='bddb_settings[type_version]' readonly='readonly' size='24' value='<?php echo $options['type_version']; ?>'/><br />
-	<span>收藏页使用Lazyload：</span>
-	<input type='checkbox' name='bddb_settings[local_lazyload]' <?php checked( $options['local_lazyload'], 1 ); ?> value='1'/>
 	<?php
 }
 
