@@ -4,7 +4,7 @@
  * @brief	外部接口
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.5
+ * @version	0.3.6
  * @since	0.0.1
  * 
  */
