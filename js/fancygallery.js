@@ -2,11 +2,112 @@
 //Fancybox.defaults.showClass = fancybox-fadeIn;
 //Fancybox.defaults.hideClass = fancybox-fadeOut;
 //Fancybox.defaults.click = next;
+var finished;
 
+//ajax
 jQuery( document ).ready( function( $ ) {
-	if (1==locallazy.enabled) {
-		$( 'img[data-unveil="true"]' ).unveil( 200 );
-	}
+	finished = 'unknown';
+
+	var elems = $('.bddb-poster-thumb');
+	thumb_lazy_load(elems);
+	//lazy load images
+	function thumb_lazy_load(e){
+		e.each(function (i, v) {
+			var el;
+			var ig = $(v).find('img');
+			if (
+				ig.attr('lazy') !== undefined &&
+				ig.attr('data-src') !== undefined
+			) {
+				var src = ig.attr('data-src');
+				ig.attr('src', src)
+				ig.removeAttr('lazy')
+				ig.removeAttr('data-src');
+				ig.fadeIn(200);
+			}
+		});
+	};//thumb_lazy_load
+	
+
+	//search last element of current page on scrolling
+	$(window).on('scroll', TreateLast);
+	function TreateLast() {
+		if ('done' === finished) {
+			$(window).off('scroll', TreateLast);
+			return;
+		}
+		var t = $(this),
+		elem = $('.bddb-poster-thumb').last();
+
+		if (typeof elem == 'undefined') {
+			finished = 'unknown';
+			return;
+		}
+		
+		if ( t.scrollTop() + t.height() <
+				elem.offset().top + elem.height() ) {
+			return;
+		}
+		
+		var type = elem.attr('type');
+		var page_id = elem.attr('pid');
+		var nonce = elem.attr('nonce');
+		if (typeof type == 'undefined' ||
+			typeof page_id == 'undefined' ||
+			typeof nonce == 'undefined' 
+		) {
+			finished = 'unknown';
+			return;
+		}
+		if ('0' === page_id){
+			finished = 'done';
+			return;
+		}
+		
+		elem.removeAttr('type');
+		elem.removeAttr('pid');
+		elem.removeAttr('nonce');
+		//call ajax load
+		load_next_page(type, parseInt(page_id) + 1, nonce);
+	};
+
+	//ajax load gallery
+	function load_next_page(t,p,n) {
+		var data = {
+            action: 'bddb_next_gallery_page',
+            nonce: n,
+            pid: p,
+            type: t,
+		};
+		$.ajax({
+			url: ajaxurl,
+            type: 'POST',
+            data: data,
+            cache: false,
+			beforeSend: show_loader,
+			success: function (results) {
+				var obj = $(results);
+				var elems = obj.find('.bddb-poster-thumb');
+				thumb_lazy_load(elems);
+				elems.each(function (i, v) {
+					$('.bddb-poster-thumb').last().after($(this));
+				});
+				hide_loader();
+			},
+			error: function () {
+				hide_loader();
+			},
+		});
+	};
+	
+	function show_loader() {
+		//TODO
+	};
+
+	function hide_loader() {
+		//TODO
+	};
+
 });
 
 function dec_to_hex_string(dec, length) {
@@ -29,8 +130,11 @@ function rgb_to_rgba_string(rgb_array, ocp) {
     return 'RGBA('+rgb_array.toString()+','+ocp.toString()+')';
 }
 
+//======== Modified from fancybox official ========
+//@original url: //fancyapps.com/playground/16W
 function set_funcy_panel(fancybox, $trigger) {
 	var img = $trigger.firstChild;
+	//Use colorthief to fetch main color of poster.
 	var colorThief = new ColorThief();
 	var picmaincolor=colorThief.getColor(img);
 	var lcolor = rgb_to_rgba_string(picmaincolor,0.92);

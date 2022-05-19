@@ -1,10 +1,16 @@
 <?php
 /**
- * 外部接口
-*/
+ * @file	bddb-funcs.php
+ * @brief	外部接口
+ * @date	2021-12-21
+ * @author	大致
+ * @version	0.3.5
+ * @since	0.0.1
+ * 
+ */
 add_action('admin_print_footer_scripts','bddb_quicktags');
 
-//从第n个位置开始查找
+//从第n个位置开始查找count个start_str与stop_str间的内容
 function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) { 
 	$start=$n; //从第n个位置开始查找
 	$data=array(); 
@@ -18,6 +24,7 @@ function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) {
 	return $data;
 }
 
+//查找str中start_str和stop_str间的内容
 function bddbt_get_inlabel($str, $start_str, $stop_str){
 	$arr = bddbt_get_msg($str, $start_str, $stop_str ,1 ,0);
 	if (1 != count($arr)){
@@ -53,6 +60,7 @@ function bddb_the_gallery($post_type) {
 }
 
 //short_code
+//fuck古腾堡
 function bddb_quicktags(){
 ?>
 	<script type="text/javascript" charset="utf-8">
@@ -61,6 +69,8 @@ function bddb_quicktags(){
 <?php
 }
 
+//整合输出文件名
+//TODO:使用静态类
 function bddb_get_poster_names($post_type, $ID) {
 	$ret = array();
 	$name = sprintf("%s_%013d.jpg", $post_type, $ID);

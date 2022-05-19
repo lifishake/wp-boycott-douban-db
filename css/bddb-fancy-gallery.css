@@ -1,4 +1,8 @@
+/*
 @import url('https://fonts.googleapis.com/css2?family=ZCOOL+XiaoWei&display=swap');
+*/
+@import url('https://fonts.loli.net/css2?family=ZCOOL+XiaoWei&display=swap');
+
 @font-face {
   font-family: 'FontAwesome';
   src: url('../fonts/fontawesome-webfont.eot?v=4.3.0');
@@ -10,6 +14,7 @@
 
 a[data-fancybox] img {
   cursor: zoom-in;
+  display:none;
 }
 
 .fancybox__container {
