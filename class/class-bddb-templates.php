@@ -6,7 +6,7 @@
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.5
+ * @version	0.3.6
  * @since	0.0.1
  * 
  */
@@ -92,7 +92,7 @@ class BDDB_Common_Template {
 	 * @public
 	 * @see		bddb_the_gallery()
 	 * @since	0.0.1
-	 * @version	0.3.5
+	 * @version	0.3.6
 	 */
 	public function the_gallery() {
 		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
@@ -105,8 +105,8 @@ class BDDB_Common_Template {
 	 * @public
 	 * @see		bddb_the_gallery()
 	 * @see		bddb_next_gallery_page()
-	 * @since	0.3.5
-	 * @version	0.3.5
+	 * @since	0.3.6
+	 * @version	0.3.6
 	 */
 	public function get_gallery_page($page_id) {
 		//meta_quary 'key' compare  EXISTS compare
@@ -252,7 +252,7 @@ class BDDB_Common_Template {
 	 * @private
 	 * @param	string	$post_type	要显示的bddb种类。
 	 * @since	0.1.4
-	 * @version	0.3.5
+	 * @version	0.3.6
 	 * @see		__construct()
 	 * @see		show_record()
 	 */

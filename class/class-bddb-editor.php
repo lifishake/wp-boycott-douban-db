@@ -583,7 +583,7 @@ class BDDB_Editor {
 	 * 获取封面的Callback。
 	 * @public
 	 * @ref		AJAX::bddb_get_imdbpic
-	 * @since 0.3.5
+	 * @since 0.3.6
 	 */
 	 public function download_imdbpic(){
 		 if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['imdbno']) ) {
