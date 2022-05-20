@@ -10,7 +10,7 @@
  * @since	0.0.1
  * 
  */
- 
+//global $bddb_mq;
 class BDDB_Common_Template {
 	//成员列表
 	protected $common_items;		/*四种档案都包括的共通项目*/
@@ -97,7 +97,7 @@ class BDDB_Common_Template {
 	public function the_gallery() {
 		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
 		$this->get_gallery_page(1);
-		echo "</div>";
+		echo '</div><div class="ring-loading">Loading<span></span></div>';
 	}
 	
 	/**

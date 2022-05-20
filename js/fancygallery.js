@@ -2,11 +2,11 @@
 //Fancybox.defaults.showClass = fancybox-fadeIn;
 //Fancybox.defaults.hideClass = fancybox-fadeOut;
 //Fancybox.defaults.click = next;
-var finished;
 
 //ajax
 jQuery( document ).ready( function( $ ) {
-	finished = 'unknown';
+	var finished = 'unknown';
+	var load_flag = false;
 
 	var elems = $('.bddb-poster-thumb');
 	thumb_lazy_load(elems);
@@ -43,7 +43,9 @@ jQuery( document ).ready( function( $ ) {
 			finished = 'unknown';
 			return;
 		}
-		
+		if (true === load_flag) {
+			return;
+		}
 		if ( t.scrollTop() + t.height() <
 				elem.offset().top + elem.height() ) {
 			return;
@@ -86,13 +88,13 @@ jQuery( document ).ready( function( $ ) {
             cache: false,
 			beforeSend: show_loader,
 			success: function (results) {
+				hide_loader();
 				var obj = $(results);
 				var elems = obj.find('.bddb-poster-thumb');
 				thumb_lazy_load(elems);
 				elems.each(function (i, v) {
 					$('.bddb-poster-thumb').last().after($(this));
 				});
-				hide_loader();
 			},
 			error: function () {
 				hide_loader();
@@ -101,11 +103,15 @@ jQuery( document ).ready( function( $ ) {
 	};
 	
 	function show_loader() {
-		//TODO
+		load_flag = true;
+		$('.ring-loading').show();
 	};
 
 	function hide_loader() {
-		//TODO
+		$('.ring-loading').hide();
+		setTimeout(function () {
+				load_flag = false;
+			}, 500);
 	};
 
 });
