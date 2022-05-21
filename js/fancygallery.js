@@ -57,13 +57,10 @@ jQuery( document ).ready( function( $ ) {
 		var nobj = elem.attr('nobj');
 		if (typeof type == 'undefined' ||
 			typeof page_id == 'undefined' ||
-			typeof nonce == 'undefined' 
+			typeof nonce == 'undefined' ||
+			typeof nobj == 'undefined'
 		) {
 			finished = 'unknown';
-			return;
-		}
-		if ('0' === page_id){
-			finished = 'done';
 			return;
 		}
 		
@@ -71,6 +68,11 @@ jQuery( document ).ready( function( $ ) {
 		elem.removeAttr('pid');
 		elem.removeAttr('nonce');
 		elem.removeAttr('nobj');
+
+		if ('0' === page_id){
+			finished = 'done';
+			return;
+		}
 		//call ajax load
 		load_next_page(type, parseInt(page_id) + 1, nonce, nobj);
 	};
@@ -112,9 +114,7 @@ jQuery( document ).ready( function( $ ) {
 
 	function hide_loader() {
 		$('.ring-loading').hide();
-		setTimeout(function () {
-				load_flag = false;
-			}, 500);
+		load_flag = false;
 	};
 
 });

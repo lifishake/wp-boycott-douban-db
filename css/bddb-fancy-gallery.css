@@ -292,18 +292,17 @@ span.bddb-disp-label {
   width:100px;
   height:100px;
   background:transparent;
-  border:3px solid #3c3c3c;
+  border:3px solid rgba(240,240,240,.2);
   border-radius:50%;
   text-align:center;
   line-height:100px;
   font-family:sans-serif;
   font-size:12px;
-  color:#fff000;
+  color:#c2c5c0;
   letter-spacing:1px;
   text-transform:uppercase;
-  text-shadow:0 0 10px #fff000;
-  box-shadow:0 0 10px rgba(0,0,0,.5);
-  display:none;
+  text-shadow:0 0 10px #c2c5c0;
+    display:none;
 }
 .ring-loading:before
 {
@@ -314,8 +313,8 @@ span.bddb-disp-label {
   width:100%;
   height:100%;
   border:3px solid transparent;
-  border-top:3px solid #fff000;
-  border-right:3px solid #fff000;
+  border-top:3px solid #c2c5c0;
+  border-right:3px solid #c2c5c0;
   border-radius:50%;
   animation:animateC 2s linear infinite;
 }
