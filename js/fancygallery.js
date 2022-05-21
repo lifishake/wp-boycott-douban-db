@@ -54,6 +54,7 @@ jQuery( document ).ready( function( $ ) {
 		var type = elem.attr('type');
 		var page_id = elem.attr('pid');
 		var nonce = elem.attr('nonce');
+		var nobj = elem.attr('nobj');
 		if (typeof type == 'undefined' ||
 			typeof page_id == 'undefined' ||
 			typeof nonce == 'undefined' 
@@ -69,17 +70,19 @@ jQuery( document ).ready( function( $ ) {
 		elem.removeAttr('type');
 		elem.removeAttr('pid');
 		elem.removeAttr('nonce');
+		elem.removeAttr('nobj');
 		//call ajax load
-		load_next_page(type, parseInt(page_id) + 1, nonce);
+		load_next_page(type, parseInt(page_id) + 1, nonce, nobj);
 	};
 
 	//ajax load gallery
-	function load_next_page(t,p,n) {
+	function load_next_page(t,p,n,s) {
 		var data = {
             action: 'bddb_next_gallery_page',
             nonce: n,
             pid: p,
             type: t,
+			nobj: s,
 		};
 		$.ajax({
 			url: ajaxurl,
