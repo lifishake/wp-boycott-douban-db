@@ -108,7 +108,7 @@ class BDDB_Common_Template {
 	 * @version	0.3.9
 	 */
 	public function ajax_get_gallery_page() {
-		if (!isset($_POST['nonce']) || !isset($_POST['pid']) || !isset($_POST['type'])) {
+		if (!isset($_POST['nonce']) || !isset($_POST['pid']) || !isset($_POST['type']) || !isset($_POST['nobj']) ) {
 			die();
 		}
 		$page_id = $_POST['pid'];
