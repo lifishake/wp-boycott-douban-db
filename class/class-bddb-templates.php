@@ -6,7 +6,7 @@
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.7
+ * @version	0.3.9
  * @since	0.0.1
  * 
  */
@@ -97,7 +97,7 @@ class BDDB_Common_Template {
 	public function the_gallery() {
 		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
 		$this->get_gallery_page(1);
-		echo '</div><div class="ring-loading">Loading<span></span></div>';
+		echo '</div><div class="ring-loading">Loading</div>';
 	}
 	
 	/**
@@ -105,7 +105,7 @@ class BDDB_Common_Template {
 	 * @public
 	 * @see		bddb_the_gallery()
 	 * @since	0.3.7
-	 * @version	0.3.7
+	 * @version	0.3.9
 	 */
 	public function ajax_get_gallery_page() {
 		if (!isset($_POST['nonce']) || !isset($_POST['pid']) || !isset($_POST['type'])) {
@@ -118,47 +118,59 @@ class BDDB_Common_Template {
 		}
 		$this->set_working_mode($type);
 		echo "<div>";
-		$this->get_gallery_page($page_id);
+		$this->get_gallery_page($page_id, $_POST['nobj']);
 		echo "</div>";
 		die();
 	}
 	
 	/**
 	 * @brief	填充照片墙的某一页，被主题调用。
+	 * @param	int		$page_id	要获取的页序号
+	 * @param	int		$in_str		上下文字符串
 	 * @public
 	 * @see		bddb_the_gallery()
 	 * @see		bddb_next_gallery_page()
 	 * @since	0.3.6
-	 * @version	0.3.6
+	 * @version	0.3.9
 	 */
-	public function get_gallery_page($page_id) {
+	public function get_gallery_page($page_id, $in_str = "") {
 		//meta_quary 'key' compare  EXISTS compare
-		$galleryargs = array(
-				'post_type' => $this->self_post_type,
-				'posts_per_page' => $this->num_per_page,
-				'post_status' => 'publish',
-				'order' => 'DESC',
-				'include' => array(),
-				'exclude' => array(),
-				'meta_key' => '',
-				'meta_value' =>'',
-				'suppress_filters' => true,	//不确定有用
-				'ignore_sticky_posts' => true,
-				'fields' => 'ids',			//只返回id
-				'paged' => $page_id,
-			);
-		$order_args = $this->get_order_args();
-		$galleryargs = array_merge($galleryargs, $order_args);
-		$query = new WP_Query($galleryargs);
+		if (1==$page_id) {
+			$galleryargs = array(
+					'post_type' => $this->self_post_type,
+					'posts_per_page' => $this->num_per_page,
+					'post_status' => 'publish',
+					'order' => 'DESC',
+					'include' => array(),
+					'exclude' => array(),
+					'meta_key' => '',
+					'meta_value' =>'',
+					'suppress_filters' => true,	//不确定有用
+					'ignore_sticky_posts' => true,
+					'fields' => 'ids',			//只返回id
+					'paged' => $page_id,
+				);
+			$order_args = $this->get_order_args();
+			$galleryargs = array_merge($galleryargs, $order_args);
+			$query = new WP_Query($galleryargs);
+		}
+		else {
+			$query_vars = json_decode(stripslashes($in_str), true);
+			$query_vars['paged'] = $page_id;
+			$query = new WP_Query($query_vars);
+		}
+		
 		$all_posts = $query->get_posts();
 		$nonce = wp_create_nonce('bddb-gallery-wall-'.$this->self_post_type .($page_id+1));//用下一页的pid
+		$jec = "";
+		$jec = json_encode($query->query);
 
 		foreach ($all_posts as $pt) {
 			if ($pt == end($all_posts)) {
 				if ($page_id == $query->max_num_pages) {
-					echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}' type='{$this->self_post_type}' pid='0' nonce=''>";
+					echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}' type='{$this->self_post_type}' pid='0' nonce='' nobj=''>";
 				} else {
-					echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}' type='{$this->self_post_type}' pid='{$page_id}' nonce='{$nonce}'>";
+					echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}' type='{$this->self_post_type}' pid='{$page_id}' nonce='{$nonce}' nobj='{$jec}'>";
 				}
 			} else {
 				echo "<div class='bddb-poster-thumb' id='bddb-poster-{$pt}'>";

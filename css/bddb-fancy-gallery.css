@@ -319,30 +319,6 @@ span.bddb-disp-label {
   border-radius:50%;
   animation:animateC 2s linear infinite;
 }
-span .ring-loading
-{
-  display:block;
-  position:absolute;
-  top:calc(50% - 2px);
-  left:50%;
-  width:50%;
-  height:4px;
-  background:transparent;
-  transform-origin:left;
-  animation:animate 2s linear infinite;
-}
-span .ring-loading:before
-{
-  content:'';
-  position:absolute;
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  background:#fff000;
-  top:-6px;
-  right:-8px;
-  box-shadow:0 0 10px #fff000;
-}
 @keyframes animateC
 {
   0%
@@ -354,14 +330,4 @@ span .ring-loading:before
     transform:rotate(360deg);
   }
 }
-@keyframes animate
-{
-  0%
-  {
-    transform:rotate(45deg);
-  }
-  100%
-  {
-    transform:rotate(405deg);
-  }
-}
+
