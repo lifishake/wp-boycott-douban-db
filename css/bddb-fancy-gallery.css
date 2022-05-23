@@ -286,7 +286,7 @@ span.bddb-disp-label {
 .ring-loading
 {
   position:absolute;
-  bottom:80px;
+  bottom:120px;
   right:50%;
   transform:translate(-50%,-50%);
   width:100px;
@@ -302,7 +302,7 @@ span.bddb-disp-label {
   letter-spacing:1px;
   text-transform:uppercase;
   text-shadow:0 0 10px #c2c5c0;
-    display:none;
+  display:none;
 }
 .ring-loading:before
 {
@@ -316,7 +316,7 @@ span.bddb-disp-label {
   border-top:3px solid #c2c5c0;
   border-right:3px solid #c2c5c0;
   border-radius:50%;
-  animation:animateC 2s linear infinite;
+  animation:animateC 2.5s linear infinite;
 }
 @keyframes animateC
 {

@@ -120,9 +120,7 @@ class BDDB_Common_Template {
 	 * @version	0.4.0
 	 */
 	public function the_gallery() {
-		$ratio = $this->self_post_type == 'album' ? 'bgwsquare' : 'bgwoblong';
-		//$ratio = 'bgwsquare';
-		echo "<div class='bddb-gallery-wall {$ratio}' id='bddb-gallery-{$this->self_post_type}'>";
+		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
 		echo '<div class="ring-loading">Loading</div>';
 		$this->get_gallery_page(1);
 		echo '</div>';
@@ -683,19 +681,19 @@ class BDDB_Common_Template {
 			$poster_url = $obj_name->nopic_poster_url;
 		}
 		$tooltip = $this->get_poster_tooltip($id);
-		/*
+		
 		if(file_exists($obj_name->thumb_name)) {
 			$thumb_url = $obj_name->thumb_url;
 		}else{
 			$thumb_url = $obj_name->nopic_thumb_url;
 		}
-		$s = new BDDB_Settings();
 
+		/*
 		$ts = "?ts=".strval(time() + mt_rand(0,9999));
 		*/
 		$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
 		
-		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$poster_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
 		
 		return $ret;
 	
