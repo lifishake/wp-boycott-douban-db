@@ -286,7 +286,7 @@ span.bddb-disp-label {
 .ring-loading
 {
   position:absolute;
-  bottom:5%;
+  bottom:80px;
   right:50%;
   transform:translate(-50%,-50%);
   width:100px;
@@ -330,3 +330,24 @@ span.bddb-disp-label {
   }
 }
 
+/* Tooltip text */
+.bddb-poster-thumb .tooltiptext {
+  visibility: hidden;
+  width: 140px;
+  background-color: rgba(129, 125, 125, 0.774);
+  color: rgba(255, 255, 255, 0.774);
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  top: 95%;
+  left: 50px;
+  margin-left: -70px; /* Use half of the width (120/2 = 60), to center the tooltip */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.bddb-poster-thumb:hover .tooltiptext {
+  visibility: visible;
+}
