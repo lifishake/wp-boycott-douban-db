@@ -9,9 +9,9 @@ jQuery( document ).ready( function( $ ) {
 	var load_flag = false;
 
 	var elems = $('.bddb-poster-thumb');
-	thumb_lazy_load(elems, $('.bgwsquare').length);
+	thumb_lazy_load(elems);
 	//lazy load images
-	function thumb_lazy_load(e, b){
+	function thumb_lazy_load(e){
 		e.each(function (i, v) {
 			var el;
 			var ig = $(v).find('img');
@@ -23,16 +23,6 @@ jQuery( document ).ready( function( $ ) {
 				ig.attr('src', src)
 				ig.removeAttr('lazy')
 				ig.removeAttr('data-src');
-				//var ratio = parseInd(ig[0].width)*10 / parseInt(ig[0].height));
-				//var ratio = ig[0].width*10 / ig[0].height);
-				if (b) {
-					ig.css("width","100px");
-					ig.css("height","100px");
-				} else {
-					ig.css("width","100px");
-					ig.css("height","148px");
-				}
-				
 				ig.fadeIn(200);
 			}
 		});
@@ -106,7 +96,7 @@ jQuery( document ).ready( function( $ ) {
 				hide_loader();
 				var obj = $(results);
 				var elems = obj.find('.bddb-poster-thumb');
-				thumb_lazy_load(elems, $('.bgwsquare').length);
+				thumb_lazy_load(elems);
 				elems.each(function (i, v) {
 					$('.bddb-poster-thumb').last().after($(this));
 				});
