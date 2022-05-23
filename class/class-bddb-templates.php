@@ -86,18 +86,46 @@ class BDDB_Common_Template {
 		$this->set_working_mode($post_type);
 	}
 	
+	
 	/********    外部函数 开始    ********/
+	/**
+	 * @brief	通过所有参数创建自身
+	 * @public
+	 * @see		bddb_the_gallery()
+	 * @since	0.4.0
+	 * @version	0.4.0
+	 */
+	public function create_from_full_args( $args ) {
+		if(!is_array($args) ||
+			!isset($args['common_items']) ||
+			!isset($args['total_items']) ||
+			!isset($args['self_post_type']) ||
+			!isset($args['default_item']) ||
+			!isset($args['num_per_page'])
+		) {
+			return;
+		}
+		$this->num_per_page = $args['num_per_page'];
+		$this->self_post_type = $args['self_post_type'];
+		$this->default_item = array_merge(array(), $args['default_item']);
+		$this->total_items = array_merge(array(), $args['total_items']);
+		$this->default_item = array_merge(array(), $args['common_items']);
+	}
+	
 	/**
 	 * @brief	显示照片墙，被主题调用。
 	 * @public
 	 * @see		bddb_the_gallery()
 	 * @since	0.0.1
-	 * @version	0.3.6
+	 * @version	0.4.0
 	 */
 	public function the_gallery() {
-		echo "<div class='bddb-gallery-wall' id='bddb-gallery-{$this->self_post_type}'>";
+		$ratio = $this->self_post_type == 'album' ? 'bgwsquare' : 'bgwoblong';
+		//$ratio = 'bgwsquare';
+		echo "<div class='bddb-gallery-wall {$ratio}' id='bddb-gallery-{$this->self_post_type}'>";
+		echo '<div class="ring-loading">Loading</div>';
 		$this->get_gallery_page(1);
-		echo '</div><div class="ring-loading">Loading</div>';
+		echo '</div>';
 	}
 	
 	/**
@@ -109,18 +137,18 @@ class BDDB_Common_Template {
 	 */
 	public function ajax_get_gallery_page() {
 		if (!isset($_POST['nonce']) || !isset($_POST['pid']) || !isset($_POST['type']) || !isset($_POST['nobj']) ) {
-			die();
+			wp_die();
 		}
 		$page_id = $_POST['pid'];
 		$type = $_POST['type'];
 		if (!wp_verify_nonce($_POST['nonce'], 'bddb-gallery-wall-'.$type .$page_id)) {
-			die();
+			wp_die();
 		}
 		$this->set_working_mode($type);
 		echo "<div>";
 		$this->get_gallery_page($page_id, $_POST['nobj']);
 		echo "</div>";
-		die();
+		wp_die();
 	}
 	
 	/**
@@ -308,15 +336,17 @@ class BDDB_Common_Template {
 	 * @brief	追加和修改movie类型的显示和排序。
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.4.0
 	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_movie_items() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
 		$this->common_items['bddb_publish_time']['panel'] = '02';		//上墙显示。
 		$this->common_items['bddb_publish_time']['label'] = '首映时间';
+		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_movie_time_only_year');
 		$this->common_items['bddb_view_time']['label'] = '观看时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';			//上墙显示。
+		$this->common_items['bddb_view_time']['panel_callback'] = array($this, 'panel_movie_time_only_year');
 		$this->common_items['bddb_publish_time']['summary_callback'] = array($this, 'display_movie_publish_time');
 		$add_items = array(
 			'm_region' => array(			'name' => 'm_region',
@@ -638,7 +668,7 @@ class BDDB_Common_Template {
 	 * @see		the_gallery()
 	 */
 	private function get_poster_for_gallery($id) {
-		$obj_name =bddb_get_poster_names($this->self_post_type, $id);
+		$obj_name = bddb_get_poster_names($this->self_post_type, $id);
 
 		$detail_str = '';
 		array_multisort( array_column($this->total_items,'panel'), array_column($this->total_items,'name'), $this->total_items);
@@ -647,27 +677,79 @@ class BDDB_Common_Template {
 		if (is_callable(array($this,"get_{$this->self_post_type}_panel_info"))) {
 			$info_str .= call_user_func(array($this,"get_{$this->self_post_type}_panel_info"), $id);
 		}
-		$alt = base64_encode($obj_name->short_name);
 		if(file_exists($obj_name->poster_name)) {
 			$poster_url = $obj_name->poster_url;
 		}else{
 			$poster_url = $obj_name->nopic_poster_url;
 		}
+		$tooltip = $this->get_poster_tooltip($id);
+		/*
 		if(file_exists($obj_name->thumb_name)) {
 			$thumb_url = $obj_name->thumb_url;
 		}else{
 			$thumb_url = $obj_name->nopic_thumb_url;
 		}
-
 		$s = new BDDB_Settings();
 
 		$ts = "?ts=".strval(time() + mt_rand(0,9999));
-		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$alt}' /></a>";
+		*/
+		$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
+		
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$poster_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
 		
 		return $ret;
 	
 	}
 
+	/**
+	 * @brief	生成上墙显示的Tooltip。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @private
+	 * @since	0.4.0
+	 * @version	0.4.1
+	 * @see		get_gallery_page()
+	 */
+	private function get_poster_tooltip($id) {
+		//比较简单，不做定制。
+		$contents = array();
+		$results = array();
+		$contents['name'] = "bddb_display_name";
+		if ($this->self_post_type == 'book') {
+			$contents['regin'] = "b_region";
+		}
+		if ($this->self_post_type == 'movie') {
+			$contents['regin'] = "m_region";
+		}
+		if ($this->self_post_type == 'game') {
+			$contents['genre'] = "g_genre";
+		}
+		if ($this->self_post_type == 'album') {
+			$contents['genre'] = "a_genre";
+			$contents['musician'] = "a_p_musician";
+		}
+		$contents['publish_time'] = "bddb_publish_time";
+		foreach ($contents as $key=>$val) {
+			if ('name' == $key) {
+				$var = $this->get_meta_str($val, $id);
+				if (!empty($var)) {
+					$results[] = $var;
+				}
+				
+			} else if ('publish_time' == $key) {
+				$var = $this->get_meta_str($val, $id);
+				if (!empty($var)) {
+					$results[] = substr($var,0,4);
+				}
+			} else {
+				$var = $this->get_tax_str($val, $id);
+				if (!empty($var)) {
+					$results[] = $var;
+				}
+			}
+		}
+		return implode(", ", $results);
+	}
 	/**
 	 * @brief	生成上墙显示的电影信息。
 	 * @param	int		$id			post_ID
@@ -1256,6 +1338,21 @@ class BDDB_Common_Template {
 		}
 		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val_str);
 	}
+
+	/**
+	 * @brief	上墙时时间只显示年份。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return	string
+	 * @protected
+	 * @since	0.4.0
+	 * @version	0.4.0
+	 * @see		panel_callback()
+	 */
+	protected function panel_movie_time_only_year($id, $item) {
+		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], date("Y", strtotime($this->get_meta_str($item['name'], $id))));
+	}
+
 
 	/**
 	 * @brief	上墙电影特殊图标。

@@ -44,6 +44,8 @@ div.abstract > p > span {
 }
 .bddb-poster-thumb a,
 .bddb-poster-thumb a:hover {
+    position: relative;
+    display: inline-block;
 	box-shadow:none;
 }
 

@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.4.0
+ * Version:     0.4.1
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -144,13 +144,13 @@ function bddb_init_actions()
 function bddb_douban_fetch() {
 	$resp = array('title' => 'here is the title', 'content' => 'finished') ;
 	if (!isset($_GET['nonce']) || !isset($_GET['id']) || !isset($_GET['ptype']) || !isset($_GET['doulink']) ) {
-		die();
+		wp_die();
 	}
 	if ( !wp_verify_nonce($_GET['nonce'],"douban-spider-".$_GET['id'])) {
-		die();
+		wp_die();
 	}
 	if (!in_array(($_GET['ptype']), array('movie', 'book', 'album'))){
-		die();
+		wp_die();
 	}
 	$post_id = $_GET['id'];
 	$link = $_GET['doulink'];
@@ -158,6 +158,7 @@ function bddb_douban_fetch() {
 	$got = $fecther->fetch($link);
 	$resp['result'] = $got['content'];
 	wp_send_json($resp) ;
+	wp_die();
 
 }
 

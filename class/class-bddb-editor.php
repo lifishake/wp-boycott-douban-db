@@ -532,10 +532,10 @@ class BDDB_Editor {
 	 */
 	 public function download_pic(){
 		 if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
-			die();
+			wp_die();
 		}
 		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-pic-".$_POST['id'])) { 
-			die();
+			wp_die();
 		}
 		$this->set_working_mode($_POST['ptype']);
 		$names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
@@ -577,6 +577,7 @@ class BDDB_Editor {
 		$image->save($poster_full_name);
 		$image->resize($thumb_width, $thumb_height);
 		$image->save($thumbnail_full_name);
+		wp_die();
 	 }
 	 
 	 /**
@@ -587,10 +588,10 @@ class BDDB_Editor {
 	 */
 	 public function download_imdbpic(){
 		 if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['imdbno']) ) {
-			die();
+			wp_die();
 		}
 		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-imdbpic-".$_POST['id'])) { 
-			die();
+			wp_die();
 		}
 		$this->set_working_mode('movie');
 		$names = bddb_get_poster_names('movie', $_POST['id']);
@@ -617,7 +618,7 @@ class BDDB_Editor {
 			);
 		if ( is_wp_error( $response ) )
 		{
-			return false;
+			wp_die();
 		}
 		$full_width = intval($this->options['poster_width']);
 		$full_height = floor($full_width * 1.48);
@@ -629,6 +630,7 @@ class BDDB_Editor {
 		$image->save($poster_full_name);
 		$image->resize($thumb_width, $thumb_height);
 		$image->save($thumbnail_full_name);
+		wp_die();
 	 }
 	 
 	 
@@ -640,10 +642,10 @@ class BDDB_Editor {
 	 */
 	 public function download_serial_pics(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
-			die();
+			wp_die();
 		}
 		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-scovers-".$_POST['id'])) { 
-			die();
+			wp_die();
 		}
 		$this->set_working_mode($_POST['ptype']);
 		$default_serial_count = $this->options['b_max_serial_count'];
@@ -681,6 +683,7 @@ class BDDB_Editor {
 			$image->resize($thumb_width, $thumb_height);
 			$image->save($dest);
 		}
+		wp_die();
 	 }
 	/******    AJAX回调函数 结束    ******/
 	/******  钩子调用的外部函数 结束  ******/
