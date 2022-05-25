@@ -341,10 +341,10 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
 		$this->common_items['bddb_publish_time']['panel'] = '02';		//上墙显示。
 		$this->common_items['bddb_publish_time']['label'] = '首映时间';
-		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_movie_time_only_year');
+		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_time_only_year');
 		$this->common_items['bddb_view_time']['label'] = '观看时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';			//上墙显示。
-		$this->common_items['bddb_view_time']['panel_callback'] = array($this, 'panel_movie_time_only_year');
+		$this->common_items['bddb_view_time']['panel_callback'] = array($this, 'panel_time_only_year');
 		$this->common_items['bddb_publish_time']['summary_callback'] = array($this, 'display_movie_publish_time');
 		$add_items = array(
 			'm_region' => array(			'name' => 'm_region',
@@ -422,6 +422,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_book_publish_time');
 		$this->common_items['bddb_view_time']['label'] = '阅读时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';			//上墙显示
+		$this->common_items['bddb_view_time']['panel_callback'] = array($this, 'panel_time_only_year');
 		$add_items = array(
 			'b_region' => array(			'name' => 'b_region',
 											'label' => '地区',
@@ -714,7 +715,7 @@ class BDDB_Common_Template {
 		$results = array();
 		$contents['name'] = "bddb_display_name";
 		if ($this->self_post_type == 'book') {
-			$contents['regin'] = "b_region";
+			$contents['writer'] = "b_p_writer";
 		}
 		if ($this->self_post_type == 'movie') {
 			$contents['regin'] = "m_region";
@@ -1347,7 +1348,7 @@ class BDDB_Common_Template {
 	 * @version	0.4.0
 	 * @see		panel_callback()
 	 */
-	protected function panel_movie_time_only_year($id, $item) {
+	protected function panel_time_only_year($id, $item) {
 		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], date("Y", strtotime($this->get_meta_str($item['name'], $id))));
 	}
 
