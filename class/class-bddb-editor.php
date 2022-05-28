@@ -460,12 +460,15 @@ class BDDB_Editor {
 	 * @param object 	$query		WP_Query
 	 * @ref		action::pre_get_posts
 	 * @since 0.1.0
+	 * @version 0.4.3
 	 */
 	public function resort_meta_column_query($query){
 		$orderby = $query->get( 'orderby' );
 		//这个值是register_type的时候注册的，默认没改过，也就是type本身。
 		$post_type = $query->get( 'post_type' );
-		$this->set_working_mode($post_type);
+		if (!$this->set_working_mode($post_type)) {
+			return;
+		}
 		if (isset($this->total_items[$orderby]) && $this->total_items[$orderby]['show_admin_column']) {
 			$item = $this->total_items[$orderby];
 			if ('meta' == $item['type']) {

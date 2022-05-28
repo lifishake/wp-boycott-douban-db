@@ -96,6 +96,9 @@ class BDDB_DoubanFetcher{
 				$this->type = "movie";
 				//直接走imdb
 				return $this->fetch_from_omdb($url);
+			} elseif (strpos($url, "giantbomb.com")) {
+				$this->type = "game";
+				//return $this->fetch_from_giantbomb($url);
 			} else {
 				if (strpos($url, "tt") !== false) {
 					$this->type = "movie";

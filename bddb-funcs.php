@@ -55,8 +55,19 @@ function bddb_the_gallery($post_type) {
         the_content();
         return;
     }
+	/*
 	$tl = new BDDB_Common_Template($post_type);
 	$tl->the_gallery();
+	*/
+	if ('book' == $post_type) {
+		BDDB_Book_Wall::getInstance()->the_gallery();
+	} elseif('movie' == $post_type) {
+		BDDB_Movie_Wall::getInstance()->the_gallery();
+	} elseif('game' == $post_type) {
+		BDDB_Game_Wall::getInstance()->the_gallery();
+	} elseif('album' == $post_type) {
+		BDDB_Album_Wall::getInstance()->the_gallery();
+	}
 }
 
 //short_code
