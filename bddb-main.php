@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.4.3
+ * Version:     0.4.4
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -124,6 +124,7 @@ function bddb_init()
 
 add_action('init', 'bddb_init_actions', 11);
 //add_action('wp_ajax_bddb_next_gallery_page', 'ajax_get_gallery_page');
+//add_action('wp_ajax_nopriv_bddb_next_gallery_page', 'ajax_get_gallery_page');
 
 /* Plugin页面追加配置选项 */
 function bddb_init_actions()
@@ -137,17 +138,26 @@ function bddb_init_actions()
 	$tp = new BDDB_Common_Template();
 	add_shortcode('bddbr', array($tp, 'show_record'));
 	//ajax 显示 page 回调
-	add_action('wp_ajax_bddb_next_gallery_page', array($tp, 'ajax_get_gallery_page'));
-	add_action('wp_ajax_nopriv_bddb_next_gallery_page', array($tp, 'ajax_get_gallery_page'));
+	//add_action('wp_ajax_bddb_next_gallery_page', array($tp, 'ajax_get_gallery_page'));
+	//add_action('wp_ajax_nopriv_bddb_next_gallery_page', array($tp, 'ajax_get_gallery_page'));
+	add_action('wp_ajax_bddb_next_gallery_page', 'ajax_get_gallery_page');
+	add_action('wp_ajax_nopriv_bddb_next_gallery_page', 'ajax_get_gallery_page');
 }
 
-/*
 function ajax_get_gallery_page() {
 	if (!isset($_POST['nonce']) || !isset($_POST['pid']) || !isset($_POST['type']) || !isset($_POST['nobj']) ) {
 		wp_die();
 	}
+	if ('book' == $_POST['type']) {
+		BDDB_Book_Wall::getInstance()->ajax_get_gallery_page();
+	} elseif('movie' == $_POST['type']) {
+		BDDB_Movie_Wall::getInstance()->ajax_get_gallery_page();
+	} elseif('game' == $_POST['type']) {
+		BDDB_Game_Wall::getInstance()->ajax_get_gallery_page();
+	} elseif('album' == $_POST['type']) {
+		BDDB_Album_Wall::getInstance()->ajax_get_gallery_page();
+	}
 }
-*/
 
 /*取豆瓣信息的ajax回调函数*/
 //TODO 放进类中
@@ -194,24 +204,24 @@ function bddb_scripts() {
 		wp_localize_script( 'bddb-fancy-func', 'ajaxurl', admin_url('admin-ajax.php'));
 		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css' );
 		if (is_page('albumsgallery')) {
-			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-square.css' );
+			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-square.css', array(), '20220526' );
 		}else {
-			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-oblong.css' );
+			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-oblong.css', array(), '20220526' );
 		}
 		if (bddb_is_debug_mode()) {
-			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery-debug.css' );
+			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery-debug.css', array(), '20220526' );
 		} else {
-			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css' );
+			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css', array(), '20220526' );
 		}
 		
 	}
-	wp_enqueue_style( 'bddb-style-front', BDDB_PLUGIN_URL . 'css/bddb.css' );
+	wp_enqueue_style( 'bddb-style-front', BDDB_PLUGIN_URL . 'css/bddb.css', array(), '20220526' );
 }
 
 /* 统一处理后台相关的脚本 */
 function bddb_admin_scripts() {
     wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220418', true);
-    wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css' );
+    wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
     wp_deregister_style( 'open-sans' );
     wp_register_style( 'open-sans', false );
 }

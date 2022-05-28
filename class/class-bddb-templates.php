@@ -18,6 +18,8 @@ class BDDB_Common_Template {
 	protected $self_post_type;		/*档案自身的种类*/
 	protected $default_item;		/*选项默认值*/
 	protected $num_per_page;		/*每页显示数*/
+	protected $total_pages;			/*页数*/
+	protected $query;
 	/**
 	 * @brief	构造函数。
 	 * @public
@@ -142,7 +144,7 @@ class BDDB_Common_Template {
 		if (!wp_verify_nonce($_POST['nonce'], 'bddb-gallery-wall-'.$type .$page_id)) {
 			wp_die();
 		}
-		$this->set_working_mode($type);
+		//$this->set_working_mode($type);
 		echo "<div>";
 		$this->get_gallery_page($page_id, $_POST['nobj']);
 		echo "</div>";
@@ -179,6 +181,8 @@ class BDDB_Common_Template {
 			$order_args = $this->get_order_args();
 			$galleryargs = array_merge($galleryargs, $order_args);
 			$query = new WP_Query($galleryargs);
+			$this->total_pages = $query->max_num_pages;
+			$this->query = $query;
 		}
 		else {
 			$query_vars = json_decode(stripslashes($in_str), true);
@@ -328,6 +332,8 @@ class BDDB_Common_Template {
 		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
 		$s = new BDDB_Settings();
 		$this->num_per_page = $s->get_thumbnails_per_page();
+		$this->total_pages = 0;
+		$this->query = false;
 	}
 
 	/**
@@ -1446,3 +1452,43 @@ class BDDB_Common_Template {
 	/********    私有函数 结束    ********/
 };
 //movie/brand
+
+class BDDB_Book_Wall {
+	public static $class_self = false;
+	public static function getInstance() {
+		if (!self::$class_self) {
+			self::$class_self = new BDDB_Common_Template('book');
+		}
+		return self::$class_self;
+	}
+}
+
+class BDDB_Movie_Wall {
+	public static $class_self = false;
+	public static function getInstance() {
+		if (!self::$class_self) {
+			self::$class_self = new BDDB_Common_Template('movie');
+		}
+		return self::$class_self;
+	}
+}
+
+class BDDB_Game_Wall {
+	public static $class_self = false;
+	public static function getInstance() {
+		if (!self::$class_self) {
+			self::$class_self = new BDDB_Common_Template('game');
+		}
+		return self::$class_self;
+	}
+}
+
+class BDDB_Album_Wall {
+	public static $class_self = false;
+	public static function getInstance() {
+		if (!self::$class_self) {
+			self::$class_self = new BDDB_Common_Template('album');
+		}
+		return self::$class_self;
+	}
+}
