@@ -20,20 +20,20 @@
 
 ### 在文章中插入娱乐信息
 
-* 在文章或页面中插入如下短代码:
+* 在文章或页面中插入如下短代码:  
   `[bddbr id='444' /]`
 
 ### 在主题中加入信息墙页面
 
 * 在主题中创建[页面模板](https://developer.wordpress.org/themes/template-files-section/page-template-files/)
-* 修改页面模板,在适当的位置调用如下代码:
+* 修改页面模板,在适当的位置调用如下代码:  
   `bddb_the_gallery('book'); //book, movie, game, album`
 * 使用模板创建空页面（page）
 
 ### 抓取信息
 * 后台“外部链接”输入豆瓣页面后，点击后面的按钮，可以从豆瓣网抓取对应的内容（不包括游戏）直接填入。海报图片不会自动抓取，需要在“图片链接”处再点击一次取得。
-* 电影信息支持通过omdb的API抓取imdb信息，用以对付一些豆瓣没有的条目。该API Key可以去(omdbapi官网)[https://www.omdbapi.com] 申请。后台填入后即可使用。
-* 游戏信息支持通过giantbomb的API抓取游戏信息。该API Key可以去(giantbomb官网)[http://www.giantbomb.com] 申请。后台填入后即可使用。
+* 电影信息支持通过omdb的API抓取imdb信息，用以对付一些豆瓣没有的条目。该API Key可以去[omdbapi官网](https://www.omdbapi.com) 申请。后台填入后即可使用。
+* 游戏信息支持通过giantbomb的API抓取游戏信息。该API Key可以去[giantbomb官网](http://www.giantbomb.com) 申请。后台填入后即可使用。
 
 ### 书籍信息项目
 
