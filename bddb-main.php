@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.4.4
+ * Version:     0.4.5
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -84,16 +84,15 @@ function bddb_plugin_activation() {
 
 /*检查路径，检查默认文件*/
 function bddb_check_paths(){
-	$s = new BDDB_Settings();
-	$dir_o = $s->get_default_folder();
+	$dir_o = BDDB_Settings::get_default_folder();
 	$gallery_dir= ABSPATH.$dir_o;
 	$thumb_dir = $gallery_dir."thumbnails/";
 	bddb_create_dir($gallery_dir);
 	bddb_create_dir($thumb_dir);
-	bddb_create_nopic($s->get_poster_width(),$s->get_poster_width());
-	bddb_create_nopic($s->get_poster_width(),$s->get_poster_height());
-	bddb_create_nopic($s->get_thumbnail_width(),$s->get_thumbnail_width());
-	bddb_create_nopic($s->get_thumbnail_width(),$s->get_thumbnail_height());
+	bddb_create_nopic(BDDB_Settings::get_poster_width(),BDDB_Settings::get_poster_width());
+	bddb_create_nopic(BDDB_Settings::get_poster_width(),BDDB_Settings::get_poster_height());
+	bddb_create_nopic(BDDB_Settings::get_thumbnail_width(),BDDB_Settings::get_thumbnail_width());
+	bddb_create_nopic(BDDB_Settings::get_thumbnail_width(),BDDB_Settings::get_thumbnail_height());
 }
 
 /*插件反激活*/
@@ -169,7 +168,7 @@ function bddb_douban_fetch() {
 	if ( !wp_verify_nonce($_GET['nonce'],"douban-spider-".$_GET['id'])) {
 		wp_die();
 	}
-	if (!in_array(($_GET['ptype']), array('movie', 'book', 'album'))){
+	if (!in_array(($_GET['ptype']), array('movie', 'book', 'album', 'game'))){
 		wp_die();
 	}
 	$post_id = $_GET['id'];
@@ -197,7 +196,6 @@ function bddb_scripts() {
 	if (is_page(array('moviesgallery','booksgallery','gamesgallery','albumsgallery'))) {
 		remove_action( 'wp_head','print_emoji_detection_script',7);
 		remove_action( 'wp_print_styles', 'print_emoji_styles');
-		$s = new BDDB_Settings();
 		wp_enqueue_script( 'bddb-fancy', BDDB_PLUGIN_URL . 'js/fancybox.umd.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-color-thief', BDDB_PLUGIN_URL . 'js/color-thief.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20220521', true );
@@ -220,7 +218,7 @@ function bddb_scripts() {
 
 /* 统一处理后台相关的脚本 */
 function bddb_admin_scripts() {
-    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220418', true);
+    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220611', true);
     wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
     wp_deregister_style( 'open-sans' );
     wp_register_style( 'open-sans', false );

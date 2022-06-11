@@ -31,11 +31,11 @@ class BDDB_Statics {
 			'show_admin_column' => true,
 			),
 			//地区/游戏
-		array('tax' => 'g_region',
+		array('tax' => 'g_language',
 			'obj' => array( 'game' ),
-			'label' => 'Region',
-			'slug' => 'g_region',
-			'complex_name' => 'regions',
+			'label' => 'Language',
+			'slug' => 'g_language',
+			'complex_name' => 'languages',
 			'show_admin_column' => true,
 			),
 			//地区/专辑
@@ -189,22 +189,6 @@ class BDDB_Statics {
 				'slug' => 'g_platform',
 				'complex_name' => 'platforms',
 				'show_admin_column' => true,
-				),
-			//制作人/游戏
-		array(	'tax' => 'g_p_producer',
-				'obj' => array( 'game' ),
-				'label' => 'Producer',
-				'slug' => 'g_p_producer',
-				'complex_name' => 'producers',
-				'show_admin_column' => false,
-				),
-			//音乐人/游戏
-		array(	'tax' => 'g_p_musician',
-				'obj' => array( 'game' ),
-				'label' => 'Musician',
-				'slug' => 'g_p_musician',
-				'complex_name' => 'musicians',
-				'show_admin_column' => false,
 				),
 			//音乐人/专辑
 		array(	'tax' => 'a_p_musician',
@@ -492,8 +476,7 @@ class BDDB_Statics {
 	 * @since 0.1.5
 	 */
 	private function tax_diff(){
-		$op = new BDDB_Settings();
-		$stored_tax_version = $op->get_tax_version();
+		$stored_tax_version = BDDB_Settings::get_tax_version();
 		if (empty($stored_tax_version)) {
 			return;
 		}
@@ -529,11 +512,6 @@ class BDDB_Statics {
 				'obj' => array( 'book' ),
 				'label' => 'Region',
 				'slug' => 'b_region',
-				),
-			array('tax' => 'g_region',
-				'obj' => array( 'game' ),
-				'label' => 'Region',
-				'slug' => 'g_region',
 				),
 			array('tax' => 'a_region',
 				'obj' => array( 'album' ),

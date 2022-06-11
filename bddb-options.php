@@ -21,10 +21,9 @@ function bddb_add_admin_menu(  ) {
 
 */
 function bddb_settings_init(  ) {
-	$s = new BDDB_Settings();
 	$arg = array(
-		'sanitize_callback' => array($s, 'sanitize_options'),
-		'default' => $s->default_options(),
+		'sanitize_callback' => 'BDDB_Settings::sanitize_options',
+		'default' => BDDB_Settings::default_options(),
 	);
 	register_setting( 'bddb_settings_group', 'bddb_settings', $arg);
 

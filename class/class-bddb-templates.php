@@ -6,7 +6,7 @@
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.9
+ * @version	0.4.5
  * @since	0.0.1
  * 
  */
@@ -330,8 +330,7 @@ class BDDB_Common_Template {
 			call_user_func(array($this, "add_{$this->self_post_type}_items")); 
 		}
 		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
-		$s = new BDDB_Settings();
-		$this->num_per_page = $s->get_thumbnails_per_page();
+		$this->num_per_page = BDDB_Settings::get_thumbnails_per_page();
 		$this->total_pages = 0;
 		$this->query = false;
 	}
@@ -507,15 +506,17 @@ class BDDB_Common_Template {
 	 */
 	private function add_game_items() {
 		$this->common_items['bddb_display_name']['label'] = '游戏名';
-		$this->common_items['bddb_publish_time']['label'] = '首发年月';
+		$this->common_items['bddb_publish_time']['label'] = '发行年月';
 		$this->common_items['bddb_publish_time']['panel'] = '11';
+		$this->common_items['bddb_publish_time']['priority'] = '09';
 		$this->common_items['bddb_view_time']['label'] = '接触年月';
-		$this->common_items['bddb_view_time']['panel'] = '01';
+		$this->common_items['bddb_view_time']['panel'] = '12';
+		$this->common_items['bddb_view_time']['priority'] = '03';
 		$this->common_items['bddb_aka']['panel'] = '02';
 		$this->common_items['bddb_aka']['summary'] = '02';
 		$add_items = array(
-			'g_region' => array(			'name' => 'g_region',
-											'label' => '地区',
+			'g_language' => array(			'name' => 'g_language',
+											'label' => '语言版本',
 											'type' => 'tax',
 											'summary' => false,
 											'panel' => false,
@@ -533,28 +534,24 @@ class BDDB_Common_Template {
 											'panel' => '03',
 											),
 			'g_publisher'	=>		array(	'name' => 'g_publisher',
-											'label' => '制作方',
+											'label' => '厂商',
 											'type' => 'tax',
 											'summary' => '05',
 											'panel' => '05',
 											),
-			'g_p_producer'	=>		array(	'name' => 'g_p_producer',
-											'label' => '制作人',
-											'type' => 'tax',
-											),
-			'g_p_musician'	=>		array(	'name' => 'g_p_musician',
-											'label' => '作曲家',
-											'type' => 'tax',
-											),
 			'g_cost_time'	=>		array(	'name' => 'g_cost_time',
 											'label' => '耗时',
-											'priority' => '09',
+											'priority' => '02',
 											'sort' => 'DESC',
 											'ctype' => 'numeric',
-											'panel' => '06',
+											'summary' => '26',
+											'panel' => '13',
 											),
 			'g_score_ign'	=>		array(	'name' => 'g_score_ign',
 											'label' => 'IGN评分',
+											),
+			'g_giantbomb_id'	=>		array(	'name' => 'g_giantbomb_id',
+											'label' => 'GiantBomb编号',
 											),
 		);
 		$this->total_items = array_merge($this->common_items, $add_items);
@@ -695,10 +692,10 @@ class BDDB_Common_Template {
 			$thumb_url = $obj_name->nopic_thumb_url;
 		}
 
-		/*
-		$ts = "?ts=".strval(time() + mt_rand(0,9999));
-		*/
-		$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
+		
+		$ts = "?ts=".strval(time() + mt_rand(0,9999));		
+		//$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
+		//恢复让海报一直刷新的功能 20220607
 		
 		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
 		
@@ -728,6 +725,7 @@ class BDDB_Common_Template {
 		}
 		if ($this->self_post_type == 'game') {
 			$contents['genre'] = "g_genre";
+			$contents['platform'] = "g_platform";
 		}
 		if ($this->self_post_type == 'album') {
 			$contents['genre'] = "a_genre";
@@ -822,7 +820,17 @@ class BDDB_Common_Template {
 	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
 	 */
 	private function get_game_panel_info($id) {
-		return '';
+		//title
+		$detail_str = $this->get_panel_title($id);
+		//stars
+		$star_str = $this->get_panel_rating_stars($id);
+		$the_score = $this->get_meta_str('bddb_score_douban', $id);
+		if (''==$the_score)$the_score='--';
+		$dou_score_str = '<span class="bddb-disp-sp-dou-score">'.$the_score.'</span>';
+		$detail_str .= sprintf('<p class="bddb-disp-item bddb-inline">%s%s</p>', $star_str, $dou_score_str);
+		$detail_str .= $this->panel_common_loop($id);
+		$detail_str .= '<div class="bddb-disp-review" id="bddb-gallery-review">'.$this->get_meta_str('bddb_personal_review', $id).'</div>';
+		return $detail_str;
 	}
 
 	/**
@@ -943,7 +951,7 @@ class BDDB_Common_Template {
 		return $this->abstract_common_loop($id);
 	}
 	private function get_game_abstract($id) {
-		return '';
+		return $this->abstract_common_loop($id);
 	}
 	private function get_album_abstract($id) {
 		return '';
@@ -961,8 +969,7 @@ class BDDB_Common_Template {
 		$template = '<div class="abstract-left">%s</div>%s';
 		$abs_str = $this->abstract_common_loop($id);
 		$images = '';
-		$s = new BDDB_Settings();
-		$count = $s->get_max_serial_count();
+		$count = BDDB_Settings::get_max_serial_count();
 		$obj_names = bddb_get_poster_names($this->self_post_type, $id);
 		for($i = 0; $i<$count; ++$i){
 			$short_name = sprintf('%s_%013d_%02d.jpg', $this->self_post_type, $id, $i);
