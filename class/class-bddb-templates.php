@@ -547,9 +547,6 @@ class BDDB_Common_Template {
 											'summary' => '26',
 											'panel' => '13',
 											),
-			'g_score_ign'	=>		array(	'name' => 'g_score_ign',
-											'label' => 'IGN评分',
-											),
 			'g_giantbomb_id'	=>		array(	'name' => 'g_giantbomb_id',
 											'label' => 'GiantBomb编号',
 											),
@@ -1049,9 +1046,9 @@ class BDDB_Common_Template {
 				break;
 			}
 			case 'game':{
-				$src_ign_score = ($this->get_meta_str('g_score_ign',$id));
+				$src_dou_score = ($this->get_meta_str('bddb_score_douban',$id));
 				if (!empty($src_dou_score)){
-					$src_score_social_float = floatval($src_ign_score);
+					$src_score_social_float = floatval($src_dou_score);
 				}
 				break;
 			}
