@@ -26,18 +26,21 @@ function rgb_to_rgb_string(rgb_array) {
 }
 
 jQuery(document).ready(function($) {
+	//$stsbox = document.getElementsByName('ajax-status');
+	var mypicbar = document.getElementById('pic-status');
+	var myfetchstsbar = document.getElementById('fetch-status');
+	var mythumbnail = document.getElementById('img_poster_thumbnail');
     $('button[name="douban_spider_btn"]').click(function(){
-        $stsbox = document.getElementsByName('ajax-status');
+        
         var link_bar = document.getElementsByName('bddb_external_link');
         var ddllkk=this.getAttribute('doulink');
         if (link_bar.length == 1) {
             ddllkk=link_bar[0].value;
         }
-        var mybar = $stsbox[0];
         var data = {
             action: 'bddb_douban_fetch',
             nonce: this.getAttribute('wpnonce'),
-            id:this.getAttribute('id'),
+            id:this.getAttribute('pid'),
             ptype:this.getAttribute('ptype'),
 			doulink:ddllkk,
 		};
@@ -47,11 +50,18 @@ jQuery(document).ready(function($) {
             data: data,
             cache: false,
             beforeSend: function () {
-				mybar.value="网页抓取中...";
+				mypicbar.value="网页抓取中...";
 			},
             success:function(response){
-                mybar.value=response.content;
+                mypicbar.value=response.content;
                 var the_input = document.getElementsByName("bddb_display_name");
+				var update_title = false;
+				if ($('#title-prompt-text').length == 1) {
+					if ($('#title-prompt-text')[0].innerText === "Enter title here") {
+						$('#title-prompt-text')[0].innerHTML = "";
+						update_title = true;
+					}
+				}
                 if (the_input.length == 1 && response.result.title.length > 0){
                     the_input[0].value = response.result.title;
 					the_input = document.getElementById("title");
@@ -101,6 +111,10 @@ jQuery(document).ready(function($) {
                 if (the_input.length == 1 && response.result.genre.length > 0){
                     the_input[0].value = response.result.genre;
                 }
+                the_input = document.getElementsByName("g_genre");
+                if (the_input.length == 1 && response.result.genre !== undefined){
+                    the_input[0].value = response.result.genre;
+                }
                 the_input = document.getElementsByName("m_p_director");
                 if (the_input.length == 1 && response.result.director.length > 0){
                     the_input[0].value = response.result.director;
@@ -136,10 +150,11 @@ jQuery(document).ready(function($) {
                         document.getElementsByName("b_bl_series")[0].checked = true;
                     }
                 }
-                mybar.value="网页抓取完毕.";
+				myfetchstsbar.value = "网页已抓取.";
+                mypicbar.value="网页抓取完毕.";
             },
             error: function(request) {
-                mybar.value="网页抓取异常";
+                mypicbar.value="网页抓取异常";
 			},
         });
     })
@@ -149,13 +164,11 @@ jQuery(document).ready(function($) {
 		if (pic_bar.length != 1) {
 			return;
 		}
-        $stsbox = document.getElementsByName('ajax-status');
-        var mybar = $stsbox[0];
 		var pic_link = pic_bar[0].value;
 		var data = {
             action: 'bddb_get_pic',
             nonce: this.getAttribute('wpnonce'),
-            id:this.getAttribute('id'),
+            id:this.getAttribute('pid'),
             ptype:this.getAttribute('ptype'),
 			piclink:pic_link,
 		};
@@ -165,15 +178,15 @@ jQuery(document).ready(function($) {
             data: data,
             cache: false,
             success:function(response){
-				$("#img_poster_thumbnail").attr('src',dest_pic+"?tl="+Math.random());
-                mybar.value="图片取得成功.";
+				mythumbnail.setAttribute('src',dest_pic+"?tl="+Math.random());
+                mypicbar.value="图片取得成功.";
             },
             beforeSend: function () {
-                $("#img_poster_thumbnail").attr('src','');
-				mybar.value="图片获得中...";
+                mythumbnail.setAttribute('src','');
+				mypicbar.value="图片获得中...";
 			},
             error: function(request) {
-				mybar.value="取图片异常.";
+				mypicbar.value="取图片异常.";
 			},
         });
 	})
@@ -183,13 +196,11 @@ jQuery(document).ready(function($) {
 		if (pic_bar.length != 1) {
 			return;
 		}
-        $stsbox = document.getElementsByName('ajax-status');
-        var mybar = $stsbox[0];
 		var pic_link = pic_bar[0].value;
 		var data = {
             action: 'bddb_get_imdbpic',
             nonce: this.getAttribute('wpnonce'),
-            id:this.getAttribute('id'),
+            id:this.getAttribute('pid'),
 			imdbno:pic_link,
 		};
 		$.ajax({
@@ -198,15 +209,77 @@ jQuery(document).ready(function($) {
             data: data,
             cache: false,
             success:function(response){
-				$("#img_poster_thumbnail").attr('src',dest_pic+"?tl="+Math.random());
-                mybar.value="图片取得成功.";
+				mythumbnail.setAttribute('src',dest_pic+"?tl="+Math.random());
+                mypicbar.value="图片取得成功.";
             },
             beforeSend: function () {
-                $("#img_poster_thumbnail").attr('src','');
-				mybar.value="图片获得中...";
+                mythumbnail.setAttribute('src','');
+				mypicbar.value="图片获得中...";
 			},
             error: function(request) {
-				mybar.value="取图片异常.";
+				mypicbar.value="取图片异常.";
+			},
+        });
+	})
+	$('button[name="bddb_get_giantbomb_btn"]').click(function(){
+		var gbid_edit = document.getElementsByName("g_giantbomb_id");
+		var language_edit = document.getElementsByName("g_language");
+		var platform_deit = document.getElementsByName("g_platform");
+		//var dest_pic = this.getAttribute('dest_src');
+		
+		var data = {
+            action: 'bddb_get_from_giantbomb',
+            nonce: this.getAttribute('wpnonce'),
+            id:this.getAttribute('pid'),
+			giantbombno:gbid_edit[0].value,
+			language:language_edit[0].value,
+			platform:platform_deit[0].value,
+		};
+		$.ajax({
+            url: ajaxurl,
+            type: 'GET',
+            data: data,
+            success:function(response){
+				var the_input = document.getElementsByName("bddb_original_name");
+                var update_title = false;
+				if ($('#title-prompt-text').length == 1) {
+					if ($('#title-prompt-text')[0].innerText === "Enter title here") {
+						$('#title-prompt-text')[0].innerHTML = "";
+						update_title = true;
+					}
+				}
+                if (the_input.length == 1 && response.content.original_name){
+                    the_input[0].value = response.content.original_name;
+                }
+				the_input = document.getElementsByName("bddb_aka");
+                if (the_input.length == 1 && response.content.akas){
+                    the_input[0].value = response.content.akas;
+                }
+				the_input = document.getElementsByName("g_genre");
+                if (the_input.length == 1 && response.content.genre){
+                    the_input[0].value = response.content.genre;
+                }
+                the_input = document.getElementsByName("g_publisher");
+                if (the_input.length == 1 && response.content.publisher){
+                    the_input[0].value = response.content.publisher;
+                }
+				the_input = document.getElementsByName("bddb_publish_time");
+                if (the_input.length == 1 && response.content.pubdate){
+                    the_input[0].value = response.content.pubdate;
+                }
+				the_input = document.getElementsByName("bddb_poster_link");
+                if (the_input.length == 1 && response.content.pic){
+                    the_input[0].value = response.content.pic;
+                }
+                myfetchstsbar.value = "网页已抓取.";
+                mypicbar.value="giantbomb取得成功.";
+            },
+            beforeSend: function () {
+                //$("#img_poster_thumbnail").attr('src','');
+				mypicbar.value="giantbomb获得中...";
+			},
+            error: function(request) {
+				mypicbar.value="giantbomb取得异常.";
 			},
         });
 	})
@@ -217,8 +290,6 @@ jQuery(document).ready(function($) {
 		if (pic_bar.length != 1) {
 			return;
 		}
-        $stsbox = document.getElementsByName('ajax-status');
-        var mybar = $stsbox[0];
 		var pic_link = pic_bar[0].value;
 		var stotal = count_bar[0].value;
         if(!pic_link.length){
@@ -227,7 +298,7 @@ jQuery(document).ready(function($) {
 		var data = {
             action: 'bddb_get_scovers',
             nonce: this.getAttribute('wpnonce'),
-            id:this.getAttribute('id'),
+            id:this.getAttribute('pid'),
             ptype:this.getAttribute('ptype'),
 			slinks:pic_link,
 			stotal:stotal,
@@ -238,13 +309,13 @@ jQuery(document).ready(function($) {
             data: data,
             cache: false,
             success:function(response){
-                mybar.value="多图片抓取成功.";
+                mypicbar.value="多图片抓取成功.";
             },
             beforeSend: function () {
-				mybar.value="多图片获得中...";
+				mypicbar.value="多图片获得中...";
 			},
             error: function(request) {
-				mybar.value="取多图片异常.";
+				mypicbar.value="取多图片异常.";
 			},
         });
 	})

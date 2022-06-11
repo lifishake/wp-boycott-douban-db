@@ -1,14 +1,89 @@
 <?php
 /**
  * @file	bddb-funcs.php
- * @brief	外部接口
+ * @brief	外部接口和内部工具
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.6
+ * @version	0.4.1
  * @since	0.0.1
  * 
  */
 add_action('admin_print_footer_scripts','bddb_quicktags');
+
+/**
+ * 乱七八糟的工具类
+*/
+
+class BDDB_Tools {
+	//protected static
+	
+	/**
+	 * 优化出品时间。改为年-月格式。如果只输入年则默认定位到该年1月
+	 * @protected
+	 * @param 	string 	$str	编辑框中的出品年份
+	 * @return 	string	修改后的出品年份
+	 * @ref		update_meta()->sanitize_callback
+	 * @since 0.4.1
+	 */
+	public static function sanitize_year_month($str) {
+		if (empty($str)) {
+			return $str;
+		}
+		if (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str) ||
+			strtotime(date("Y-m-d H:i:s",strtotime($str))) == strtotime($str)) {
+			$str = date("Y-m", strtotime($str));
+		}
+		if (!strpos($str,"-") && intval($str)>1904) {
+			$str .= '-01';
+		}
+		return $str;
+	}
+	/**
+	 * @brief	根据tax的内容获取文字。
+	 * @private
+	 * @param	string	$tax			分类法slug
+	 * @param	string	$imaged_slugs	取得的内容想象成slug
+	 * @param	int		$limit			最大个数
+	 * @return	string
+	 * @since	0.0.1int
+	 * @version	0.4.1
+	*/
+	public static function tax_slugs_to_names($tax, $imaged_slugs, $limit = 10){
+		$ret = strtolower($imaged_slugs);
+		$srcs = TrimArray(explode(',', $imaged_slugs));
+		$old = $srcs;
+		$os = array_map('self::my_space_replace', $srcs);
+		$got = array();
+		$i = 0;
+		foreach ($os as $slug) {
+			$got_items = get_terms(array(	'taxonomy'=>$tax,
+											'hide_empty'=>false,
+											'slug'=>$slug));
+			if (is_wp_error($got_items) || empty($got_items)) {
+				$got[] = $old[$i];
+			} else {
+				$got[] = $got_items[0]->name;
+			}
+			$i++;
+			if ($i == $limit){
+				break;
+			}
+		}
+		$ret = implode(", ", $got);
+		return $ret;
+	}
+	/**
+	 * @brief	字符串替换。
+	 * @public
+	 * @param	string	$pic_mass	页面html内容
+	 * @return string
+	 * @since 0.2.1
+	*/
+	public static function my_space_replace($in_str) {
+		$in_str = str_replace(" ","-",trim($in_str));
+		return $in_str;
+	}
+}
 
 //从第n个位置开始查找count个start_str与stop_str间的内容
 function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) { 
@@ -85,8 +160,7 @@ function bddb_quicktags(){
 function bddb_get_poster_names($post_type, $ID) {
 	$ret = array();
 	$name = sprintf("%s_%013d.jpg", $post_type, $ID);
-	$s = new BDDB_Settings();
-	$dir_o = $s->get_default_folder();
+	$dir_o = BDDB_Settings::get_default_folder();
 	$gallery_dir = ABSPATH.$dir_o;
 	$gallery_url = home_url('/',is_ssl()?'https':'http').$dir_o;
 	$rel_url = str_replace(home_url(), '', $gallery_url);
@@ -104,10 +178,10 @@ function bddb_get_poster_names($post_type, $ID) {
 	$ret['poster_url'] = $rel_url .$name;
 	$ret['thumb_url'] = $rel_url.'thumbnails/'.$name;
 	$ret['thumb_url_front'] = $rel_url.'thumbnails/';
-	$poster_width = $s->get_poster_width();
-	$poster_height = $s->get_poster_height();
-	$thumb_width = $s->get_thumbnail_width();
-	$thumb_height = $s->get_thumbnail_height();
+	$poster_width = BDDB_Settings::get_poster_width();
+	$poster_height = BDDB_Settings::get_poster_height();
+	$thumb_width = BDDB_Settings::get_thumbnail_width();
+	$thumb_height = BDDB_Settings::get_thumbnail_height();
 	if ('album' == $post_type) {
 		$poster_height = $poster_width;
 		$thumb_height = $thumb_width;
@@ -115,4 +189,32 @@ function bddb_get_poster_names($post_type, $ID) {
 	$ret['nopic_thumb_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $thumb_width, $thumb_height );
 	$ret['nopic_poster_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $poster_width, $poster_height );
 	return (object)$ret;
+}
+
+function bddb_array_child_value_to_str($data, $key, $name_key="name", $unknown_str="") {
+	$ret = '';
+    if (array_key_exists($key, $data) && is_array($data[$key])) {
+        $subs = $data[$key];
+        if ( count($subs)>1 ) {
+            if ( is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
+                $items = wp_list_pluck($subs, $name_key);
+                $ret .= implode(', ', $items);
+            } else {
+                $ret .= implode(', ', $subs);
+            }
+        } else if (!empty($subs)) {
+            if (is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
+                $ret .= $subs[0][$name_key];
+            } else {
+                $ret .= $subs[0];
+            }
+        } else {
+            $ret .= $unknown_str;
+        }
+    } elseif (array_key_exists($key, $data)) {
+        $ret .= $data[$key];
+    } else {
+        $ret .= $unknown_str;
+    }
+    return $ret;
 }

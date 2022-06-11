@@ -1,11 +1,11 @@
 <?php
 /**
- * @file	class-bddb-templates.php
+ * @file	class-bddb-douban-fetcher.php
  * @class	BDDB_DoubanFetcher
- * @brief	内容显示用类，包括gallery显示和嵌入文章显示
+ * @brief	从豆瓣抓取用类
  * @date	2021-12-21
  * @author	大致
- * @version	0.3.3
+ * @version	0.4.5
  * @since	0.0.1
  * 
  */
@@ -90,6 +90,8 @@ class BDDB_DoubanFetcher{
 				$this->type = "movie";
 			} elseif (strpos($url, "book.douban.com")) {
 				$this->type = "book";
+			} elseif (strpos($url, "douban.com/game/")) {
+				$this->type = "game";
 			} elseif (strpos($url, "music.douban.com")) {
 				$this->type = "album";
 			} elseif (strpos($url, "imdb.com")){
@@ -98,7 +100,7 @@ class BDDB_DoubanFetcher{
 				return $this->fetch_from_omdb($url);
 			} elseif (strpos($url, "giantbomb.com")) {
 				$this->type = "game";
-				//return $this->fetch_from_giantbomb($url);
+				return $this->fetch_from_giantbomb($url);
 			} else {
 				if (strpos($url, "tt") !== false) {
 					$this->type = "movie";
@@ -110,6 +112,8 @@ class BDDB_DoubanFetcher{
 						$url = "https://movie.douban.com/subject/".$url;
 					} elseif ("book" === $this->type) {
 						$url = "https://book.douban.com/subject/".$url;
+					} elseif ("game" === $this->type) {
+						$url = "https://www.douban.com/game/".$url;
 					} elseif ("album" === $this->type) {
 						$url = "https://music.douban.com/subject/".$url;
 					}
@@ -142,6 +146,28 @@ class BDDB_DoubanFetcher{
 		$ret['result'] = 'OK';
 		return $ret;
 	}
+
+	/**
+	 * @brief	从giantbomb获取。
+	 * @private
+	 * @param	string	$url	
+	 * @return array
+	 * @since 0.4.4
+	 */
+	private function fetch_from_giantbomb($url) {
+		$ret = array('result'=>'ERROR','reason'=>'invalid parameter');
+		preg_match('/[0-9]+\-[0-9]+/',$url, $ids);
+		if (!is_array($ids)) {
+			return $ret;
+		}
+		$id = $ids[0];
+		$ret['content'] = $this->get_from_giantbomb($id);
+		$ret['content']['giid'] = $id;
+		//$ret['content']['dou_id'] = '';
+		$ret['content']['title'] = '';
+		$ret['result'] = 'OK';
+		return $ret;
+	}
 	
 	/**
 	 * @brief	抓取豆瓣页面。
@@ -169,7 +195,11 @@ class BDDB_DoubanFetcher{
 		}
 		$title = str_replace(array("(豆瓣)","<title>","</title>"), "", $title_str);
 		$ret['result'] = 'OK';
-		$ret['content'] = $this->parse_douban_body($body);
+		if ('game' === $this->type) {
+			$ret['content'] = $this->parse_douban_game_body($body);
+		} else {
+			$ret['content'] = $this->parse_douban_body($body);
+		}
 		$ret['content']['title'] = trim($title);
 		$url = rtrim($url,"/");
 		$ret['content']['dou_id'] = substr($url, strrpos($url, "/")+1);
@@ -311,51 +341,123 @@ class BDDB_DoubanFetcher{
 			}
 
 			foreach ($info_grep_keys as $grep) {
-					unset($matches);
-					preg_match_all( $grep['pattern'], $info_div_str, $matches);
-					if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=1) {
-						$fetch[$grep['item']] = $this->items_implode($matches[0]);
-					}
-					if (isset($grep['sanitize_callback']) && is_callable($grep['sanitize_callback'])){
-						$fetch[$grep['item']] = call_user_func($grep['sanitize_callback'], $fetch[$grep['item']]);
+				unset($matches);
+				preg_match_all( $grep['pattern'], $info_div_str, $matches);
+				if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=1) {
+					$fetch[$grep['item']] = $this->items_implode($matches[0]);
+				}
+				if (isset($grep['sanitize_callback']) && is_callable($grep['sanitize_callback'])){
+					$fetch[$grep['item']] = call_user_func($grep['sanitize_callback'], $fetch[$grep['item']]);
+				}
+			}
+		}//preg_matches
+		else{
+			$data = bddbt_get_inlabel($body,"</h1>","<h2>");
+			if (!empty($data)){
+				$data = trim($data);
+				$publisher_str = bddbt_get_inlabel($data, '<div class="ll publishers">','</div>');
+				if (!empty($publisher_str)){
+					$fetch['publisher'] = trim($publisher_str);
+				}
+				$count_str = bddbt_get_inlabel($data, '<div class="clear-both">','</div>');
+				if (!empty($count_str)){
+					$count_str = strip_tags($count_str);
+					$count_str = str_replace('&nbsp;','',$count_str);
+					$pos = strpos($count_str,':');
+					if ($pos > 0){
+						$count_str = trim(substr($count_str,$pos+1));
+						$fetch['series_total'] = $count_str;
 					}
 				}
-			}//preg_matches
-			else{
-				$data = bddbt_get_inlabel($body,"</h1>","<h2>");
-				if (!empty($data)){
-					$data = trim($data);
-					$publisher_str = bddbt_get_inlabel($data, '<div class="ll publishers">','</div>');
-					if (!empty($publisher_str)){
-						$fetch['publisher'] = trim($publisher_str);
+			}
+		}//series
+		//$fetch['pubdate'] = $this->trim_year_month($fetch['pubdate']);
+		if (isset($fetch['imdbid']) && '' != $fetch['imdbid']) {
+			$fetch = $this->get_from_omdb($fetch['imdbid'], $fetch);
+		}
+		if (strpos($fetch['pic'], 'type=R')>0) {
+			$fetch['pic'] = $this->get_detail_douban_pic($fetch['pic']);
+		}
+		if (strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("大陆",'utf-8'))===0 ||
+			strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("香港",'utf-8'))===0 || 
+			strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("台湾",'utf-8'))===0) {
+			$fetch['original_name'] = '';
+		}
+		return $fetch;
+	}//parse_douban_body
+
+	/**
+	 * @brief	解析豆瓣页面内容。
+	 * @private
+	 * @param	string	$body	页面html内容
+	 * @return array
+	 * @since 0.4.1
+	 */
+	private function parse_douban_game_body($body) {
+		$fetch = array(
+			'pic' => '',
+			'average_score' => '',
+			'original_name' => '',
+			'akas' => '',
+			'pubdate' => '',
+			'publisher' => '',
+			'genre' => '',
+			'platform' => '',
+		);
+		$matches = array();
+		preg_match_all('/(<div class="item-subject-info"[\s\S]+?<\/div>)|(<dl class="game-attr">[\s\S]+?<\/dl>)|(<div .+? typeof="v:Rating"[\s\S]+?<\/div>)/',$body, $matches);
+		if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
+			$mainpic_div_str = $matches[0][0];
+			$info_div_str = $matches[0][1];
+			$score_str = $matches[0][2];
+
+			//图
+			preg_match('/(?<=href=").*?(?=")/',$mainpic_div_str,$match_imgs);
+			if (is_array($match_imgs)) {
+				$fetch['pic'] = trim($match_imgs[0]);
+			}
+
+			//分
+			preg_match('/(?<= property="v:average"\>).*?(?=\<)/',$score_str, $match_score);
+			if (is_array($match_score)) {
+				$fetch['average_score'] = trim($match_score[0]);
+			}
+			unset($matches);
+			preg_match_all( '/(<dt>[\s\S]+?<\/dt>)|(<dd>[\s\S]+?<\/dd>)/', $info_div_str, $matches);
+			$label = "";
+			for ($i=0;$i<count($matches[0]);++$i) {
+				$temp = trim(strip_tags($matches[0][$i]));
+				if (0 == $i%2) {
+					$label = $temp;
+					continue;
+				} else {
+					switch ($label) {
+						case "类型:":
+							$arr_temp = explode("/", $temp);
+							$arr_temp = array_map("trim", $arr_temp);
+							$fetch['genre'] = implode(", ", $arr_temp);
+							break;
+						case "平台:":
+							$fetch['platform'] = str_replace("/", ",", $temp);
+							break;
+						case "别名:":
+							$fetch['akas'] = str_replace("/", ",", $temp);
+							break;
+						case "开发商:":
+							$fetch['publisher'] = str_replace("/", ",", $temp);
+							break;
+						case "发行日期:":
+							$fetch['pubdate'] = str_replace("/", ",", $temp);
+							break;
+						default:
+							break;
 					}
-					$count_str = bddbt_get_inlabel($data, '<div class="clear-both">','</div>');
-					if (!empty($count_str)){
-						$count_str = strip_tags($count_str);
-						$count_str = str_replace('&nbsp;','',$count_str);
-						$pos = strpos($count_str,':');
-						if ($pos > 0){
-							$count_str = trim(substr($count_str,$pos+1));
-							$fetch['series_total'] = $count_str;
-						}
-					}
+					$label = "";
 				}
-			}//series
-			//$fetch['pubdate'] = $this->trim_year_month($fetch['pubdate']);
-			if (isset($fetch['imdbid']) && '' != $fetch['imdbid']) {
-				$fetch = $this->get_from_omdb($fetch['imdbid'], $fetch);
 			}
-			if (strpos($fetch['pic'], 'type=R')>0) {
-				$fetch['pic'] = $this->get_detail_douban_pic($fetch['pic']);
-			}
-			if (strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("大陆",'utf-8'))===0 ||
-				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("香港",'utf-8'))===0 || 
-				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("台湾",'utf-8'))===0) {
-				$fetch['original_name'] = '';
-			}
-			return $fetch;
-		}//parse_douban_body
-		
+		}
+		return $fetch;
+	}//parse_douban_game_body
 	/**
 	 * @brief	解析豆瓣页面内容。
 	 * @private
@@ -413,11 +515,12 @@ class BDDB_DoubanFetcher{
 	/**
 	 * @brief	从omdb获取。
 	 * @private
-	 * @param	string	$pic_mass	页面html内容
+	 * @param	string		$pic_mass	页面html内容
+	 * @param   bool|array	$input		要合并的内容
 	 * @return string
 	 * @since 0.0.1
 	*/
-	private function get_from_omdb($id, $input=0){
+	private function get_from_omdb($id, $input=false){
 		$default = array(
 			'pic' => '',
 			'average_score' => '',
@@ -438,12 +541,10 @@ class BDDB_DoubanFetcher{
 		if (''==$id || strpos($id, "tt")!=0) {
 			return $output;
 		}
-		$settings = new BDDB_Settings();
-		$api_key = $settings->get_omdb_key();
+		$api_key = BDDB_Settings::get_omdb_key();
 		if(empty($api_key)) {
 			return $output;
 		}
-		//TODO：：判断是否设置了key
 		$url = "https://www.omdbapi.com/?i=".$id."&apikey=".$api_key;
 		$response = @wp_remote_get($url);
 		if (is_wp_error($response))
@@ -472,6 +573,188 @@ class BDDB_DoubanFetcher{
 	}
 	
 	/**
+	 * @brief	从giantbomb获取。
+	 * @public
+	 * @param	string	$pic_mass	页面html内容
+	 * @return string
+	 * @since 0.4.1
+	*/
+	public function get_from_giantbomb($id, $input=0){
+		$default = array(
+			'pic' => '',
+			'producer' => '',
+			'publisher' => '',
+			'platform' => '',
+			'genre' => '',
+			'pubdate' => '',
+			'original_name' => '',
+			'language' => '',
+			'akas' => '',
+		);
+		if (!$input) {
+			$output = $default;
+		}else{
+			$output = wp_parse_args($input, $default);
+		}
+		if (empty($id)) {
+			return $output;
+		}
+		$api_key = BDDB_Settings::get_giantbomb_key();
+		if(empty($api_key)) {
+			return $output;
+		}
+		
+		$chk_lang = false;
+		$chk_plat = false;
+		
+		//3 GB
+		switch ( $input['platform'] ) {
+			case 'FC':
+				$chk_plat = 21;
+				break;
+			case 'GB':
+				$chk_plat = 3;
+				break;
+			case 'GBC':
+				$chk_plat = 57;
+				break;
+			case 'GBA':
+				$chk_plat = 4;
+				break;
+			case 'DS':
+				$chk_plat = 52;
+				break;
+			case '3DS':
+				$chk_plat = 117;
+				break;
+			case 'GG':
+				$chk_plat = 5;
+				break;
+			case 'MD':
+				$chk_plat = 6;
+				break;
+			case 'SFC':
+				$chk_plat = 9;
+				break;
+			case 'PS':
+				$chk_plat = 22;
+				break;
+			case 'SS':
+				$chk_plat = 42;
+				break;
+			case 'PC':
+				$chk_plat = 94;
+				break;
+			case 'ARC':
+				$chk_plat = 84;
+				break;
+			case 'NS':
+				$chk_plat = 157;
+				break;
+			default:
+			break;
+		}
+		
+		//1 US
+		//2 UK
+		//6 JPN
+		switch ( $input['language'] ) {
+			case '美版':
+				$chk_lang = 1;
+				break;
+			case '欧版':
+				$chk_lang = 2;
+				break;
+			case '日版':
+				$chk_lang = 6;
+				break;
+			default:
+			break;
+		}
+		
+		$url = "https://www.giantbomb.com/api/game/".$id."/?api_key=".$api_key."&format=json&field_list=genres,image,platforms,original_release_date,name,publishers,aliases,developers,releases";
+		$curl = curl_init($url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_USERAGENT, 'API Test UA');
+		curl_setopt($curl, CURLOPT_TIMEOUT, 180);
+		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
+		curl_setopt ($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+		$response = curl_exec($curl);
+		curl_close($curl);
+
+		if (is_wp_error($response))
+		{
+			return $output;
+		}
+
+		$content = json_decode($response,true);
+		$results = $content['results'];
+		$arr_temp = array();
+		if (key_exists('image', $results) && key_exists('original_url', $results['image'])) {
+			if ('' == $output['pic']) $output['pic'] = $results['image']['original_url'];
+		}
+		
+		if ('' == $output['publisher']) {
+			$output['publisher'] = bddb_array_child_value_to_str($results,'developers').','.bddb_array_child_value_to_str($results,'publishers');
+		}
+		if (key_exists('name', $results) ) {
+			if ('' == $output['original_name']) $output['original_name'] = $results['name'];
+		}
+		if (key_exists('genres', $results) ) {
+			if ('' == $output['genre']) $output['genre'] = bddb_array_child_value_to_str($results,'genres');
+		}
+		if (key_exists('original_release_date', $results) ) {
+			if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($results['original_release_date']);
+		}
+		if (key_exists('aliases', $results) ) {
+			if ('' == $output['akas']) $output['akas'] = $results['aliases'];
+		}
+		if (key_exists('releases', $results) ) {
+			$rb = false;
+			foreach ($results['releases'] as $rel_base) {
+				$url = sprintf('%1$s?api_key=%2$s&format=json&field_list=image,platform,region,release_date,site_detail_url', $rel_base['api_detail_url'], $api_key);
+				$rn = $this->get_from_giantbomb_release($url);
+				if (key_exists('region', $rn) && 
+					is_array($rn['region']) &&
+					key_exists('id', $rn['region']) &&
+					$rn['region']['id'] == $chk_lang && 
+					key_exists('platform', $rn) && 
+					is_array($rn['platform']) &&
+					key_exists('id', $rn['platform']) && 
+					$rn['platform']['id'] == $chk_plat) {
+					$rb = $rn;
+					break;
+				}elseif(false===$rb) {
+					$rb = $rn;
+				}
+			}
+			if (false !== $rb) {
+				if (!empty($rb['release_date'])) $output['pubdate'] = $rb['release_date'];
+				if (!empty($rb['image'])) $output['pic'] = $rb['image']['original_url'];
+				//$output['image']
+			}
+		}
+		return $output;
+	}
+	
+	protected function get_from_giantbomb_release($release_url) {
+		$results = array();
+		$curl = curl_init($release_url);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_USERAGENT, 'API Test UA');
+		curl_setopt($curl, CURLOPT_TIMEOUT, 180);
+		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
+		curl_setopt ($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
+		$response = curl_exec($curl);
+		curl_close($curl);
+		$content = json_decode($response,true);
+		$results = $content['results'];
+		return $results;
+	}
+	
+	/**
 	 * @brief	字符串替换。
 	 * @private
 	 * @param	string	$pic_mass	页面html内容
@@ -487,7 +770,7 @@ class BDDB_DoubanFetcher{
 	 * @brief	根据tax的内容获取文字。
 	 * @private
 	 * @param	string	$tax			分类法slug
-	 * @param	array	$imaged_slugs	取得的内容想象成slug
+	 * @param	string	$imaged_slugs	取得的内容想象成slug
 	 * @return	string
 	 * @since	0.0.1
 	 * @version	0.3.3
@@ -506,9 +789,6 @@ class BDDB_DoubanFetcher{
 				break;
 				case 'book':
 				$tax = 'b_region';
-				break;
-				case 'game':
-				$tax = 'g_region';
 				break;
 				case 'album':
 				$tax = 'a_region';
@@ -589,6 +869,15 @@ class BDDB_DoubanFetcher{
 		}
 	}//items_implode
 
+	/**
+	 * @brief	获取豆瓣人名信息。
+	 * @private
+	 * @param	string	$from_str	开始的字符串(不包含)
+	 * @param	string	$to_str	截止的字符串(不包含)
+	 * @param	string	$base_str	数据来源
+	 * @return string
+	 * @since 0.0.1
+	*/
 	private function fetch_douban_people_str ($from_str, $to_str, $base_str) {
 		$pos_start = strpos($base_str, $from_str);
 		$pos_end = strpos($base_str, $to_str, $pos_start);

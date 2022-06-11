@@ -283,10 +283,10 @@ span.bddb-disp-label {
 		font-size:0.9rem;
 	}
 }
-.ring-loading
+.ring-loadingload
 {
   position:absolute;
-  bottom:200px;
+  top:85%;
   right:50%;
   transform:translate(-50%,-50%);
   width:100px;

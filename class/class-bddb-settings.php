@@ -4,13 +4,9 @@
 设定项管理类
 */
 class BDDB_Settings{
-	public $bddb_options;			//成员
-	/*构造*/
-	public function __construct(){
-		$this->bddb_options = false;
-	}
+	public static $bddb_options = false;			//成员
 	/*默认值*/
-	public function default_options(){
+	public static function default_options(){
 		$ret = array(
 			'default_folder'=>'wp-content/poster_gallery/',
 			'm_omdb_key'=>'',
@@ -33,9 +29,9 @@ class BDDB_Settings{
 		return $ret;
 	}
 	/*优化（保存前）*/
-	public function sanitize_options($input){
+	public static function sanitize_options($input){
 		//取得当前值。
-		$current_options = $this->get_options();
+		$current_options = self::get_options();
 		foreach( $current_options as $key => $val ) {
 			if (!isset($input[$key])){
 				$input[$key] = $val;
@@ -54,63 +50,63 @@ class BDDB_Settings{
 		return $input;
 	}
 	/*取得*/
-	public function get_options(){
-		if (!$this->bddb_options) {
-			$this->bddb_options = get_option('bddb_settings');
-			if (is_array($this->bddb_options)) {
-				$this->bddb_options = array_merge( $this->default_options(), $this->bddb_options);
+	public static function get_options(){
+		if (!self::$bddb_options) {
+			self::$bddb_options = get_option('bddb_settings');
+			if (is_array(self::$bddb_options)) {
+				self::$bddb_options = array_merge( self::default_options(), self::$bddb_options);
 			}else{
-				$this->bddb_options = $this->default_options();
+				self::$bddb_options = self::default_options();
 			}
 		}
-		return $this->bddb_options;
+		return self::$bddb_options;
 	}
 	//movie
-	public function get_omdb_key(){
-		$options = $this->get_options();
+	public static function get_omdb_key(){
+		$options = self::get_options();
 		return $options['m_omdb_key'];
 	}
 	//book
-	public function get_max_serial_count(){
-		$options = $this->get_options();
+	public static function get_max_serial_count(){
+		$options = self::get_options();
 		return $options['b_max_serial_count'];
 	}
 	//game
-	public function get_giantbomb_key(){
-		$options = $this->get_options();
+	public static function get_giantbomb_key(){
+		$options = self::get_options();
 		return $options['g_giantbomb_key'];
 	}
-	public function get_poster_width(){
-		$options = $this->get_options();
+	public static function get_poster_width(){
+		$options = self::get_options();
 		return $options['poster_width'];
 	}
-	public function get_poster_height(){
-		$options = $this->get_options();
+	public static function get_poster_height(){
+		$options = self::get_options();
 		//TODO：100：148是电影海报的规格，书籍应该略宽。
 		return floor($options['poster_width']*1.48);
 	}
-	public function get_thumbnails_per_page(){
-		$options = $this->get_options();
+	public static function get_thumbnails_per_page(){
+		$options = self::get_options();
 		return $options['thumbnails_per_page'];
 	}
-	public function get_thumbnail_width(){
-		$options = $this->get_options();
+	public static function get_thumbnail_width(){
+		$options = self::get_options();
 		return $options['thumbnail_width'];
 	}
-	public function get_thumbnail_height(){
-		$options = $this->get_options();
+	public static function get_thumbnail_height(){
+		$options = self::get_options();
 		return floor($options['thumbnail_width']*1.48);
 	}
-	public function get_default_folder(){
-		$options = $this->get_options();
+	public static function get_default_folder(){
+		$options = self::get_options();
 		return $options['default_folder'];
 	}
-	public function get_tax_version(){
-		$options = $this->get_options();
+	public static function get_tax_version(){
+		$options = self::get_options();
 		return $options['tax_version'];
 	}
-	public function update_tax_version($version){
-		$options = $this->get_options();
+	public static function update_tax_version($version){
+		$options = self::get_options();
 		$options['tax_version'] = $version;
 		update_option('bddb_settings', $options);
 	}
