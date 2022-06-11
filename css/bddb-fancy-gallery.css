@@ -286,7 +286,7 @@ span.bddb-disp-label {
 .ring-loading
 {
   position:absolute;
-  top:85%;
+  bottom:300px;
   right:50%;
   transform:translate(-50%,-50%);
   width:100px;
