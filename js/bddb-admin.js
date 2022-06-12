@@ -150,6 +150,10 @@ jQuery(document).ready(function($) {
                         document.getElementsByName("b_bl_series")[0].checked = true;
                     }
                 }
+                the_input = document.getElementsByName("bddb_aka");
+                if (the_input.length == 1 && response.content.akas && !the_input[0].value){
+                    the_input[0].value = response.content.akas;
+                }
 				myfetchstsbar.value = "网页已抓取.";
                 mypicbar.value="网页抓取完毕.";
             },
