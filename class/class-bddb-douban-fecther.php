@@ -200,7 +200,11 @@ class BDDB_DoubanFetcher{
 			$title = trim($title);
 			$end_pos = strpos($title, " ", 0);
 			if ($end_pos > 0) {
+				$original_name = trim(substr($title, $end_pos));
 				$title = substr($title, 0, $end_pos);
+				if (!empty($original_name)) {
+					$ret['content']['original_name'] = $original_name;
+				}
 			}
 		} else {
 			$ret['content'] = $this->parse_douban_body($body);
