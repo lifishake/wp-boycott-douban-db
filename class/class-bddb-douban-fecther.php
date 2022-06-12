@@ -197,6 +197,11 @@ class BDDB_DoubanFetcher{
 		$ret['result'] = 'OK';
 		if ('game' === $this->type) {
 			$ret['content'] = $this->parse_douban_game_body($body);
+			$title = trim($title);
+			$end_pos = strpos($title, " ", 0);
+			if ($end_pos > 0) {
+				$title = substr($title, 0, $end_pos);
+			}
 		} else {
 			$ret['content'] = $this->parse_douban_body($body);
 		}
@@ -435,7 +440,8 @@ class BDDB_DoubanFetcher{
 						case "类型:":
 							$arr_temp = explode("/", $temp);
 							$arr_temp = array_map("trim", $arr_temp);
-							$fetch['genre'] = implode(", ", $arr_temp);
+							//$fetch['genre'] = implode(", ", $arr_temp);
+							$fetch['genre'] = "";
 							break;
 						case "平台:":
 							$fetch['platform'] = str_replace("/", ",", $temp);
@@ -702,13 +708,13 @@ class BDDB_DoubanFetcher{
 			if ('' == $output['original_name']) $output['original_name'] = $results['name'];
 		}
 		if (key_exists('genres', $results) ) {
-			if ('' == $output['genre']) $output['genre'] = bddb_array_child_value_to_str($results,'genres');
+			//if ('' == $output['genre']) $output['genre'] = bddb_array_child_value_to_str($results,'genres');
 		}
 		if (key_exists('original_release_date', $results) ) {
 			if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($results['original_release_date']);
 		}
 		if (key_exists('aliases', $results) ) {
-			if ('' == $output['akas']) $output['akas'] = $results['aliases'];
+			//if ('' == $output['akas']) $output['akas'] = $results['aliases'];
 		}
 		if (key_exists('releases', $results) ) {
 			$rb = false;
