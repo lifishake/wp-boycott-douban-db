@@ -1,3 +1,19 @@
+/**
+ * @file	class-admin.js
+ * @brief	处理后台编辑画面
+ * @date	2021-12-21
+ * @author	大致
+ * @version	0.5.1
+ * @since	0.0.1
+ * 
+ */
+
+/**
+ * 
+ * @param {number} dec 
+ * @param {number} length 
+ * @returns {Array}
+ */
 function dec_to_hex_string(dec, length) {
     var hex = dec.toString(16).toUpperCase();
     if (hex.length < length) {
@@ -6,6 +22,11 @@ function dec_to_hex_string(dec, length) {
     return hex;
 }
 
+/**
+ * 
+ * @param {Array} rgb_array 
+ * @returns {string}
+ */
 function rgb_to_hex_string(rgb_array) {
     var hex_string = '';
     for( var i = 0; i < rgb_array.length; i++) {
@@ -14,6 +35,11 @@ function rgb_to_hex_string(rgb_array) {
     return '#' + hex_string;
 }
 
+/**
+ * 
+ * @param {Array} rgb_array 
+ * @returns {string}
+ */
 function rgb_to_rgb_string(rgb_array) {
     var rgb_string = 'RGB(';
     for( var i = 0; i < rgb_array.length; i++) {
@@ -25,11 +51,29 @@ function rgb_to_rgb_string(rgb_array) {
     return rgb_string + ')';
 }
 
+/**
+ * 
+ * @param {Event} event 
+ */
+function StopMouseWheel(event) {
+    event = event || window.event;
+    event.preventDefault();
+}
+
 jQuery(document).ready(function($) {
 	//$stsbox = document.getElementsByName('ajax-status');
 	var mypicbar = document.getElementById('pic-status');
 	var myfetchstsbar = document.getElementById('fetch-status');
 	var mythumbnail = document.getElementById('img_poster_thumbnail');
+
+    //nomouse_names被Editor本地化，如果有number类型的input，该数组非空。
+    if (nomouse_names) {
+        nomouse_names.forEach(element => {
+            $('input[name="'+element+'"]')[0].addEventListener('DOMMouseScroll', StopMouseWheel, false);
+        });
+    }
+
+    //抓取按钮
     $('button[name="douban_spider_btn"]').click(function(){
         
         var link_bar = document.getElementsByName('bddb_external_link');
@@ -162,6 +206,8 @@ jQuery(document).ready(function($) {
 			},
         });
     })
+
+    //取图片按钮
 	$('button[name="bddb_get_pic_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("bddb_poster_link");
 		var dest_pic = this.getAttribute('dest_src');
@@ -194,6 +240,8 @@ jQuery(document).ready(function($) {
 			},
         });
 	})
+
+    //取imdb图片按钮
 	$('button[name="bddb_get_imdbpic_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("m_id_imdb");
 		var dest_pic = this.getAttribute('dest_src');
@@ -225,6 +273,8 @@ jQuery(document).ready(function($) {
 			},
         });
 	})
+
+    //取GA信息按钮，鸡肋
 	$('button[name="bddb_get_giantbomb_btn"]').click(function(){
 		var gbid_edit = document.getElementsByName("g_giantbomb_id");
 		var language_edit = document.getElementsByName("g_language");
@@ -287,6 +337,8 @@ jQuery(document).ready(function($) {
 			},
         });
 	})
+
+    //批量取封面按钮
     $('button[name="bddb_get_scovers_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("b_series_covers");
 		var count_bar = document.getElementsByName("b_series_total");
@@ -323,6 +375,8 @@ jQuery(document).ready(function($) {
 			},
         });
 	})
+
+    //追加标签
 	$('.box-tag').click(function(){
 		var input_bar = document.getElementsByName(this.getAttribute('data'));
 		var myself = this.innerText;

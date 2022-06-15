@@ -56,30 +56,6 @@ class BDDB_DoubanFetcher{
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
 		if ('' === $url ) {
 			return $ret;
-		}elseif('test'==$url) {
-			$ret['content']='aaaa';
-			$fetch = array(
-				'title' => '',
-				'pic' => '',
-				'average_score' => '',
-				'director' => '',
-				'actor' => '',
-				'genre' => '',
-				'pubdate' => '',
-				'country' => '',
-				'original_name' => '',
-				'imdbid' => '',
-				'screenwriter' => '',
-				'author' => '',
-				'translator' => '',
-				'artist' => '',
-				'series_total' => '',
-			);
-			$aarrstr = 'charlie cho, faye wong';
-			$actors = $this->translate_actors($aarrstr);
-			$ret['result']=$fetch;
-			$ret['result']['actor'] = $actors;
-			return $ret;
 		}else{
 			$pos = mb_strrpos($url, "?");
 			//去掉问号
@@ -705,17 +681,38 @@ class BDDB_DoubanFetcher{
 			if ('' == $output['pic']) $output['pic'] = $results['image']['original_url'];
 		}
 		
-		if ('' == $output['publisher']) {
-			$output['publisher'] = bddb_array_child_value_to_str($results,'developers').','.bddb_array_child_value_to_str($results,'publishers');
+		if (empty($output['publisher'])) {
+			$publisher = array();
+			if (key_exists('developers',$results) && is_array($results['developers'])) {
+				foreach ($results['developers'] as $developer) {
+					if (key_exists('name', $developer)) {
+						$temp = trim($developer['name']);
+						if (!key_exists($temp, $publisher)) {
+							$publisher[] = $temp;
+						}						
+					}
+				}
+			}
+			if (key_exists('publishers',$results) && is_array($results['publishers'])) {
+				foreach ($results['publishers'] as $developer) {
+					if (key_exists('name', $developer)) {
+						$temp = trim($developer['name']);
+						if (!key_exists($temp, $publisher)) {
+							$publisher[] = $temp;
+						}						
+					}
+				}
+			}
+			$output['publisher'] = implode(', ', $publisher);
 		}
 		if (key_exists('name', $results) ) {
-			if ('' == $output['original_name']) $output['original_name'] = $results['name'];
+			if (empty($output['original_name'])) $output['original_name'] = $results['name'];
 		}
 		if (key_exists('genres', $results) ) {
 			//if ('' == $output['genre']) $output['genre'] = bddb_array_child_value_to_str($results,'genres');
 		}
 		if (key_exists('original_release_date', $results) ) {
-			if ('' == $output['pubdate']) $output['pubdate'] = $this->trim_year_month($results['original_release_date']);
+			if (empty($output['pubdate'])) $output['pubdate'] = $this->trim_year_month($results['original_release_date']);
 		}
 		if (key_exists('aliases', $results) ) {
 			//if ('' == $output['akas']) $output['akas'] = $results['aliases'];
@@ -766,7 +763,7 @@ class BDDB_DoubanFetcher{
 	
 	/**
 	 * @brief	字符串替换。
-	 * @private
+	 * @protected
 	 * @param	string	$pic_mass	页面html内容
 	 * @return string
 	 * @since 0.2.1
@@ -825,6 +822,7 @@ class BDDB_DoubanFetcher{
 		$ret = implode(", ", $got);
 		return $ret;
 	}
+	
 	private function translate_directors($in_str){
 		return $this->tax_slugs_to_names('m_p_director', $in_str);
 	}

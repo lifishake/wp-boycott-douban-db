@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.5.0
+ * Version:     0.5.1
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -118,49 +118,60 @@ function bddb_init()
 {
     bddb_check_paths();
 	add_action('admin_init','bddb_admin_init');
-
+	add_action('init', 'bddb_init_actions', 11);
 }
 
-add_action('init', 'bddb_init_actions', 11);
-//add_action('wp_ajax_bddb_next_gallery_page', 'ajax_get_gallery_page');
-//add_action('wp_ajax_nopriv_bddb_next_gallery_page', 'ajax_get_gallery_page');
+
 
 /* Plugin页面追加配置选项 */
 function bddb_init_actions()
 {   
-	$st = new BDDB_Statics();
-	$st->check_taxonomies();
-	$st->check_types();
+	BDDB_Statics::check_taxonomies();
+	BDDB_Statics::check_types();
 	//js和css加载
     add_action( 'wp_enqueue_scripts', 'bddb_scripts' );
 	//Quick Tag追加
-	$tp = new BDDB_Common_Template();
-	add_shortcode('bddbr', array($tp, 'show_record'));
+	add_shortcode('bddbr', 'qt_show_record');
 	//ajax 显示 page 回调
-	//add_action('wp_ajax_bddb_next_gallery_page', array($tp, 'ajax_get_gallery_page'));
-	//add_action('wp_ajax_nopriv_bddb_next_gallery_page', array($tp, 'ajax_get_gallery_page'));
 	add_action('wp_ajax_bddb_next_gallery_page', 'ajax_get_gallery_page');
 	add_action('wp_ajax_nopriv_bddb_next_gallery_page', 'ajax_get_gallery_page');
 }
 
+function qt_show_record($atts, $content = null) {
+	extract( $atts );
+	$post_type = get_post_type($id);
+	$ret = '';
+	if ('book' == $post_type) {
+		$ret = BDDB_Book::getInstance()->show_record($atts, $content);
+	} elseif('movie' == $post_type) {
+		$ret = BDDB_Movie::getInstance()->show_record($atts, $content);
+	} elseif('game' == $post_type) {
+		$ret = BDDB_Game::getInstance()->show_record($atts, $content);
+	} elseif('album' == $post_type) {
+		$ret = BDDB_Album::getInstance()->show_record($atts, $content);
+	}
+	return $ret;
+}
+
+/*取下一页的ajax回调函数*/
 function ajax_get_gallery_page() {
 	if (!isset($_POST['nonce']) || !isset($_POST['pid']) || !isset($_POST['type']) || !isset($_POST['nobj']) ) {
 		wp_die();
 	}
 	if ('book' == $_POST['type']) {
-		BDDB_Book_Wall::getInstance()->ajax_get_gallery_page();
+		BDDB_Book::getInstance()->ajax_get_gallery_page();
 	} elseif('movie' == $_POST['type']) {
-		BDDB_Movie_Wall::getInstance()->ajax_get_gallery_page();
+		BDDB_Movie::getInstance()->ajax_get_gallery_page();
 	} elseif('game' == $_POST['type']) {
-		BDDB_Game_Wall::getInstance()->ajax_get_gallery_page();
+		BDDB_Game::getInstance()->ajax_get_gallery_page();
 	} elseif('album' == $_POST['type']) {
-		BDDB_Album_Wall::getInstance()->ajax_get_gallery_page();
+		BDDB_Album::getInstance()->ajax_get_gallery_page();
 	}
 }
 
 /*取豆瓣信息的ajax回调函数*/
 //TODO 放进类中
-function bddb_douban_fetch() {
+function bddb_ajax_douban_fetch() {
 	$resp = array('title' => 'here is the title', 'content' => 'finished') ;
 	if (!isset($_GET['nonce']) || !isset($_GET['id']) || !isset($_GET['ptype']) || !isset($_GET['doulink']) ) {
 		wp_die();
@@ -168,7 +179,7 @@ function bddb_douban_fetch() {
 	if ( !wp_verify_nonce($_GET['nonce'],"douban-spider-".$_GET['id'])) {
 		wp_die();
 	}
-	if (!in_array(($_GET['ptype']), array('movie', 'book', 'album', 'game'))){
+	if (!BDDB_Statics::is_valid_type($_GET['ptype'])){
 		wp_die();
 	}
 	$post_id = $_GET['id'];
@@ -184,11 +195,10 @@ function bddb_douban_fetch() {
 //后台初始化
 function bddb_admin_init() {
 	$t = new BDDB_Editor();
-	$st = new BDDB_Statics();
 	add_action( 'admin_enqueue_scripts', 'bddb_admin_scripts' );
-	add_action( 'wp_ajax_bddb_douban_fetch', 'bddb_douban_fetch' );
+	add_action( 'wp_ajax_bddb_douban_fetch', 'bddb_ajax_douban_fetch' );
+	BDDB_Statics::admin_init();
 	$t->admin_init();
-	$st->admin_init();
 }
 
 //js和css初始化
@@ -218,7 +228,8 @@ function bddb_scripts() {
 
 /* 统一处理后台相关的脚本 */
 function bddb_admin_scripts() {
-    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220612', true);
+    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220615', true);
+	wp_localize_script( 'bddb-js-admin', 'nomouse_names', false);
     wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
     wp_deregister_style( 'open-sans' );
     wp_register_style( 'open-sans', false );
