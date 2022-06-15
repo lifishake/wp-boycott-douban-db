@@ -3,7 +3,7 @@
  * @brief	处理后台编辑画面
  * @date	2021-12-21
  * @author	大致
- * @version	0.5.1
+ * @version	0.5.2
  * @since	0.0.1
  * 
  */
@@ -67,9 +67,12 @@ jQuery(document).ready(function($) {
 	var mythumbnail = document.getElementById('img_poster_thumbnail');
 
     //nomouse_names被Editor本地化，如果有number类型的input，该数组非空。
-    if (nomouse_names) {
+    if (nomouse_names === undefined) {
+        //nothing
+    } else {
         nomouse_names.forEach(element => {
-            $('input[name="'+element+'"]')[0].addEventListener('DOMMouseScroll', StopMouseWheel, false);
+            if ($('input[name="'+element+'"]').length>0)
+                $('input[name="'+element+'"]')[0].addEventListener('DOMMouseScroll', StopMouseWheel, false);
         });
     }
 
