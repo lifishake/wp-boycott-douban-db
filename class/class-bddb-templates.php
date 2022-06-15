@@ -82,7 +82,7 @@ class BDDB_Common_Template {
 											'sort' => 'DESC',
 											),
 		);
-		if (!in_array($post_type, array('movie', 'book', 'game', 'album'))) {
+		if (!BDDB_Statics::is_valid_type($post_type)) {
 			return;
 		}
 		$this->set_working_mode($post_type);
@@ -217,18 +217,12 @@ class BDDB_Common_Template {
 	 * @param	array	$atts	短代码属性，该函数中只包括一个$id。
 	 * @public
 	 * @since	0.1.4
-	 * @version	0.1.4
+	 * @version	0.5.1
 	 * @see		add_shortcode()
 	 */
 	public function show_record($atts, $content = null) {
 		extract( $atts );
-		$post_type = get_post_type($id);
-		if (!empty($post_type) && in_array($post_type,array('movie','book','game','album'))) {
-			$this->set_working_mode($post_type);
-		}else{
-			return "";
-		}
-		$obj_name = bddb_get_poster_names($post_type, $id);
+		$obj_name = bddb_get_poster_names($this->self_post_type, $id);
 		$src_is_series = $this->get_meta_str('b_bl_series',$id);
 		$src_title = $this->get_meta_str('bddb_display_name',$id);
 		$src_link = $this->get_meta_str('bddb_external_link',$id);
@@ -262,13 +256,13 @@ class BDDB_Common_Template {
 			$abstract_str = '';
 
 			if (is_callable(array($this, "get_{$this->self_post_type}_abstract"))){
-				$abstract_str = call_user_func(array($this, "get_{$post_type}_abstract"), $id);
+				$abstract_str = call_user_func(array($this, "get_{$this->self_post_type}_abstract"), $id);
 			}
 			return sprintf($template, $subject_class, $img_str, $title_str, $rating_str, $abstract_str);
 		}else{ //系列
 			$template = '<div class="apip-item"><div class="mod"><div class="v-overflowHidden doulist-subject"><div class="title">%1$s</div>%2$s</div></div></div>';
-			if (is_callable(array($this, "get_{$post_type}_abstract_series"))){
-				$abstract_str = call_user_func(array($this, "get_{$post_type}_abstract_series"), $id);
+			if (is_callable(array($this, "get_{$this->self_post_type}_abstract_series"))){
+				$abstract_str = call_user_func(array($this, "get_{$this->self_post_type}_abstract_series"), $id);
 			}
 			return sprintf($template, $title_str, $abstract_str);
 		}
@@ -322,7 +316,7 @@ class BDDB_Common_Template {
 	 * @see		show_record()
 	 */
 	private function set_working_mode($post_type) {
-		if (!in_array($post_type, array('movie', 'book', 'game', 'album'))) {
+		if (!BDDB_Statics::is_valid_type($post_type)) {
 			return;
 		}
 		$this->self_post_type = $post_type;
@@ -1457,7 +1451,7 @@ class BDDB_Common_Template {
 };
 //movie/brand
 
-class BDDB_Book_Wall {
+class BDDB_Book {
 	public static $class_self = false;
 	public static function getInstance() {
 		if (!self::$class_self) {
@@ -1467,7 +1461,7 @@ class BDDB_Book_Wall {
 	}
 }
 
-class BDDB_Movie_Wall {
+class BDDB_Movie {
 	public static $class_self = false;
 	public static function getInstance() {
 		if (!self::$class_self) {
@@ -1477,7 +1471,7 @@ class BDDB_Movie_Wall {
 	}
 }
 
-class BDDB_Game_Wall {
+class BDDB_Game {
 	public static $class_self = false;
 	public static function getInstance() {
 		if (!self::$class_self) {
@@ -1487,7 +1481,7 @@ class BDDB_Game_Wall {
 	}
 }
 
-class BDDB_Album_Wall {
+class BDDB_Album {
 	public static $class_self = false;
 	public static function getInstance() {
 		if (!self::$class_self) {

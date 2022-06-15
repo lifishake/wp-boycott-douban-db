@@ -22,7 +22,7 @@ class BDDB_Tools {
 	 * @protected
 	 * @param 	string 	$str	编辑框中的出品年份
 	 * @return 	string	修改后的出品年份
-	 * @ref		update_meta()->sanitize_callback
+	 * @see		update_meta()->sanitize_callback
 	 * @since 0.4.1
 	 */
 	public static function sanitize_year_month($str) {
@@ -45,13 +45,12 @@ class BDDB_Tools {
 	 * @param	string	$imaged_slugs	取得的内容想象成slug
 	 * @param	int		$limit			最大个数
 	 * @return	string
-	 * @since	0.0.1int
+	 * @since	0.0.1
 	 * @version	0.4.1
 	*/
 	public static function tax_slugs_to_names($tax, $imaged_slugs, $limit = 10){
-		$ret = strtolower($imaged_slugs);
-		$srcs = TrimArray(explode(',', $imaged_slugs));
-		$old = $srcs;
+		$srcs = explode(',', $imaged_slugs);
+		$old = array_map('trim', $srcs);
 		$os = array_map('self::my_space_replace', $srcs);
 		$got = array();
 		$i = 0;
@@ -81,6 +80,7 @@ class BDDB_Tools {
 	*/
 	public static function my_space_replace($in_str) {
 		$in_str = str_replace(" ","-",trim($in_str));
+		$in_str = strtolower($in_str);
 		return $in_str;
 	}
 }
@@ -126,7 +126,7 @@ function bddbt_substr_n_pos($str,$find,$n){
 
 //供主题使用，最好在page里，不要使用the_post
 function bddb_the_gallery($post_type) {
-	if (!in_array($post_type, array('movie','book','game','album'))) {
+	if (!BDDB_Statics::is_valid_type($post_type)) {
         the_content();
         return;
     }
@@ -135,13 +135,13 @@ function bddb_the_gallery($post_type) {
 	$tl->the_gallery();
 	*/
 	if ('book' == $post_type) {
-		BDDB_Book_Wall::getInstance()->the_gallery();
+		BDDB_Book::getInstance()->the_gallery();
 	} elseif('movie' == $post_type) {
-		BDDB_Movie_Wall::getInstance()->the_gallery();
+		BDDB_Movie::getInstance()->the_gallery();
 	} elseif('game' == $post_type) {
-		BDDB_Game_Wall::getInstance()->the_gallery();
+		BDDB_Game::getInstance()->the_gallery();
 	} elseif('album' == $post_type) {
-		BDDB_Album_Wall::getInstance()->the_gallery();
+		BDDB_Album::getInstance()->the_gallery();
 	}
 }
 
