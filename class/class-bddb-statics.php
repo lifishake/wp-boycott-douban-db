@@ -318,9 +318,9 @@ class BDDB_Statics {
 				'supports'              => array('title', 'editor'/*, 'thumbnail'*/),
 				'taxonomies'            => $bddb_type['taxonomies'],
 				'has_archive'           => false,	//不生成前台归档页面
-				'show_ui'				=> true,	//后台侧边栏显示
-				'show_in_nav_menus'		=> true,	//后台鼠标悬停后显示子菜单
-				'show_in_admin_bar'		=> false,
+				'show_ui'				=> true,	//后台侧边栏显示，为了将show_in_menu打开。
+				'show_in_nav_menus'		=> false,	//是否在menu页显示追加的类别--否，默认为null，但show_ui打开后变成true，再改回来。
+				'show_in_admin_bar'		=> false,	//是否在admin bar显示追加的类别--否，默认为null，但show_ui打开后变成true，再改回来。
 				'rewrite'               => array('feeds'=>false,'pages'=>false,'with_front'=>false),
 			);
 			register_post_type( $bddb_type['slug'], $arg);
