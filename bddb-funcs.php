@@ -29,12 +29,12 @@ class BDDB_Tools {
 		if (empty($str)) {
 			return $str;
 		}
+		if (!strpos($str,"-") && intval($str)>1904) {
+			$str .= '-01';
+		}
 		if (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str) ||
 			strtotime(date("Y-m-d H:i:s",strtotime($str))) == strtotime($str)) {
 			$str = date("Y-m", strtotime($str));
-		}
-		if (!strpos($str,"-") && intval($str)>1904) {
-			$str .= '-01';
 		}
 		return $str;
 	}
