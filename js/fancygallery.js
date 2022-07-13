@@ -109,6 +109,8 @@ jQuery( document ).ready( function( $ ) {
 	
 	function show_loader() {
 		load_flag = true;
+		var myTop = $('#colophon')[0].offsetTop - 48;
+		$('.ring-loading').css('top', myTop.toString(10)+'px');
 		$('.ring-loading').show();
 	};
 

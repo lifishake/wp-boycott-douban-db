@@ -192,6 +192,14 @@ class BDDB_Editor {
 		}
 	}
 	
+	/**
+	 * 修改后台每页显示条数。
+	 * @public
+	 * @param	int	$per_page		每页显示条数
+	 * @param	string	$post_type		类型
+	 * @see		edit_posts_per_page
+	 * @since 	0.2.1
+	 */
 	public function modify_list_per_page($per_page, $post_type) {
 		if (BDDB_Statics::is_valid_type($post_type)) {
 			$per_page = 50;
@@ -810,16 +818,22 @@ class BDDB_Editor {
 	}
 	
 	/**
-	 * 优化评价。如果输入参数为空,则显示“没有评价”
+	 * 优化评价。如果输入参数为空，则显示“没有评价”。如果结尾没输入结束标点，则用句号补足。
 	 * @protected
 	 * @param string $str	编辑框中的原名
 	 * @return string	原名
 	 * @see		update_meta()->sanitize_callback
 	 * @since 0.0.1
+	 * @version 0.5.3
 	 */
 	protected function sanitize_personal_review($str) {
 		if (empty($str) && isset($_POST['bddb_display_name'])) {
 			$str = "没有评价。";
+		}
+		$punctuation = mb_substr($str, -1);
+		$good_punct = array("！","。","？","…");
+		if (!in_array($punctuation, $good_punct)) {
+			$str .= "。";
 		}
 		return $str;
 	}
