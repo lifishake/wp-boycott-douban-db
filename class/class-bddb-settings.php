@@ -1,7 +1,7 @@
 <?php
 
 /**
-设定项管理类
+* 设定项管理类
 */
 class BDDB_Settings{
 	public static $bddb_options = false;			//成员

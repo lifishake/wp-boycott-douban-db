@@ -1,6 +1,6 @@
 <?php
 /**
-后台编辑用类
+ * 后台编辑用类
 */
 
 if (!class_exists('BDDB_Settings')) {
@@ -8,7 +8,287 @@ if (!class_exists('BDDB_Settings')) {
 }
 
 /**
- * 编辑类，后台post用
+ * @class	BDDB_Editor_Factory
+ * @brief	编辑类工厂，用于生成编辑类以及外部静态接口
+ * @date	2022-07-21
+ * @author	大致
+ * @version	0.5.4
+ * @since	0.5.4
+ * 
+ */
+class BDDB_Editor_Factory {
+	/**
+	 * 后台初始化。
+	 * @since 	0.5.4
+	 * @version 0.5.4
+	 * @see		bddb_admin_init()
+	 */
+	public static function admin_init() {
+		//统一到一个函数中方便查找。
+		add_action ( 'save_post', 'BDDB_Editor_Factory::update_all_items', 10, 2);
+		add_filter ( 'wp_insert_post_data', 'BDDB_Editor_Factory::generate_content', 10, 2);
+		add_action( 'wp_ajax_bddb_get_pic', 'BDDB_Editor_Factory::download_pic');
+		add_action( 'wp_ajax_bddb_get_imdbpic', 'BDDB_Editor_Factory::download_imdbpic');
+		add_action( 'wp_ajax_bddb_get_from_giantbomb', 'BDDB_Editor_Factory::get_from_giantbomb');
+		add_action( 'wp_ajax_bddb_get_scovers', 'BDDB_Editor_Factory::download_serial_pics');
+	}
+	public static function add_meta_boxes($pt) {
+		$post_type = $pt->post_type;
+		if (!BDDB_Statics::is_valid_type($post_type)) {
+			return;
+		}
+		$e = new BDDB_Editor($post_type);
+		$e->add_meta_box();
+	}
+	/******    钩子回调函数 开始    ******/
+	/**
+	 * 保存时更新追加的内容。
+	 * @public
+	 * @param int $post_ID	正在编辑的post_ID
+	 * @param object $post	正在编辑的post
+	 * @see		action::save_post
+	 * @since 	0.0.1
+	 * @version 0.5.4
+	 */
+	public static function update_all_items($post_ID, $post) {
+		//验证信息在meta_box里
+		if (!isset( $_POST['bddb_nonce'] ) || !wp_verify_nonce( $_POST['bddb_nonce'], basename( __FILE__ ) ) )
+			return;
+		$post_type = $post->post_type;
+		if (!BDDB_Statics::is_valid_type($post_type)) {
+			return;
+		}
+		$e = new BDDB_Editor($post_type);
+		$e->update_all_items($post_ID);
+	}
+
+	/**
+	 * 根据附加项内容生成文章正文。
+	 * @param array $data		要保存的post_data
+	 * @param array $postarr	还没有落地的post_data
+	 * @return array	$data
+	 * @see	filter::wp_insert_post_data
+	 * @since 	0.0.1
+	 * @version 0.5.4
+	 */
+	public static function generate_content($data, $postarr ) {
+		if (!isset($postarr['post_type']) || 
+			!BDDB_Statics::is_valid_type($postarr['post_type'])) {
+			return $data;
+		}
+		//使用_POST中的数据,它们来自box控件
+		//主要更新post_content的内容
+		$e = new BDDB_Editor($postarr['post_type']);
+		return $e->generate_content($data, $postarr);
+	}
+
+	/******    钩子回调函数 结束    ******/
+
+	/******    AJAX回调函数 开始    ******/
+	/**
+	 * 获取封面的Callback。
+	 * @see		AJAX::bddb_get_pic
+	 * @since 	0.0.1
+	 * @version	0.5.4
+	 */
+	public static function download_pic(){
+		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
+		   wp_die();
+	   }
+	   if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-pic-".$_POST['id'])) { 
+		   wp_die();
+	   }
+	   $options = BDDB_Settings::get_options();
+	   $names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
+	   $poster_full_name = $names->poster_name;
+	   $thumbnail_full_name = $names->thumb_name;
+	   if (file_exists($poster_full_name)) {
+		   unlink($poster_full_name);
+	   }
+	   if (file_exists($thumbnail_full_name)) {
+		   unlink($thumbnail_full_name);
+	   }
+	   $piclink = htmlspecialchars_decode($_POST['piclink']);
+	   if (strpos($piclink, "doubanio.com")> 0 && strpos($piclink,".webp")>0){
+		   $piclink = str_replace(".webp", ".jpg", $piclink);
+	   }
+	   $response = @wp_remote_get( 
+			   $piclink, 
+			   array( 
+				   'timeout'  => 3000, 
+				   'stream'   => true, 
+				   'sslverify'	=> false,
+				   'filename' => $poster_full_name 
+			   ) 
+		   );
+	   if ( is_wp_error( $response ) )
+	   {
+			wp_die();
+		   return false;
+	   }
+	   $full_width = intval($options['poster_width']);
+	   $full_height = floor($full_width * 1.48);
+	   $thumb_width = intval($options['thumbnail_width']);
+	   $thumb_height = floor($thumb_width * 1.48);
+	   if ('album' == $_POST['ptype']) {
+		   $full_height = $full_width;
+		   $thumb_height = $thumb_width;
+	   }
+	   $image = new Bddb_SimpleImage();
+	   $image->load($poster_full_name);
+	   $image->resize($full_width, $full_height);
+	   $image->save($poster_full_name);
+	   $image->resize($thumb_width, $thumb_height);
+	   $image->save($thumbnail_full_name);
+	   wp_die();
+	}
+
+	/**
+	 * 获取imdb封面的Callback。
+	 * @see		AJAX::bddb_get_imdbpic
+	 * @since 	0.3.6
+	 * @version	0.5.4
+	 */
+	public static function download_imdbpic(){
+		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['imdbno']) ) {
+		   wp_die();
+	   }
+	   if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-imdbpic-".$_POST['id'])) { 
+		   wp_die();
+	   }
+	   $options = BDDB_Settings::get_options();
+	   $names = bddb_get_poster_names('movie', $_POST['id']);
+	   $poster_full_name = $names->poster_name;
+	   $thumbnail_full_name = $names->thumb_name;
+	   if (file_exists($poster_full_name)) {
+		   unlink($poster_full_name);
+	   }
+	   if (file_exists($thumbnail_full_name)) {
+		   unlink($thumbnail_full_name);
+	   }
+	   
+	   $omdbf = new BDDB_DoubanFetcher('movie');
+	   $omdb_ret = $omdbf->fetch($_POST['imdbno']);
+	   $piclink = $omdb_ret['content']['pic'];
+	   $piclink = htmlspecialchars_decode($piclink);
+	   $response = @wp_remote_get( 
+			   $piclink, 
+			   array( 
+				   'timeout'  => 3000, 
+				   'stream'   => true, 
+				   'filename' => $poster_full_name 
+			   ) 
+		   );
+	   if ( is_wp_error( $response ) )
+	   {
+		   wp_die();
+	   }
+	   $full_width = intval($options['poster_width']);
+	   $full_height = floor($full_width * 1.48);
+	   $thumb_width = intval($options['thumbnail_width']);
+	   $thumb_height = floor($thumb_width * 1.48);
+	   $image = new Bddb_SimpleImage();
+	   $image->load($poster_full_name);
+	   $image->resize($full_width, $full_height);
+	   $image->save($poster_full_name);
+	   $image->resize($thumb_width, $thumb_height);
+	   $image->save($thumbnail_full_name);
+	   wp_die();
+	}
+
+	 /**
+	 * 获取封面的Callback。
+	 * @see		AJAX::bddb_get_from_giantbomb
+	 * @since 	0.4.1
+	 * @version	0.5.4
+	 */
+	public static function get_from_giantbomb() {
+		$resp = array('result' => 'ERROR');
+		if (!isset($_GET['nonce']) || 
+			!isset($_GET['id']) || 
+			!isset($_GET['giantbombno']) || 
+			!isset($_GET['language']) || 
+			!isset($_GET['platform'])) {
+			wp_die();
+		}
+		if ( !wp_verify_nonce($_GET['nonce'],"bddb-get-giantbomb-".$_GET['id'])) { 
+			wp_die();
+		}
+		$arg = array(
+			'language' => $_GET['language'],
+			'platform' => $_GET['platform'],
+		);
+		
+		$gbf = new BDDB_DoubanFetcher('game');
+		$gb_ret = $gbf->get_from_giantbomb($_GET['giantbombno'], $arg);
+		$resp['result'] = 'OK';
+		$resp['content'] = $gb_ret;
+		wp_send_json($resp) ;
+		wp_die();
+	 }
+
+	/**
+	 * 获取系列封面的AJAX的Callback。
+	 * @see		AJAX::bddb_get_scovers
+	 * @since 	0.0.8
+	 * @version	0.5.4
+	 */
+	public function download_serial_pics(){
+		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
+			wp_die();
+		}
+		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-scovers-".$_POST['id'])) { 
+			wp_die();
+		}
+		$options = BDDB_Settings::get_options();
+		$default_serial_count = $options['b_max_serial_count'];
+		$thumb_width = intval($options['thumbnail_width']);
+		$thumb_height = floor($thumb_width * 1.48);
+		if ('album' == $_POST['ptype']) {
+			$thumb_height = $thumb_width;
+		}
+		$obj_names = bddb_get_poster_names($_POST['ptype'],$_POST['id']);
+		$slinks = $_POST['slinks'];
+		$parts = explode(";", $slinks);
+		$serial_count = min(count($parts), $default_serial_count, $_POST['stotal']);
+		for($i=0; $i<$default_serial_count; ++$i) {
+			$dest = sprintf("%s%02d.jpg",$obj_names->thumb_series_front,$i);
+			if (file_exists($dest))
+				unlink($dest);
+		}
+		for($i=0;$i<$serial_count;++$i) {
+			$dest = sprintf("%s%02d.jpg",$obj_names->thumb_series_front,$i);
+			$src = $parts[$i];
+			$response = @wp_remote_get( 
+				htmlspecialchars_decode($src), 
+				array( 
+					'timeout'  => 3000, 
+					'stream'   => true, 
+					'filename' => $dest 
+				) 
+			);
+			if ( is_wp_error( $response ) )
+			{
+				continue;
+			}
+			$image = new Bddb_SimpleImage();
+			$image->load($dest);
+			$image->resize($thumb_width, $thumb_height);
+			$image->save($dest);
+		}
+		wp_die();
+	 }
+	/******    AJAX回调函数 结束    ******/
+}//BDDB_Editor_Factory
+
+/**
+ * @class	BDDB_Editor
+ * @brief	编辑类，后台post用
+ * @date	2021-12-21
+ * @author	大致
+ * @version	0.5.1
+ * @since	0.0.1
+ * 
  */
 class BDDB_Editor {
 
@@ -18,8 +298,6 @@ class BDDB_Editor {
 	private $self_post_type;		/*档案自身的种类*/
 	private $default_item;			/*单条档案对应的默认值*/
 	private $options;				/*配置选项，在set_working_mode时被设置*/
-	private $qe_start;				/*quick_edit 开始项*/
-	private $qe_end;				/*quick_edit 结束项*/
 
 	/**
 	 * 构造函数。
@@ -43,11 +321,8 @@ class BDDB_Editor {
 			'max' => 9999,
 			'step' => 1,
 			'limit' => 10,//TODO
-			'show_admin_column' => false,
 		);
 		$this->self_post_type = false;
-		$this->qe_start = false;
-		$this->qe_end = false;
 		$this->common_items = array(
 			'bddb_display_name' => array(	'name' => 'bddb_display_name',
 											'label' => '表示名',
@@ -94,7 +369,6 @@ class BDDB_Editor {
 											'comment'=>'<strong>*必填</strong>，不填默认为保存年月。',
 											'sanitize_callback' => array($this, 'sanitize_view_time'),
 											'placeholder' => 'YYYY-MM',
-											'show_admin_column' => true,
 											),
 			'bddb_personal_rating' => array( 'name' => 'bddb_personal_rating',
 											'label' => '评分',
@@ -105,7 +379,6 @@ class BDDB_Editor {
 											'min' => '-1',
 											'max' => '100',
 											'placeholder' => '59',
-											'show_admin_column' => true,
 											),
 			'bddb_id_douban'		=>	array(	'name' => 'bddb_id_douban',
 											'label' => '豆瓣ID',
@@ -129,94 +402,15 @@ class BDDB_Editor {
 	}
 	
 	/********    外部函数 开始    ********/
-	/******  直接调用的外部函数 开始  ******/
-	/**
-	 * 后台初始化。
-	 * @public
-	 * @since 0.1.0
-	 * @version 0.4.1
-	 * @see		bddb_admin_init()
-	 */
-	public function admin_init() {
-		//统一到一个函数中方便查找。
-		add_action ( 'save_post', array($this, 'update_all_items'), 10, 2);
-		add_filter ( 'wp_insert_post_data', array($this, 'generate_content'), 10, 2);
-		add_action( 'wp_ajax_bddb_get_pic', array($this, 'download_pic') );
-		add_action( 'wp_ajax_bddb_get_imdbpic', array($this, 'download_imdbpic') );
-		add_action( 'wp_ajax_bddb_get_from_giantbomb', array($this, 'get_from_giantbomb') );
-		add_action( 'wp_ajax_bddb_get_scovers', array($this, 'download_serial_pics'));
-		//追加meta标题
-		add_filter( 'manage_posts_columns', array($this,'add_meta_headers'), 10, 2);
-		//显示meta
-		add_action( 'manage_posts_custom_column', array($this, 'show_custom_meta_value'), 10, 2 );
-		
-		add_filter( 'manage_edit-movie_sortable_columns', array($this, 'add_movie_sortable_columns'));
-		add_filter( 'manage_edit-book_sortable_columns', array($this, 'add_book_sortable_columns'));
-		add_filter( 'manage_edit-game_sortable_columns', array($this, 'add_game_sortable_columns'));
-		add_filter( 'manage_edit-album_sortable_columns', array($this, 'add_album_sortable_columns'));
-		//重写meta排序
-		add_action( 'pre_get_posts', array($this, 'resort_meta_column_query') );
-		//tax分类过滤
-		add_action( 'restrict_manage_posts', array($this, 'add_taxonomy_filter_ddl'), 10, 2 );
-		//修改每页显示数量
-		add_filter( 'edit_posts_per_page', array($this, 'modify_list_per_page'), 10, 2 );
-		//
-		add_action('quick_edit_custom_box', array($this, 'add_quickedit_items'), 10, 2);
-
-	}
-	/******  直接调用的外部函数 结束  ******/
-
 	/******  钩子调用的外部函数 开始  ******/
-	public function add_quickedit_items($column_name, $post_type) {
-		$this->set_working_mode($post_type);
-		if (isset($this->total_items[$column_name])) {
-			$item = $this->total_items[$column_name];
-		}
-		else {
-			return;
-		}
-		if (!$item['show_admin_column'] || 'meta' !== $item['type']) {
-			return;
-		}
-		if ($column_name == $this->qe_start) {
-			wp_nonce_field( 'bddb_q_edit_nonce', 'bddb_nonce' );
-			echo '<fieldset class="inline-edit-col-center"><div class="inline-edit-col"><div class="inline-edit-group wp-clearfix">';
-		}
-		
-		echo '<label class="alignleft">
-					<span class="title">'.$item['label'].'</span>
-					<span class="input-text-wrap"><input type="text" name="'.$column_name.'" value=""></span>
-				</label>';
-		if ($column_name == $this->qe_end) {
-			echo '</div></div></fieldset>';
-		}
-	}
 	
 	/**
-	 * 修改后台每页显示条数。
-	 * @public
-	 * @param	int	$per_page		每页显示条数
-	 * @param	string	$post_type		类型
-	 * @see		edit_posts_per_page
-	 * @since 	0.2.1
-	 */
-	public function modify_list_per_page($per_page, $post_type) {
-		if (BDDB_Statics::is_valid_type($post_type)) {
-			$per_page = 50;
-		}
-		return $per_page;
-	}
-	/**
 	 * 创建编辑盒子。
-	 * @public
-	 * @param	object	$pt		post
 	 * @see		action::register_meta_box_cb
-	 * @since 0.0.1
+	 * @since 	0.0.1
+	 * @version 0.5.4
 	 */
-	public function add_meta_box($pt) {
-		if(!$this->set_working_mode($pt->post_type)) {
-			return;
-		}
+	public function add_meta_box() {
 		switch($this->self_post_type){
 			case 'movie':
 			$addi = '影片'; 
@@ -246,20 +440,12 @@ class BDDB_Editor {
 
 	/**
 	 * 保存时更新追加的内容。
-	 * @public
 	 * @param int $post_ID	正在编辑的post_ID
-	 * @param object $post	正在编辑的post
 	 * @see		action::save_post
-	 * @since 0.0.1
-	 * @version 0.4.1
+	 * @since 	0.0.1
+	 * @version 0.5.4
 	 */
-	public function update_all_items($post_ID, $post) {
-		//验证信息在meta_box里
-		if (!isset( $_POST['bddb_nonce'] ) || !wp_verify_nonce( $_POST['bddb_nonce'], basename( __FILE__ ) ) )
-			return;
-		if (empty($this->self_post_type)){
-			$this->set_working_mode($post->post_type);
-		}
+	public function update_all_items($post_ID) {
 		if (!is_array($this->total_items)) {
 			return;
 		}
@@ -275,21 +461,17 @@ class BDDB_Editor {
 
 	/**
 	 * 根据附加项内容生成文章正文。
-	 * @public
 	 * @param array $data		要保存的post_data
 	 * @param array $postarr	还没有落地的post_data
 	 * @return array	$data
-	 * @see	filter::wp_insert_post_data
-	 * @since 0.0.1
+	 * @see		filter::wp_insert_post_data
+	 * @since 	0.0.1
+	 * @version 0.5.4
 	 */
 	public function generate_content($data, $postarr ) {
-		if (!isset($postarr['post_type']) || 
-			!BDDB_Statics::is_valid_type($postarr['post_type'])) {
-			return $data;
-		}
+
 		//使用_POST中的数据,它们来自box控件
 		//主要更新post_content的内容
-		$this->set_working_mode($postarr['post_type']);
 		//post_content中保存ID，方便其它post通过ID调用。
 		$data['post_content'] = 'ID:'.$postarr['ID']."\n";
 		foreach ($this->total_items as $item) {
@@ -302,10 +484,9 @@ class BDDB_Editor {
 
 	/**
 	 * 显示图片工具的callback
-	 * @public
 	 * @param object $post	正在编辑的wp的post
 	 * @see		add_meta_box()
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	public function show_status_meta_box($post) {
 		$names = bddb_get_poster_names($post->post_type, $post->ID);
@@ -410,379 +591,13 @@ class BDDB_Editor {
 		}
 		echo '</table></div>';
 	}
-
-	/**
-	 * 后台类别列表增加标题。
-	 * @public
-	 * @param string 	$columns	修改前的标题
-	 * @param string 	$post_type	list的种类
-	 * @see		filter::manage_posts_columns
-	 * @since 0.1.0
-	 */
-	public function add_meta_headers($columns, $post_type) {
-		if (!$this->self_post_type){
-			if (!$this->set_working_mode($post_type)){
-				return $columns;
-			}
-		}
-		//先删掉日期再加回来，让日期保持在最后一列。
-		unset($columns['date']);
-		foreach ($this->total_items as $arg) {
-			if ($arg['show_admin_column'] && $arg['type'] == 'meta') {
-				$columns[$arg['name']] = $arg['label'];
-			}
-		}
-		$columns['date'] = 'Date';
-		return $columns;
-	}
 	
-	/**
-	 * 后台类别列表增加显示内容。
-	 * @public
-	 * @param string 	$column_name	列标题
-	 * @param string 	$id				post_ID
-	 * @see		action::manage_posts_custom_column
-	 * @since 0.2.0
-	 */	
-	public function show_custom_meta_value($column_name, $id) {
-		$out = get_post_meta($id, $column_name, true);
-		if (empty($out)) {
-			if (0 != $out) {
-				$out = '&#8212;';
-			}
-		}
-		echo $out;
-	}
-	/**
-	 * 后台类别列表增加排序属性。
-	 * @public
-	 * @param array 	$columns	已经存在的排序列
-	 * @see		action::manage_{$this->screen->id}_sortable_columns
-	 * @since 0.1.0
-	 */
-	public function add_movie_sortable_columns($columns){
-		return $this->set_sortalbe_columns('movie', $columns);
-	}
-	/**
-	 * 后台类别列表增加排序属性。
-	 * @public
-	 * @param array 	$columns	已经存在的排序列
-	 * @see		action::manage_{$this->screen->id}_sortable_columns
-	 * @since 0.1.0
-	 */
-	public function add_book_sortable_columns($columns){
-		return $this->set_sortalbe_columns('book', $columns);
-	}
-	/**
-	 * 后台类别列表增加排序属性。
-	 * @public
-	 * @param array 	$columns	已经存在的排序列
-	 * @see		action::manage_{$this->screen->id}_sortable_columns
-	 * @since 0.1.0
-	 */
-	public function add_game_sortable_columns($columns){
-		return $this->set_sortalbe_columns('game', $columns);
-	}
-	/**
-	 * 后台类别列表增加排序属性。
-	 * @public
-	 * @param array 	$columns	已经存在的排序列
-	 * @see		action::manage_{$this->screen->id}_sortable_columns
-	 * @since 0.1.0
-	 */
-	public function add_album_sortable_columns($columns){
-		return $this->set_sortalbe_columns('album', $columns);
-	}
-
-	/**
-	 * 更改meta类型列的排序方法。
-	 * @public
-	 * @param object 	$query		WP_Query
-	 * @see		action::pre_get_posts
-	 * @since 0.1.0
-	 * @version 0.4.3
-	 */
-	public function resort_meta_column_query($query){
-		$orderby = $query->get( 'orderby' );
-		//这个值是register_type的时候注册的，默认没改过，也就是type本身。
-		$post_type = $query->get( 'post_type' );
-		if (!$this->set_working_mode($post_type)) {
-			return;
-		}
-		if (isset($this->total_items[$orderby]) && $this->total_items[$orderby]['show_admin_column']) {
-			$item = $this->total_items[$orderby];
-			if ('meta' == $item['type']) {
-				$meta_query = array(
-					//不存在或者按照名排序，任何一个条件都不能省略。
-					'relation' => 'OR',
-					array(
-						'key' => $item['name'],
-						'compare' => 'NOT EXISTS',
-					),
-					array(
-						'key' => $item['name'],
-					),
-				);
-				//如果是数字类型，转化成数字排序，这就是无法整合进tax排序函数的原因。
-				if ('number' == $item['inputstyle']) {
-					$meta_query[1]['type'] = 'NUMERIC';
-					$meta_query[0]['type'] = 'NUMERIC';
-				}
-				$query->set( 'meta_query', $meta_query );
-				$query->set( 'orderby', 'meta_value' );
-			}
-		}
-	}
-
-	/**
-	 * 显示taxonomy的下拉列表。
-	 * @public
-	 * @param string 	$post_type
-	 * @param array		$switch		未使用
-	 * @see		action::pre_get_posts
-	 * @since 0.1.0
-	 */
-	public function add_taxonomy_filter_ddl($post_type, $which){
-		if (!$this->set_working_mode($post_type)) {
-			return;
-		}
-		foreach ($this->total_items as $key=>$item){
-			if ($item['type'] != 'tax' || !$item['show_admin_column']) {
-				continue;
-			}
-			$selection = isset($_GET[$key])?$_GET[$key]:'';
-			echo '<label class="screen-reader-text" for="'.$key.'">Filter by '.$key.'</label>';
-			$dropdown_arg = array(
-				'show_option_none' => get_taxonomy($key)->labels->all_items,
-				'option_none_value' => '',
-				'orderby' => 'count',
-				'order' => 'DESC',
-				'name' => $key,
-				'value_field' => 'slug',
-				'taxonomy' => $key,
-				'selected' => $selection,
-			);
-			wp_dropdown_categories($dropdown_arg);
-		}
-	}
-
-	/******    AJAX回调函数 开始    ******/
-	/**
-	 * 获取封面的Callback。
-	 * @public
-	 * @see		AJAX::bddb_get_pic
-	 * @since 0.0.1
-	 */
-	 public function download_pic(){
-		 if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
-			wp_die();
-		}
-		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-pic-".$_POST['id'])) { 
-			wp_die();
-		}
-		$this->set_working_mode($_POST['ptype']);
-		$names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
-		$poster_full_name = $names->poster_name;
-		$thumbnail_full_name = $names->thumb_name;
-		if (file_exists($poster_full_name)) {
-			unlink($poster_full_name);
-		}
-		if (file_exists($thumbnail_full_name)) {
-			unlink($thumbnail_full_name);
-		}
-		$piclink = htmlspecialchars_decode($_POST['piclink']);
-		if (strpos($piclink, "doubanio.com")> 0 && strpos($piclink,".webp")>0){
-			$piclink = str_replace(".webp", ".jpg", $piclink);
-		}
-		$response = @wp_remote_get( 
-				$piclink, 
-				array( 
-					'timeout'  => 3000, 
-					'stream'   => true, 
-					'sslverify'	=> false,
-					'filename' => $poster_full_name 
-				) 
-			);
-		if ( is_wp_error( $response ) )
-		{
-			return false;
-		}
-		$full_width = intval($this->options['poster_width']);
-		$full_height = floor($full_width * 1.48);
-		$thumb_width = intval($this->options['thumbnail_width']);
-		$thumb_height = floor($thumb_width * 1.48);
-		if ('album' == $_POST['ptype']) {
-			$full_height = $full_width;
-			$thumb_height = $thumb_width;
-		}
-		$image = new Bddb_SimpleImage();
-		$image->load($poster_full_name);
-		$image->resize($full_width, $full_height);
-		$image->save($poster_full_name);
-		$image->resize($thumb_width, $thumb_height);
-		$image->save($thumbnail_full_name);
-		wp_die();
-	 }
-	 
-	 /**
-	 * 获取封面的Callback。
-	 * @public
-	 * @see		AJAX::bddb_get_imdbpic
-	 * @since 0.3.6
-	 */
-	 public function download_imdbpic(){
-		 if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['imdbno']) ) {
-			wp_die();
-		}
-		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-imdbpic-".$_POST['id'])) { 
-			wp_die();
-		}
-		$this->set_working_mode('movie');
-		$names = bddb_get_poster_names('movie', $_POST['id']);
-		$poster_full_name = $names->poster_name;
-		$thumbnail_full_name = $names->thumb_name;
-		if (file_exists($poster_full_name)) {
-			unlink($poster_full_name);
-		}
-		if (file_exists($thumbnail_full_name)) {
-			unlink($thumbnail_full_name);
-		}
-		
-		$omdbf = new BDDB_DoubanFetcher('movie');
-		$omdb_ret = $omdbf->fetch($_POST['imdbno']);
-		$piclink = $omdb_ret['content']['pic'];
-		$piclink = htmlspecialchars_decode($piclink);
-		$response = @wp_remote_get( 
-				$piclink, 
-				array( 
-					'timeout'  => 3000, 
-					'stream'   => true, 
-					'filename' => $poster_full_name 
-				) 
-			);
-		if ( is_wp_error( $response ) )
-		{
-			wp_die();
-		}
-		$full_width = intval($this->options['poster_width']);
-		$full_height = floor($full_width * 1.48);
-		$thumb_width = intval($this->options['thumbnail_width']);
-		$thumb_height = floor($thumb_width * 1.48);
-		$image = new Bddb_SimpleImage();
-		$image->load($poster_full_name);
-		$image->resize($full_width, $full_height);
-		$image->save($poster_full_name);
-		$image->resize($thumb_width, $thumb_height);
-		$image->save($thumbnail_full_name);
-		wp_die();
-	 }
-	 
-	 /**
-	 * 获取封面的Callback。
-	 * @public
-	 * @see		AJAX::bddb_get_from_giantbomb
-	 * @since 0.4.1
-	 */
-	 public function get_from_giantbomb() {
-		$resp = array('result' => 'ERROR');
-		if (!isset($_GET['nonce']) || 
-			!isset($_GET['id']) || 
-			!isset($_GET['giantbombno']) || 
-			!isset($_GET['language']) || 
-			!isset($_GET['platform'])) {
-			wp_die();
-		}
-		if ( !wp_verify_nonce($_GET['nonce'],"bddb-get-giantbomb-".$_GET['id'])) { 
-			wp_die();
-		}
-		$this->set_working_mode('game');
-		$arg = array(
-			'language' => $_GET['language'],
-			'platform' => $_GET['platform'],
-		);
-		
-		$gbf = new BDDB_DoubanFetcher('game');
-		$gb_ret = $gbf->get_from_giantbomb($_GET['giantbombno'], $arg);
-		$resp['result'] = 'OK';
-		$resp['content'] = $gb_ret;
-		wp_send_json($resp) ;
-		wp_die();
-	 }
-	 
-	/**
-	 * 获取系列封面的AJAX的Callback。
-	 * @public
-	 * @see		AJAX::bddb_get_scovers
-	 * @since 0.0.8
-	 */
-	 public function download_serial_pics(){
-		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
-			wp_die();
-		}
-		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-scovers-".$_POST['id'])) { 
-			wp_die();
-		}
-		$this->set_working_mode($_POST['ptype']);
-		$default_serial_count = $this->options['b_max_serial_count'];
-		$thumb_width = intval($this->options['thumbnail_width']);
-		$thumb_height = floor($thumb_width * 1.48);
-		if ('album' == $_POST['ptype']) {
-			$thumb_height = $thumb_width;
-		}
-		$obj_names = bddb_get_poster_names($_POST['ptype'],$_POST['id']);
-		$slinks = $_POST['slinks'];
-		$parts = explode(";", $slinks);
-		$serial_count = min(count($parts), $default_serial_count, $_POST['stotal']);
-		for($i=0; $i<$default_serial_count; ++$i) {
-			$dest = sprintf("%s%02d.jpg",$obj_names->thumb_series_front,$i);
-			if (file_exists($dest))
-				unlink($dest);
-		}
-		for($i=0;$i<$serial_count;++$i) {
-			$dest = sprintf("%s%02d.jpg",$obj_names->thumb_series_front,$i);
-			$src = $parts[$i];
-			$response = @wp_remote_get( 
-				htmlspecialchars_decode($src), 
-				array( 
-					'timeout'  => 3000, 
-					'stream'   => true, 
-					'filename' => $dest 
-				) 
-			);
-			if ( is_wp_error( $response ) )
-			{
-				continue;
-			}
-			$image = new Bddb_SimpleImage();
-			$image->load($dest);
-			$image->resize($thumb_width, $thumb_height);
-			$image->save($dest);
-		}
-		wp_die();
-	 }
-	/******    AJAX回调函数 结束    ******/
 	/******  钩子调用的外部函数 结束  ******/
 
 	/********    外部函数 结束    ********/
 
 
-	/********    私有函数 开始    ********/
-	/**
-	 * 后台类别列表增加排序属性。
-	 * @private
-	 * @param string 	$post_type
-	 * @param array 	$columns	已经存在的排序列
-	 * @since 0.1.0
-	 */
-	private function set_sortalbe_columns($post_type, $columns){
-		$this->set_working_mode($post_type);
-		foreach($this->total_items as $arg) {
-			if ($arg['show_admin_column'] && 'meta' == $arg['type']){
-				$columns[$arg['name']] = $arg['name'];
-			}
-		}
-		return $columns;
-	}
+	/********    私有函数 开始    ********
 
 	/****   保存选项的优化回调函数 开始   ****/
 	/**
@@ -1185,16 +1000,6 @@ class BDDB_Editor {
 		if (!is_array($inItem)){
 			return $this->default_item;
 		}
-		if( isset($inItem['show_admin_column']) &&
-			!empty($inItem['show_admin_column']) &&
-			(!isset($inItem['type'])|| 'tax' != $inItem['type'])) {
-			if (!$this->qe_start) {
-				$this->qe_start = $inItem['name'];
-				$this->qe_end = $inItem['name'];
-			}else {
-				$this->qe_end = $inItem['name'];
-			}
-		}
 		return array_merge($this->default_item, $inItem);
 	}
 	
@@ -1214,21 +1019,18 @@ class BDDB_Editor {
 											'size' => 16,
 											'type' => 'tax',
 											'comment' => '',
-											'show_admin_column' => true,
 											),
 			'm_p_director'		=>	array(	'name' => 'm_p_director',
 											'label' => '导演',
 											'size' => 16,
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
-											'show_admin_column' => true,
 											),
 			'm_p_actor'			=>	array(	'name' => 'm_p_actor',
 											'label' => '主要演员',
 											'size' => 32,
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
-											'show_admin_column' => true,
 											),
 			'm_genre'			=>	array(	'name' => 'm_genre',
 											'label' => '类型',
@@ -1260,7 +1062,6 @@ class BDDB_Editor {
 											'size' => 16,
 											'type' => 'tax',
 											'placeholder'=>'豆瓣250,IMDB250,露点,三级,R级',
-											'show_admin_column' => true,
 											),
 			'm_id_imdb'			=>	array(	'name' => 'm_id_imdb',
 											'label' => 'IMDB编号',
@@ -1295,7 +1096,6 @@ class BDDB_Editor {
 											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
-											'show_admin_column' => true,
 											),
 			'b_p_writer'		=>	array(	'name' => 'b_p_writer',
 											'label' => '作者',
@@ -1303,7 +1103,6 @@ class BDDB_Editor {
 											'type' => 'tax',
 											'comment'=>'<strong>*作者和编者至少填一项</strong>',
 											'sanitize_callback' => array($this, 'sanitize_name'),
-											'show_admin_column' => true,
 											),
 			'b_p_translator'	=>	array(	'name' => 'b_p_translator',
 											'label' => '译者',
@@ -1342,7 +1141,6 @@ class BDDB_Editor {
 											'label' => '特殊头衔',
 											'size' => 16,
 											'type' => 'tax',
-											'show_admin_column' => true,
 											),
 			'b_bl_series'	=>	array(	'name' => 'b_bl_series',
 											'label' => '丛书',
@@ -1393,14 +1191,12 @@ class BDDB_Editor {
 											'label' => '类别',
 											'size' => 16,
 											'type' => 'tax',
-											'show_admin_column' => true,
 											),
 			'g_platform'	=>		array(	'name' => 'g_platform',
 											'label' => '机种',
 											'size' => 16,
 											'type' => 'tax',
 											'placeholder' => 'FC,MD,GB,GBC,GBA,SFC,ARC,PC,PS...',
-											'show_admin_column' => true,
 											),
 			'g_publisher'	=>		array(	'name' => 'g_publisher',
 											'label' => '制作方',
@@ -1417,7 +1213,6 @@ class BDDB_Editor {
 											'max' => '9999.0',
 											'step' => '0.1',
 											'sanitize_callback' => array($this, 'sanitize_cost_time'),
-											'show_admin_column' => true,
 											),
 			'g_giantbomb_id'	=>		array(	'name' => 'g_giantbomb_id',
 											'label' => 'GB编号',
@@ -1442,13 +1237,11 @@ class BDDB_Editor {
 											'label' => '地区',
 											'size' => 16,
 											'type' => 'tax',
-											'show_admin_column' => true,
 											),
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'size' => 16,
 											'type' => 'tax',
-											'show_admin_column' => true,
 											),
 			'a_p_musician'	=>		array(	'name' => 'a_p_musician',
 											'label' => '音乐家',
@@ -1456,7 +1249,6 @@ class BDDB_Editor {
 											'type' => 'tax',
 											'placeholder'=>'演唱者/乐队/演奏家',
 											'sanitize_callback' => array($this, 'sanitize_name'),
-											'show_admin_column' => true,
 											),
 			'a_p_producer'	=>		array(	'name' => 'a_p_producer',
 											'label' => '制作人',
