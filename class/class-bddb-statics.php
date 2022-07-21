@@ -29,13 +29,13 @@ class BDDB_Statics {
 		'complex_name' => 'regions',
 		'show_admin_column' => true,
 		),
-		//地区/游戏
+		//语言版本/游戏
 	array('tax' => 'g_language',
 		'obj' => array( 'game' ),
 		'label' => 'Language',
 		'slug' => 'g_language',
 		'complex_name' => 'languages',
-		'show_admin_column' => true,
+		'show_admin_column' => false,
 		),
 		//地区/专辑
 	array('tax' => 'a_region',
@@ -290,7 +290,7 @@ class BDDB_Statics {
 	 * 检查已经存在的种类。
 	 * @public
 	 * @see		bddb_init_actions()
-	 * @version	0.5.1
+	 * @version	0.5.4
 	 * @since 	0.1.1
 	 */
 	public static function check_types(){
@@ -299,7 +299,6 @@ class BDDB_Statics {
         	return;
 		}
 		array_map('self::generte_type_taxonomies', self::$taxonomies);
-		$e = new BDDB_Editor();
 		foreach( self::$post_types as $bddb_type) {
 			$labels = array(
 				'singular_name'			=> ucfirst($bddb_type['slug']),
@@ -312,7 +311,7 @@ class BDDB_Statics {
 				'label'                 => $bddb_type['label'],
 				'labels'                => $labels,
 				'show_in_rest'          => false,	//不支持REST
-				'register_meta_box_cb'  => array($e, 'add_meta_box'),
+				'register_meta_box_cb'  => 'BDDB_Editor_Factory::add_meta_boxes',
 				'menu_position'         => $bddb_type['menu_position'],
 				'menu_icon'           	=> $bddb_type['icon'],
 				'supports'              => array('title', 'editor'/*, 'thumbnail'*/),
