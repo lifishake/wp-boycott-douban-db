@@ -116,36 +116,64 @@ jQuery(document).ready(function($) {
 						the_input.value = response.result.title;
 					}
                 }
+                //通用
                 the_input = document.getElementsByName("bddb_original_name");
-                if (the_input.length == 1 && response.result.original_name.length > 0){
+                if (the_input.length == 1 && response.result.original_name !== undefined){
                     the_input[0].value = response.result.original_name;
                 }
                 the_input = document.getElementsByName("bddb_poster_link");
-                if (the_input.length == 1 && response.result.pic.length > 0){
+                if (the_input.length == 1 && response.result.pic !== undefined){
                     the_input[0].value = response.result.pic;
                 }
                 the_input = document.getElementsByName("bddb_score_douban");
-                if (the_input.length == 1 && response.result.average_score.length > 0){
+                if (the_input.length == 1 && response.result.average_score !== undefined){
                     the_input[0].value = response.result.average_score;
                 }
                 the_input = document.getElementsByName("bddb_id_douban");
-                if (the_input.length == 1 && response.result.dou_id.length > 0){
+                if (the_input.length == 1 && response.result.dou_id !== undefined){
                     the_input[0].value = response.result.dou_id;
                 }
+                              
+                the_input = document.getElementsByName("bddb_publish_time");
+                if (the_input.length == 1 && response.result.pubdate !== undefined){
+                    the_input[0].value = response.result.pubdate;
+                }
+                the_input = document.getElementsByName("bddb_aka");
+                if (the_input.length == 1 && response.result.akas !== undefined && !the_input[0].value){
+                    the_input[0].value = response.result.akas;
+                }
+                if (response.result.url !== undefined && response.result.url) {
+                    link_bar[0].value = response.result.url;
+                }
+
+                //书
                 the_input = document.getElementsByName("b_region");
-                if (the_input.length == 1 && response.result.country.length > 0){
+                if (the_input.length == 1 && response.result.country !== undefined){
                     the_input[0].value = response.result.country;
                 }
                 the_input = document.getElementsByName("b_publisher");
-                if (the_input.length == 1 && response.result.publisher.length > 0){
+                if (the_input.length == 1 && response.result.publisher !== undefined){
                     the_input[0].value = response.result.publisher;
                 }
-                the_input = document.getElementsByName("bddb_publish_time");
-                if (the_input.length == 1 && response.result.pubdate.length > 0){
-                    the_input[0].value = response.result.pubdate;
+                the_input = document.getElementsByName("b_p_writer");
+                if (the_input.length == 1 && response.result.author !== undefined){
+                    the_input[0].value = response.result.author;
                 }
+                the_input = document.getElementsByName("b_p_translator");
+                if (the_input.length == 1 && response.result.translator !== undefined){
+                    the_input[0].value = response.result.translator;
+                }
+                the_input = document.getElementsByName("b_series_total");
+                if (the_input.length == 1 && response.result.series_total !== undefined){
+                    the_input[0].value = response.result.series_total;
+                    if (response.result.series_total > 1) {
+                        document.getElementsByName("b_bl_series")[0].checked = true;
+                    }
+                }
+
+                //影
                 the_input = document.getElementsByName("m_region");
-                if (the_input.length == 1 && response.result.country.length > 0){
+                if (the_input.length == 1 && response.result.country !== undefined){
                     $str_regin = response.result.country;
                     $iPos = $str_regin.indexOf(",");
                     if ($iPos>0) {
@@ -155,52 +183,65 @@ jQuery(document).ready(function($) {
                     }
                 }
                 the_input = document.getElementsByName("m_genre");
-                if (the_input.length == 1 && response.result.genre.length > 0){
+                if (the_input.length == 1 && response.result.genre !== undefined){
                     the_input[0].value = response.result.genre;
                 }
+
+                the_input = document.getElementsByName("m_p_director");
+                if (the_input.length == 1 && response.result.director !== undefined){
+                    the_input[0].value = response.result.director;
+                }
+                the_input = document.getElementsByName("m_p_actor");
+                if (the_input.length == 1 && response.result.actor !== undefined){
+                    the_input[0].value = response.result.actor;
+                }
+                the_input = document.getElementsByName("m_p_screenwriter");
+                if (the_input.length == 1 && response.result.screenwriter !== undefined){
+                    the_input[0].value = response.result.screenwriter;
+                }
+                the_input = document.getElementsByName("m_id_imdb");
+                if (the_input.length == 1 && response.result.imdbid !== undefined){
+                    the_input[0].value = response.result.imdbid;
+                }
+                the_input = document.getElementsByName("m_score_imdb");
+                if (the_input.length == 1 && response.result.imdb_score !== undefined){
+                    the_input[0].value = response.result.imdb_score;
+                }
+
+                //游
                 the_input = document.getElementsByName("g_genre");
                 if (the_input.length == 1 && response.result.genre !== undefined){
                     the_input[0].value = response.result.genre;
                 }
-                the_input = document.getElementsByName("m_p_director");
-                if (the_input.length == 1 && response.result.director.length > 0){
-                    the_input[0].value = response.result.director;
+
+                //碟
+                the_input = document.getElementsByName("a_genre");
+                if (the_input.length == 1 && response.result.genre !== undefined){
+                    the_input[0].value = response.result.genre;
                 }
-                the_input = document.getElementsByName("m_p_actor");
-                if (the_input.length == 1 && response.result.actor.length > 0){
-                    the_input[0].value = response.result.actor;
-                }
-                the_input = document.getElementsByName("m_p_screenwriter");
-                if (the_input.length == 1 && response.result.screenwriter.length > 0){
-                    the_input[0].value = response.result.screenwriter;
-                }
-                the_input = document.getElementsByName("m_id_imdb");
-                if (the_input.length == 1 && response.result.imdbid.length > 0){
-                    the_input[0].value = response.result.imdbid;
-                }
-                the_input = document.getElementsByName("m_score_imdb");
-                if (the_input.length == 1 && response.result.imdb_score.length > 0){
-                    the_input[0].value = response.result.imdb_score;
-                }
-                the_input = document.getElementsByName("b_p_writer");
-                if (the_input.length == 1 && response.result.author.length > 0){
-                    the_input[0].value = response.result.author;
-                }
-                the_input = document.getElementsByName("b_p_translator");
-                if (the_input.length == 1 && response.result.translator.length > 0){
-                    the_input[0].value = response.result.translator;
-                }
-                the_input = document.getElementsByName("b_series_total");
-                if (the_input.length == 1 && response.result.series_total.length > 0){
-                    the_input[0].value = response.result.series_total;
-                    if (response.result.series_total > 1) {
-                        document.getElementsByName("b_bl_series")[0].checked = true;
+                the_input = document.getElementsByName("a_region");
+                if (the_input.length == 1 && response.result.country !== undefined){
+                    $str_regin = response.result.country;
+                    $iPos = $str_regin.indexOf(",");
+                    if ($iPos>0) {
+                        the_input[0].value = $str_regin.substring(0, $iPos );
+                    }else {
+                        the_input[0].value = response.result.country;
                     }
                 }
-                the_input = document.getElementsByName("bddb_aka");
-                if (the_input.length == 1 && response.content.akas && !the_input[0].value){
-                    the_input[0].value = response.content.akas;
+                the_input = document.getElementsByName("a_p_musician");
+                if (the_input.length == 1 && response.result.artist !== undefined){
+                    the_input[0].value = response.result.artist;
                 }
+                the_input = document.getElementsByName("a_quantity");
+                if (the_input.length == 1 && response.result.quantity !== undefined){
+                    the_input[0].value = response.result.quantity;
+                }
+                the_input = document.getElementsByName("a_publisher");
+                if (the_input.length == 1 && response.result.publisher !== undefined){
+                    the_input[0].value = response.result.publisher;
+                }
+
 				myfetchstsbar.value = "网页已抓取.";
                 mypicbar.value="网页抓取完毕.";
             },
@@ -308,25 +349,33 @@ jQuery(document).ready(function($) {
                 if (the_input.length == 1 && response.content.original_name){
                     the_input[0].value = response.content.original_name;
                 }
+                the_input = document.getElementsByName("bddb_external_link");
+                if (the_input.length == 1 && response.content.url !== undefined && !the_input[0].value){
+                    the_input[0].value = response.content.url;
+                }
 				the_input = document.getElementsByName("bddb_aka");
-                if (the_input.length == 1 && response.content.akas){
+                if (the_input.length == 1 && response.content.akas !== undefined){
                     the_input[0].value = response.content.akas;
                 }
-				the_input = document.getElementsByName("g_genre");
-                if (the_input.length == 1 && response.content.genre){
-                    the_input[0].value = response.content.genre;
-                }
-                the_input = document.getElementsByName("g_publisher");
-                if (the_input.length == 1 && response.content.publisher){
-                    the_input[0].value = response.content.publisher;
-                }
 				the_input = document.getElementsByName("bddb_publish_time");
-                if (the_input.length == 1 && response.content.pubdate){
+                if (the_input.length == 1 && response.content.pubdate !== undefined){
                     the_input[0].value = response.content.pubdate;
                 }
 				the_input = document.getElementsByName("bddb_poster_link");
-                if (the_input.length == 1 && response.content.pic){
+                if (the_input.length == 1 && response.content.pic !== undefined){
                     the_input[0].value = response.content.pic;
+                }
+                the_input = document.getElementsByName("g_genre");
+                if (the_input.length == 1 && response.content.genre !== undefined && !the_input[0].value){
+                    the_input[0].value = response.content.genre;
+                }
+                the_input = document.getElementsByName("g_publisher");
+                if (the_input.length == 1 && response.content.publisher !== undefined){
+                    the_input[0].value = response.content.publisher;
+                }
+                the_input = document.getElementsByName("g_platform");
+                if (the_input.length == 1 && response.content.platform !== undefined && !the_input[0].value){
+                    the_input[0].value = response.content.platform;
                 }
                 myfetchstsbar.value = "网页已抓取.";
                 mypicbar.value="giantbomb取得成功.";

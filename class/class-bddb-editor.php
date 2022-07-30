@@ -167,8 +167,7 @@ class BDDB_Editor_Factory {
 		   unlink($thumbnail_full_name);
 	   }
 	   
-	   $omdbf = new BDDB_DoubanFetcher('movie');
-	   $omdb_ret = $omdbf->fetch($_POST['imdbno']);
+	   $omdb_ret = BDDB_Fetcher::fetch($_POST['imdbno']);
 	   $piclink = $omdb_ret['content']['pic'];
 	   $piclink = htmlspecialchars_decode($piclink);
 	   $response = @wp_remote_get( 
@@ -219,10 +218,8 @@ class BDDB_Editor_Factory {
 			'platform' => $_GET['platform'],
 		);
 		
-		$gbf = new BDDB_DoubanFetcher('game');
-		$gb_ret = $gbf->get_from_giantbomb($_GET['giantbombno'], $arg);
 		$resp['result'] = 'OK';
-		$resp['content'] = $gb_ret;
+		$resp['content'] = BDDB_Fetcher::get_from_giantbomb($_GET['giantbombno'], $arg);
 		wp_send_json($resp) ;
 		wp_die();
 	 }
@@ -306,7 +303,6 @@ class BDDB_Editor {
 	 * @since 0.0.1
 	 */
 	public function __construct($post_type = false){
-		$this->settings = false;
 		$this->options = false;
 		$this->default_item = array(
 			'name' => '',
@@ -520,10 +516,9 @@ class BDDB_Editor {
 	}
 	/**
 	 * 显示编辑盒子。
-	 * @public
 	 * @param object $post	正在编辑的wp的post
 	 * @see		add_meta_box()
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 * @version 0.5.1
 	 */
 	public function show_meta_box($post) {
@@ -602,7 +597,6 @@ class BDDB_Editor {
 	/****   保存选项的优化回调函数 开始   ****/
 	/**
 	 * 优化个人评分。
-	 * @protected
 	 * @param string $str	编辑框中的评分
 	 * @return string	-1~100的十进制字符串
 	 * @see		update_meta()->sanitize_callback
@@ -619,11 +613,10 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化原名。如果输入参数为空,则把显示名复制到原名上
-	 * @protected
 	 * @param string $str	编辑框中的原名
 	 * @return string	原名
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function sanitize_original_name($str) {
 		if ($str == "" && isset($_POST['bddb_display_name'])) {
@@ -634,11 +627,10 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化评价。如果输入参数为空，则显示“没有评价”。如果结尾没输入结束标点，则用句号补足。
-	 * @protected
 	 * @param string $str	编辑框中的原名
 	 * @return string	原名
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 * @version 0.5.3
 	 */
 	protected function sanitize_personal_review($str) {
@@ -655,11 +647,10 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化系列作品的封面列表。
-	 * @protected
 	 * @param 	string $str	编辑框中的所有封面地址
 	 * @return 	string	优化后的封面地址
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function sanitize_series_covers($str) {
 		//之前油猴采集到的链接用逗号分隔，替换成分号。
@@ -668,22 +659,20 @@ class BDDB_Editor {
 	}
 	/**
 	 * 优化链接输入。
-	 * @protected
 	 * @param 	string $str	编辑框中的所有地址
 	 * @return 	string	优化后的地址
-	 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.0.1
+	 * @see		update_meta()->sanitize_callback
+	 * @since 	0.0.1
 	 */
 	protected function sanitize_link($str) {
 		return htmlspecialchars_decode($str);
 	}
 	/**
 	 * 优化人名输入。
-	 * @protected
 	 * @param 	string $str	编辑框中的人名
 	 * @return 	string	优化后的人名
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function sanitize_name($str) {
 		if (strpos($str, ',')) {
@@ -694,17 +683,16 @@ class BDDB_Editor {
 				$str = implode(', ',$arr_person);
 			}
 		}		
-		return str_replace(".","·", $str);
+		return str_replace(array(".","•"),"·", $str);
 	}
 
 	/**
 	 * 优化接触时间，不填时默认为当天。
-	 * @protected
 	 * @param string $str	编辑框中的接触时间
 	 * @return string	观影/阅读/游戏/欣赏时间
 	 * @see		update_meta()->sanitize_callback
 	 * @version 0.4.1
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function sanitize_view_time($str) {
 		if (empty($str)) {
@@ -717,11 +705,10 @@ class BDDB_Editor {
 
 	/**
 	 * 优化花费时间，不填时默认0.5。
-	 * @public
 	 * @param string $str	编辑框中的花费时间
 	 * @return string	花费时间
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function sanitize_cost_time($str) {
 		$int = intval($str);
@@ -733,11 +720,10 @@ class BDDB_Editor {
 	
 	/**
 	 * 优化丛书本数，不填时默认为非丛书，设成1本。
-	 * @protected
 	 * @param string $str	编辑框中的丛书本数
 	 * @return string	丛书本数
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function sanitize_series_total($str) {
 		$int = intval($str);
@@ -749,11 +735,10 @@ class BDDB_Editor {
 
 	/**
 	 * 优化电影类型。
-	 * @protected
 	 * @param string $str	编辑框中的电影类型
 	 * @return string	电影类型
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.2.9
+	 * @since 	0.2.9
 	 */
 	protected function sanitize_m_genre($str) {
 		$str = str_replace("纪录片", "纪录", $str);
@@ -762,11 +747,10 @@ class BDDB_Editor {
 
 	/**
 	 * 优化图片链接。
-	 * @protected
 	 * @param string $str	编辑框中的图片链接
 	 * @return string	图片链接
 	 * @see		update_meta()->sanitize_callback
-	 * @since 0.2.9
+	 * @since 	0.2.9
 	 */
 	protected function sanitize_post_link($str) {
 		if (strpos($str, "doubanio.com")> 0 && strpos($str,".webp")>0){
@@ -780,11 +764,10 @@ class BDDB_Editor {
 	/**** comment 列的特殊回调函数 开始 ****/
 	/**
 	 * 获取封面的按钮。
-	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function echo_poster_button( $post ) {
 		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
@@ -796,11 +779,10 @@ class BDDB_Editor {
 	
 	/**
 	 * 抓取按钮。
-	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function echo_fetch_button($post) {
 		$link = get_post_meta($post->ID, 'bddb_external_link',true);
@@ -811,11 +793,10 @@ class BDDB_Editor {
 
 	/**
 	 * 取多张封面按钮。
-	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
-	 * @since 0.0.8
+	 * @since 	0.0.8
 	 */
 	protected function echo_series_covers_button($post) {
 		$links = get_post_meta($post->ID, 'b_series_covers',true);
@@ -827,11 +808,10 @@ class BDDB_Editor {
 
 	/**
 	 * 取imdb封面按钮。
-	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
-	 * @since 0.3.5
+	 * @since 	0.3.5
 	 */
 	protected function echo_imdbpic_button($post) {
 		$nonce_str = wp_create_nonce('bddb-get-imdbpic-'.$post->ID);
@@ -842,11 +822,10 @@ class BDDB_Editor {
 
 	/**
 	 * 取giantbomb情报按钮。
-	 * @protected
 	 * @param object $post
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
-	 * @since 0.4.1
+	 * @since 	0.4.1
 	 */
 	protected function echo_giantbomb_button($post) {
 		$nonce_str = wp_create_nonce('bddb-get-giantbomb-'.$post->ID);
@@ -856,12 +835,11 @@ class BDDB_Editor {
 
 	/**
 	 * 为taxinomy类型的输入项增加辅助标签。
-	 * @private
 	 * @param int $id	正在编辑的post_ID
 	 * @param array $item	要更新的条目
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
-	 * @since 0.1.0
+	 * @since 	0.1.0
 	 */
 	private function get_tax_hint_str($id, $item) {
 		if (!is_array($item) || !isset($item['type']) || $item['type']!=='tax') {
@@ -901,12 +879,11 @@ class BDDB_Editor {
 	/******      工具函数 开始      ******/
 	/**
 	 * 更新term项目。
-	 * @private
 	 * @param int $post_ID	正在编辑的post_ID
 	 * @param array $item	要更新的条目
 	 * @return	string	更新后的内容
 	 * @see $this->update_all_items()
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 * @version 0.4.1
 	 */
 	private function update_terms($post_ID, $item) {
@@ -931,12 +908,11 @@ class BDDB_Editor {
 
 	/**
 	 * 更新meta项目。
-	 * @private
 	 * @param int $post_ID	正在编辑的post_ID
 	 * @param array $item	要更新的条目
 	 * @return	string	更新后的内容
 	 * @see $this->update_all_items()
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 * @version 0.4.1
 	 */
 	private function update_meta($post_ID, $item) {
@@ -990,11 +966,10 @@ class BDDB_Editor {
 	
 	/**
 	 * 为项目添加默认值。
-	 * @protected
 	 * @return	array		
 	 * @param	array		$inItem
 	 * @see 	$this->set_working_mode()->array_map
-	 * @since 0.0.1
+	 * @since 	0.0.1
 	 */
 	protected function merge_default_column($inItem) {
 		if (!is_array($inItem)){
@@ -1005,7 +980,6 @@ class BDDB_Editor {
 	
 	/**
 	 * 设置电影的表示条目。
-	 * @private
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
@@ -1083,7 +1057,6 @@ class BDDB_Editor {
 	}
 	/**
 	 * 设置电影的表示条目。
-	 * @private
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
@@ -1167,9 +1140,8 @@ class BDDB_Editor {
 	}
 	/**
 	 * 设置电影的表示条目。
-	 * @private
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
-	 * @since 0.1.0
+	 * @since 	0.1.0
 	 * @version 0.4.1
 	 */
 	private function set_additional_items_game() {
@@ -1224,7 +1196,6 @@ class BDDB_Editor {
 	}
 	/**
 	 * 设置电影的表示条目。
-	 * @private
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
 	 */
@@ -1248,12 +1219,6 @@ class BDDB_Editor {
 											'size' => 16,
 											'type' => 'tax',
 											'placeholder'=>'演唱者/乐队/演奏家',
-											'sanitize_callback' => array($this, 'sanitize_name'),
-											),
-			'a_p_producer'	=>		array(	'name' => 'a_p_producer',
-											'label' => '制作人',
-											'size' => 16,
-											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'a_quantities'	=>		array(	'name' => 'a_quantity',

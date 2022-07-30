@@ -423,6 +423,15 @@ class BDDB_Typed_List {
 		return $per_page;
 	}
 
+	/**
+	 * 快速编辑页面显示追加的meta框。
+	 * @param	int		$column_name	列名（包括自己追加的前缀）		
+	 * @param	string	$post_type		类型
+	 * @return  int
+	 * @see		filter::quick_edit_custom_box
+	 * @since 	0.2.1
+	 * @version 0.5.4
+	 */
 	public static function add_quickedit_items($column_name, $post_type) {
 		$my_columns  = self::get_columns($post_type) ;
 		if (!$my_columns || empty($my_columns)) {
@@ -443,6 +452,7 @@ class BDDB_Typed_List {
 			wp_nonce_field( 'bddb_q_edit_nonce', 'bddb_nonce' );
 			echo '<fieldset class="inline-edit-col-center"><div class="inline-edit-col"><div class="inline-edit-group wp-clearfix">';
 		}
+		//TODO表示框里的内容
 		//$val_str = get_post_meta($post->ID, $arg['name'], true);
 		echo '<label class="alignleft">
 					<span class="title">'.$item['label'].'</span>

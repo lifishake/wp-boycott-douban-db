@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.5.4
+ * Version:     0.5.5
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -27,6 +27,7 @@ register_uninstall_hook(__FILE__, 'bddb_plugin_uninstall');
 require_once( BDDB_PLUGIN_DIR . '/bddb-funcs.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-editor.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-douban-fecther.php');
+require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-fecther.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-image.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-templates.php');
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
@@ -185,8 +186,7 @@ function bddb_ajax_douban_fetch() {
 	}
 	$post_id = $_GET['id'];
 	$link = $_GET['doulink'];
-	$fecther = new BDDB_DoubanFetcher($_GET['ptype']);
-	$got = $fecther->fetch($link);
+	$got = BDDB_Fetcher::fetch($link, $_GET['ptype']);
 	$resp['result'] = $got['content'];
 	wp_send_json($resp) ;
 	wp_die();
@@ -229,7 +229,7 @@ function bddb_scripts() {
 
 /* 统一处理后台相关的脚本 */
 function bddb_admin_scripts() {
-    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220615', true);
+    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20220730', true);
 	wp_localize_script( 'bddb-js-admin', 'nomouse_names', array('nothing'));
     wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
     wp_deregister_style( 'open-sans' );
