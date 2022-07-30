@@ -291,6 +291,26 @@ class BDDB_Common_Template {
 		}
 		return $val_str;
 	}
+
+	/**
+	 * @brief	读取1条term的值。
+	 * @param	string	$tax_name	taxonomy名。
+	 * @param	int		$id			postID。
+	 * @return	string	要读取的taxonomy的值
+	 * @since	0.5.5
+	 * @version	0.5.5
+	 */
+	private function get_first_tax_str($tax_name, $id) {
+		$val_str = '';
+		$str_array = wp_get_post_terms($id, $tax_name, array('fields'=>'names'));
+		if (is_wp_error($str_array))
+			return '';
+		if (count($str_array)>=1) {
+			$val_str =trim($str_array[0]);
+		}
+		return $val_str;
+	}
+
 	/**
 	 * @brief	读取meta的值。
 	 * @private
@@ -565,6 +585,7 @@ class BDDB_Common_Template {
 											'label' => '地区',
 											'type' => 'tax',
 											'summary' => '11',
+											'panel'	=> '04',
 											),
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
@@ -579,10 +600,6 @@ class BDDB_Common_Template {
 											'summary' => '02',
 											'panel'	=> '01',
 											),
-			'a_p_producer'	=>		array(	'name' => 'a_p_producer',
-											'label' => '制作人',
-											'type' => 'tax',
-											),
 			'a_quantity'	=>		array(	'name' => 'a_quantity',
 											'label' => '专辑规格',
 											'type' => 'tax',
@@ -591,6 +608,7 @@ class BDDB_Common_Template {
 			'a_publisher'	=>		array(	'name' => 'a_publisher',
 											'label' => '厂牌',
 											'type' => 'tax',
+											'panel'	=> '05',
 											),
 			'a_bl_multicreator'	=>	array(	'name' => 'a_bl_multicreator',
 											'label' => '多人创作',
@@ -700,7 +718,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.4.0
-	 * @version	0.4.1
+	 * @version	0.5.5
 	 * @see		get_gallery_page()
 	 */
 	private function get_poster_tooltip($id) {
@@ -736,7 +754,7 @@ class BDDB_Common_Template {
 					$results[] = substr($var,0,4);
 				}
 			} else {
-				$var = $this->get_tax_str($val, $id);
+				$var = $this->get_first_tax_str($val, $id);
 				if (!empty($var)) {
 					$results[] = $var;
 				}
@@ -830,11 +848,21 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.5.5
 	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_panel_info
 	 */
 	private function get_album_panel_info($id) {
-		return '';
+		//title
+		$detail_str = $this->get_panel_title($id);
+		//stars
+		$star_str = $this->get_panel_rating_stars($id);
+		$the_score = $this->get_meta_str('bddb_score_douban', $id);
+		if (''==$the_score)$the_score='--';
+		$dou_score_str = '<span class="bddb-disp-sp-dou-score">'.$the_score.'</span>';
+		$detail_str .= sprintf('<p class="bddb-disp-item bddb-inline">%s%s</p>', $star_str, $dou_score_str);
+		$detail_str .= $this->panel_common_loop($id);
+		$detail_str .= '<div class="bddb-disp-review" id="bddb-gallery-review">'.$this->get_meta_str('bddb_personal_review', $id).'</div>';
+		return $detail_str;
 	}
 	
 	/**
@@ -941,11 +969,29 @@ class BDDB_Common_Template {
 	private function get_book_abstract($id) {
 		return $this->abstract_common_loop($id);
 	}
+	/**
+	 * @brief	生成游戏摘要显示的其它内容。
+	 * @param	int		$id			post_ID
+	 * @return string	摘要字符串，多行
+	 * @private
+	 * @since	0.4.3
+	 * @version	0.4.3
+	 * @see		show_record()->get_{$this->self_post_type}_abstract
+	 */
 	private function get_game_abstract($id) {
 		return $this->abstract_common_loop($id);
 	}
+
+	/**
+	 * @brief	生成专辑摘要显示的其它内容。
+	 * @param	int		$id			post_ID
+	 * @return string	摘要字符串，多行
+	 * @since	0.5.5
+	 * @version	0.5.5
+	 * @see		show_record()->get_{$this->self_post_type}_abstract
+	 */
 	private function get_album_abstract($id) {
-		return '';
+		return $this->abstract_common_loop($id);
 	}
 	/**
 	 * @brief	生成系列书籍摘要显示的其它内容。

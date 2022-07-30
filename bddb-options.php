@@ -104,6 +104,14 @@ function bddb_settings_init(  ) {
   'bddb_book_tab',
   'bddb_book_section'
   );
+
+  add_settings_field(
+  'bddb_b_countries_map',
+  '国名缩写对照表',
+  'bddb_b_countries_map_render',
+  'bddb_book_tab',
+  'bddb_book_section'
+  );
   
   add_settings_field(
   'bddb_g_giantbomb_key',
@@ -204,6 +212,15 @@ function bddb_b_max_serial_count_render()
 	$options = $global_option_class->get_options();
 ?>
 	<input type='text' name='bddb_settings[b_max_serial_count]' size='64' value='<?php echo $options['b_max_serial_count']; ?>'/>
+<?php
+}
+
+function bddb_b_countries_map_render() {
+  global $global_option_class;
+	$options = $global_option_class->get_options();
+?>
+  <span>缩写与全名间用半角逗号分割，国名间用半角分号分割：</span><br />
+	<textarea rows='4' cols='40' name='bddb_settings[b_countries_map]' ><?php echo $options['b_countries_map']; ?></textarea>
 <?php
 }
 

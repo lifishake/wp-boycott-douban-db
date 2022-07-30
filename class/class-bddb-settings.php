@@ -71,6 +71,26 @@ class BDDB_Settings{
 		$options = self::get_options();
 		return $options['b_max_serial_count'];
 	}
+	public static function get_book_country_full_name($cap){
+		$options = self::get_options();
+		$ret = $cap;
+		if (!isset($options['b_countries_map'])) {
+			return $ret;
+		}
+		$arrs = explode(';', $options['b_countries_map']);
+		foreach ($arrs as $str ) {
+			$pos = strpos($str, $cap);
+			if (false === $pos) {
+				continue;
+			}
+			if ($pos > strpos($str, ',')) {
+				continue;
+			}
+			$ret = trim(str_replace(array($cap.",",";"),"", $str));
+			break;
+		}
+		return $ret;
+	}
 	//game
 	public static function get_giantbomb_key(){
 		$options = self::get_options();
