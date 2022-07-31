@@ -39,6 +39,13 @@ class BDDB_Typed_List {
 				'style' =>	'datetime',
 				'qe_start' => '',
 			),
+			'm_length' => array(
+				'key'	=>	'meta-m_length',
+				'label'	=>	'片长',
+				'type'	=>	'meta',
+				'style' =>	'number',
+				'qe_start' => '',
+			),
 			'bddb_personal_rating' => array(
 				'key'	=>	'meta-bddb_personal_rating',
 				'label'	=>	'评分',

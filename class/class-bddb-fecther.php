@@ -251,7 +251,10 @@ class BDDB_Fetcher{
 				}
 				else if ("IMDb" == $label) {
 					$fetch['imdbid'] = $obj['content'];
-				}				
+				}
+				else if ("片长" == $label) {
+					$fetch['m_length'] = str_replace('分钟','', $obj['content']);
+				}			
 			}//for
 
 			if (isset($fetch['imdbid']) && '' != $fetch['imdbid']) {

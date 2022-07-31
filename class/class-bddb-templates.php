@@ -422,6 +422,9 @@ class BDDB_Common_Template {
 			'm_score_imdb' => array(	'name' => 'm_score_imdb',
 											'label' => 'IMDB评分',
 											),
+			'm_length' => array(	'name' => 'm_length',
+											'label' => '片长',
+											),							
 		);
 		$this->total_items = array_merge($this->common_items, $add_items);
 	}
