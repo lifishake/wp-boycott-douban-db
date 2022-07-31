@@ -1052,6 +1052,15 @@ class BDDB_Editor {
 											'max' => '10.0',
 											'step' => '0.1',
 											),
+			'm_length'			=>	array(	'name' => 'm_length',
+											'label' => '片长',
+											'size' => 16,
+											'type' => 'meta',
+											'inputstyle' => 'number',
+											'min' => '1',
+											'max' => '999',
+											'step' => '1',
+											),
 		);
 		$this->total_items = array_merge($this->common_items, $additional_items);
 	}

@@ -207,7 +207,10 @@ jQuery(document).ready(function($) {
                 if (the_input.length == 1 && response.result.imdb_score !== undefined){
                     the_input[0].value = response.result.imdb_score;
                 }
-
+                the_input = document.getElementsByName("m_length");
+                if (the_input.length == 1 && response.result.m_length !== undefined){
+                    the_input[0].value = response.result.m_length;
+                }
                 //游
                 the_input = document.getElementsByName("g_genre");
                 if (the_input.length == 1 && response.result.genre !== undefined){
