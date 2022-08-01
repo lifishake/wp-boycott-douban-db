@@ -57,6 +57,7 @@ class BDDB_Fetcher{
 				$type = "album";
 			} elseif (strpos($url, "imdb.com")){
 				$type = "movie";
+				$url = rtrim($url, "/");
 				//直接走imdb
 				return self::fetch_from_omdb($url);
 			} elseif (strpos($url, "giantbomb.com")) {
@@ -226,6 +227,7 @@ class BDDB_Fetcher{
 
 			unset($matches);
 			$got_arr = self::douban_info_to_array($info_div_str);
+			$aka_arr = array();
 			foreach ($got_arr as $label => $obj) {
 				if ("导演" == $label) {
 					$fetch['director'] = $obj['content'];
@@ -247,13 +249,18 @@ class BDDB_Fetcher{
 				}
 				else if ("又名" == $label) {
 					$fetch['original_name'] = $obj['content'];
-					$fetch['akas'] = $obj['content'];
+					$aka_arr = $obj['arr'];
+					//$fetch['akas'] = $obj['content'];
 				}
 				else if ("IMDb" == $label) {
 					$fetch['imdbid'] = $obj['content'];
 				}
 				else if ("片长" == $label) {
-					$fetch['m_length'] = str_replace('分钟','', $obj['content']);
+					//时间有可能有多个，只取第一个
+					$value = $obj['arr'][0];
+					$value = str_replace(array("（","）"),array("(",")"),$value);
+					$value = self::remove_words_in_sig($value, "(", ")");
+					$fetch['m_length'] = str_replace('分钟','', $value);
 				}			
 			}//for
 
@@ -267,6 +274,17 @@ class BDDB_Fetcher{
 				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("香港",'utf-8'))===0 || 
 				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("台湾",'utf-8'))===0) {
 				$fetch['original_name'] = '';
+				if (count($aka_arr)>0) {
+					foreach($aka_arr as $aka_str) {
+						//中文地区不需要英文别名
+						if (!preg_match('/^[A-Za-z0-9\'_ ]/', $aka_str)) {
+							if (!empty($fetch['akas'])) {
+								$fetch['akas'].= " ,";
+							}
+							$fetch['akas'] .= $aka_str;
+						}
+					}
+				}				
 			}
 		}
 		return $fetch;
@@ -638,6 +656,7 @@ class BDDB_Fetcher{
 			'original_name' => '',
 			'imdbid' => '',
 			'country' => '',
+			'm_length' => '',
 		);
 		if (!$input) {
 			$output = $default;
@@ -663,9 +682,13 @@ class BDDB_Fetcher{
 		if ('' == $output['pic']) $output['pic'] = $content['Poster'];
 		if ('' == $output['director']) $output['director'] = self::translate_directors($content['Director']);
 		if ('' == $output['actor']) $output['actor'] = self::translate_actors($content['Actors']);
+		if ('' == $output['screenwriter']) $output['screenwriter'] = self::trim_year_month($content['Writer']);
 		if ('' == $output['genre']) $output['genre'] = self::translate_m_genres($content['Genre']);
 		if ('' == $output['country']) $output['country'] = self::translate_m_region($content['Country']);
 		if ('' == $output['pubdate']) $output['pubdate'] = self::trim_year_month($content['Year']);
+		if ('' == $output['m_length']) {
+			$output['m_length'] = trim(str_replace('min','', $content['Runtime']));
+		}
 		if (strpos($output['country'],'中国') === 0||
 			strpos($output['country'],'香港') === 0||
 			strpos($output['country'],'台湾') === 0||
@@ -675,6 +698,7 @@ class BDDB_Fetcher{
 		){
 			$output['original_name'] = '';
 		}
+		$output['url'] = "https://www.imdb.com/title/".$id;
 		return $output;
 	}
 	
@@ -1005,6 +1029,25 @@ class BDDB_Fetcher{
 			return implode(",",$items);
 		}
 	}//items_implode
+
+	/**
+	 * @brief	删除两个符号之间的内容，包括符号本身。
+	 * @param	string	$str	字符串
+	 * @param	string	$b		开始字符
+	 * @param	string	$e		结束字符
+	 * @return 	string
+	 * @since 	0.5.6
+	*/
+	public static function remove_words_in_sig($str, $b, $e) {
+		$posa = mb_strpos($str, $b);
+		$pose = mb_strpos($str, $e);
+		if ($posa !== false && $pose !== false && $pose > $posa) {
+			$stra = mb_substr($str, 0, $posa);
+			$strb = mb_substr($str, $pose + 1);
+			$str = $stra + $strb;
+		}
+		return $str;
+	}
 
 
 }//class
