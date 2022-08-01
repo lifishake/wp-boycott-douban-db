@@ -118,7 +118,7 @@ jQuery(document).ready(function($) {
                 }
                 //通用
                 the_input = document.getElementsByName("bddb_original_name");
-                if (the_input.length == 1 && response.result.original_name !== undefined){
+                if (the_input.length == 1 && response.result.original_name !== undefined && !the_input[0].value){
                     the_input[0].value = response.result.original_name;
                 }
                 the_input = document.getElementsByName("bddb_poster_link");
