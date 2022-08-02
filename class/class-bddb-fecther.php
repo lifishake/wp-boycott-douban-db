@@ -268,7 +268,9 @@ class BDDB_Fetcher{
 				$fetch = self::get_from_omdb($fetch['imdbid'], $fetch);
 			}
 			if (strpos($fetch['pic'], 'type=R')>0) {
-				$fetch['pic'] = self::get_detail_douban_pic($fetch['pic']);
+				preg_match('/http.*?(.jpg|.png|.webp)/', $mainpic_div_str, $match_imgs);
+				$ref = $match_imgs[0];
+				$fetch['pic'] = self::get_detail_douban_pic($fetch['pic'], $ref);
 			}
 			if (strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("大陆",'utf-8'))===0 ||
 				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("香港",'utf-8'))===0 || 
@@ -541,12 +543,14 @@ class BDDB_Fetcher{
 	 * @param	string	$info	页面html内容
 	 * @return 	array
 	 * @since 	0.5.5
+	 * @version 0.5.7
 	*/	
 	public static function douban_info_to_array($info) {
 		$total = str_replace(array('<br>','<br />','<br/>'),'^_^',$info);
 		$total = strip_tags($total);			
 		$total_arr = explode('^_^', $total);
 		$got_arr = array();
+		$temp_array = array();
 		foreach($total_arr as $line) {
 			$temp = preg_replace("/(\s|\&nbsp\;|　|\xc2\xa0)/", " ", $line);//去掉空格和换行等字符
 			//查找冒号，根据冒号划分前半和后半部分。如果没找到半角冒号，就替换第一个全角冒号再找一次。
@@ -567,6 +571,10 @@ class BDDB_Fetcher{
 				$temp_array = array_map('trim', $temp_array);
 				$value = self::items_implode($temp_array);
 			}
+			else {
+				$temp_array=array();
+				$temp_array[] = $value;
+			}
 			$got_arr[$label] = array( 'content' => $value, 
 									  'arr' => $temp_array );
 		}
@@ -575,11 +583,12 @@ class BDDB_Fetcher{
 
 	/**
 	 * @brief	解析豆瓣页面内容。
-	 * @param	string	$pic_mass	页面html内容
+	 * @param	string	$pic_mass	批量图片地址
+	 * @param	string	$default	默认图片地址
 	 * @return 	array
 	 * @since 	0.0.1
 	*/	
-	public static function get_detail_douban_pic($pic_mass){
+	public static function get_detail_douban_pic($pic_mass, $default){
 		sleep(11);
 		//防止被豆瓣当成恶意IP
 		$response = @wp_remote_get( 
@@ -587,17 +596,24 @@ class BDDB_Fetcher{
 			array( 'timeout'  => 10000, ) 
 		);
 		if ( is_wp_error( $response ) || !is_array($response) ) {
-			return $pic_mass;
+			return $default;
 		}
+		$official_name = self::get_short_name($default);
+
 		$body = wp_remote_retrieve_body($response);
 		preg_match('/<div class="cover"[\s\S]+?<\/div>/', $body, $matches);
 		if (is_array($matches)) {
 			preg_match('/(?<=src=").*?(?=")/',$matches[0],$match_imgs);
 			if (is_array($match_imgs)) {
+				foreach ($match_imgs as $img) {
+					if (strpos($img, $official_name) !== false) {
+						return trim($img);
+					}
+				}
 				return trim($match_imgs[0]);
 			}
 		}
-		return $pic_mass;
+		return $default;
 	}
 
 	/**
@@ -1049,6 +1065,27 @@ class BDDB_Fetcher{
 		return $str;
 	}
 
+	/**
+	 * @brief	取文件名，不包括扩展名。
+	 * @param	string	$str	字符串
+	 * @return 	string
+	 * @since 	0.5.6
+	*/
+	public static function get_short_name($url) {
+		$posa = strrpos($url, '/');
+		if (false === $posa) {
+			return false;
+		}
+		$pose = strrpos($url, '.');
+		if (false === $pose) {
+			return false;
+		}
+		if ($pose <= $posa) {
+			return false;
+		}
+		$name = substr($url, $posa+1, $pose - $posa -1);
+		return $name;
+	}
 
 }//class
 
