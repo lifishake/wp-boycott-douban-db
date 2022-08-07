@@ -260,7 +260,7 @@ class BDDB_Fetcher{
 					$value = $obj['arr'][0];
 					$value = str_replace(array("（","）"),array("(",")"),$value);
 					$value = self::remove_words_in_sig($value, "(", ")");
-					$fetch['m_length'] = str_replace('分钟','', $value);
+					$fetch['m_length'] = trim(str_replace('分钟','', $value));
 				}			
 			}//for
 
@@ -599,19 +599,24 @@ class BDDB_Fetcher{
 			return $default;
 		}
 		$official_name = self::get_short_name($default);
+		$array_result_imgs = array();
 
 		$body = wp_remote_retrieve_body($response);
-		preg_match('/<div class="cover"[\s\S]+?<\/div>/', $body, $matches);
-		if (is_array($matches)) {
-			preg_match('/(?<=src=").*?(?=")/',$matches[0],$match_imgs);
-			if (is_array($match_imgs)) {
-				foreach ($match_imgs as $img) {
-					if (strpos($img, $official_name) !== false) {
-						return trim($img);
+		preg_match_all('/<div class="cover"[\s\S]+?<\/div>/', $body, $matches);
+		if (is_array($matches)&& is_array($matches[0])) {
+			foreach ($matches[0] as $m_str) {
+				preg_match('/(?<=src=").*?(?=")/', $m_str, $match_imgs);
+				if (is_array($match_imgs)) {
+					if (strpos($match_imgs[0], $official_name)!==false) {
+						return trim($match_imgs[0]);
+					}
+					else
+					{
+						$array_result_imgs[] = trim($match_imgs[0]);
 					}
 				}
-				return trim($match_imgs[0]);
 			}
+			return $array_result_imgs[0];
 		}
 		return $default;
 	}
