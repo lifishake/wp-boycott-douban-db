@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.5.9
+ * Version:     0.6.0
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -91,10 +91,10 @@ function bddb_check_paths(){
 	$thumb_dir = $gallery_dir."thumbnails/";
 	bddb_create_dir($gallery_dir);
 	bddb_create_dir($thumb_dir);
-	bddb_create_nopic(BDDB_Settings::get_poster_width(),BDDB_Settings::get_poster_width());
-	bddb_create_nopic(BDDB_Settings::get_poster_width(),BDDB_Settings::get_poster_height());
-	bddb_create_nopic(BDDB_Settings::get_thumbnail_width(),BDDB_Settings::get_thumbnail_width());
-	bddb_create_nopic(BDDB_Settings::get_thumbnail_width(),BDDB_Settings::get_thumbnail_height());
+	foreach (BDDB_Statics::get_valid_types() as $type) {
+		bddb_create_nopic(BDDB_Settings::get_poster_width($type),BDDB_Settings::get_poster_height($type));
+		bddb_create_nopic(BDDB_Settings::get_thumbnail_width($type),BDDB_Settings::get_thumbnail_height($type));		
+	}
 }
 
 /*插件反激活*/
@@ -137,7 +137,19 @@ function bddb_init_actions()
 	//ajax 显示 page 回调
 	add_action('wp_ajax_bddb_next_gallery_page', 'ajax_get_gallery_page');
 	add_action('wp_ajax_nopriv_bddb_next_gallery_page', 'ajax_get_gallery_page');
+	//add_filter('page_template_hierarchy', 'bddb_theme_template_supported');
 }
+
+/*
+function bddb_theme_template_supported($templates) {
+	foreach($templates as $template) {
+		foreach(BDDB_Statics::get_valid_types() as $bddb_type) {
+
+		}
+	}
+	return $templates;
+}
+*/
 
 function qt_show_record($atts, $content = null) {
 	extract( $atts );

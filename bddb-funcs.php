@@ -174,10 +174,10 @@ function bddb_get_poster_names($post_type, $ID) {
 	$ret['poster_url'] = $rel_url .$name;
 	$ret['thumb_url'] = $rel_url.'thumbnails/'.$name;
 	$ret['thumb_url_front'] = $rel_url.'thumbnails/';
-	$poster_width = BDDB_Settings::get_poster_width();
-	$poster_height = BDDB_Settings::get_poster_height();
-	$thumb_width = BDDB_Settings::get_thumbnail_width();
-	$thumb_height = BDDB_Settings::get_thumbnail_height();
+	$poster_width = BDDB_Settings::get_poster_width($post_type);
+	$poster_height = BDDB_Settings::get_poster_height($post_type);
+	$thumb_width = BDDB_Settings::get_thumbnail_width($post_type);
+	$thumb_height = BDDB_Settings::get_thumbnail_height($post_type);
 	if ('album' == $post_type) {
 		$poster_height = $poster_width;
 		$thumb_height = $thumb_width;
