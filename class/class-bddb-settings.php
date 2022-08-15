@@ -16,6 +16,8 @@ class BDDB_Settings{
 			'thumbnail_width'=>100,
 			'thumbnails_per_page'=>48,
 			'b_max_serial_count'=>18,
+			'thumbnail_width_album'=>100,
+			'thumbnail_height_album'=>100,
 			//TODO
 			'general_order' => array(
 				'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
@@ -37,6 +39,34 @@ class BDDB_Settings{
 				$input[$key] = $val;
 			}
 		}
+
+		$valid_img_strs = array(
+			'poster_width_book',
+			'poster_height_book',
+			'thumbnail_width_book',
+			'thumbnail_height_book',
+			'poster_width_movie',
+			'poster_height_movie',
+			'thumbnail_width_movie',
+			'thumbnail_height_movie',
+			'poster_width_game',
+			'poster_height_game',
+			'thumbnail_width_game',
+			'thumbnail_height_game',
+			'poster_width_album',
+			'poster_height_album',
+			'thumbnail_width_album',
+			'thumbnail_height_album',
+		);
+
+		foreach ($valid_img_strs as $valid_img_str) {
+			if (isset($input[$valid_img_str])) {
+				if (!is_numeric($input[$valid_img_str]) || $input[$valid_img_str] <= 0) {
+					$input[$valid_img_str] = false;
+				}
+			}
+		}
+
 		if (isset($input['tax_version'])) {
 			if (empty($input['tax_version'])) {
 				$input['tax_version'] = BDDB_TAX_VER;
@@ -96,26 +126,88 @@ class BDDB_Settings{
 		$options = self::get_options();
 		return $options['g_giantbomb_key'];
 	}
-	public static function get_poster_width(){
+
+	/**
+	 * @brief	获取海报宽度。
+	 * @param	array		$type		种类
+	 * @return 	int
+	 * @since	0.1.6
+	 * @version	0.6.0
+	 * @see		bddb_get_poster_names()
+	 * @see		bddb_check_paths()
+	 * @see		BDDB_Editor::download_pic()
+	 */
+	public static function get_poster_width($type){
 		$options = self::get_options();
-		return $options['poster_width'];
+		if (!BDDB_Statics::is_valid_type($type)) {
+			return $options['poster_width'];
+		}
+		$key = 'poster_width_'.$type;
+		return self::get_sized_template($options, $key, $options['poster_width']);
 	}
-	public static function get_poster_height(){
+
+	/**
+	 * @brief	获取海报高度。
+	 * @param	array		$type		种类
+	 * @return 	int
+	 * @since	0.1.6
+	 * @version	0.6.0
+	 * @see		bddb_get_poster_names()
+	 * @see		bddb_check_paths()
+	 * @see		BDDB_Editor::download_pic()
+	 */
+	public static function get_poster_height($type){
 		$options = self::get_options();
-		//TODO：100：148是电影海报的规格，书籍应该略宽。
-		return floor($options['poster_width']*1.48);
+		if (!BDDB_Statics::is_valid_type($type)) {
+			return floor($options['poster_width']*1.48);
+		}
+		$key = 'poster_height_'.$type;
+		return self::get_sized_template($options, $key, floor($options['poster_width']*1.48));
 	}
+
 	public static function get_thumbnails_per_page(){
 		$options = self::get_options();
 		return $options['thumbnails_per_page'];
 	}
-	public static function get_thumbnail_width(){
+
+	/**
+	 * @brief	获取缩略图宽度。
+	 * @param	array		$type		种类
+	 * @return 	int
+	 * @since	0.1.6
+	 * @version	0.6.0
+	 * @see		bddb_get_poster_names()
+	 * @see		bddb_check_paths()
+	 * @see		BDDB_Editor::download_pic()
+	 */
+
+	public static function get_thumbnail_width($type){
 		$options = self::get_options();
-		return $options['thumbnail_width'];
+		if (!BDDB_Statics::is_valid_type($type)) {
+			return $options['thumbnail_width'];
+		}
+		$key = 'thumbnail_width_'.$type;
+		return self::get_sized_template($options, $key, $options['thumbnail_width']);
 	}
-	public static function get_thumbnail_height(){
+
+	/**
+	 * @brief	获取缩略图高度。
+	 * @param	array		$type		种类
+	 * @return 	int
+	 * @since	0.1.6
+	 * @version	0.6.0
+	 * @see		bddb_get_poster_names()
+	 * @see		bddb_check_paths()
+	 * @see		BDDB_Editor::download_pic()
+	 */
+
+	public static function get_thumbnail_height($type){
 		$options = self::get_options();
-		return floor($options['thumbnail_width']*1.48);
+		if (!BDDB_Statics::is_valid_type($type)) {
+			return floor($options['thumbnail_width']*1.48);
+		}
+		$key = 'thumbnail_height_'.$type;
+		return self::get_sized_template($options, $key, floor($options['thumbnail_width']*1.48));
 	}
 	public static function get_default_folder(){
 		$options = self::get_options();
@@ -129,5 +221,30 @@ class BDDB_Settings{
 		$options = self::get_options();
 		$options['tax_version'] = $version;
 		update_option('bddb_settings', $options);
+	}
+
+	/**
+	 * @brief	图片规格相关的几个函数的模板。
+	 * @param	array		$options			配置信息
+	 * @param	string		$key				要取得的项目
+	 * @param	int			$default			默认值
+	 * @return 	int
+	 * @since	0.6.0
+	 * @see		get_poster_width()
+	 * @see		get_poster_height()
+	 * @see		get_thumbnail_width()
+	 * @see		get_thumbnail_height()
+	 */
+	public static function get_sized_template($options, $key, $default) {
+		if (!isset($options[$key])) {
+			return $default;
+		}
+		if (false === $options[$key]) {
+			return $default;
+		}
+		if (!is_numeric($options[$key]) || $options[$key] <= 0) {
+			return $default;
+		}
+		return $options[$key];
 	}
 };

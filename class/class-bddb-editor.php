@@ -126,14 +126,11 @@ class BDDB_Editor_Factory {
 			wp_die();
 		   return false;
 	   }
-	   $full_width = intval($options['poster_width']);
-	   $full_height = floor($full_width * 1.48);
-	   $thumb_width = intval($options['thumbnail_width']);
-	   $thumb_height = floor($thumb_width * 1.48);
-	   if ('album' == $_POST['ptype']) {
-		   $full_height = $full_width;
-		   $thumb_height = $thumb_width;
-	   }
+	   $full_width = BDDB_Settings::get_poster_width($_POST['ptype']);
+	   $full_height = BDDB_Settings::get_poster_height($_POST['ptype']);
+	   $thumb_width = BDDB_Settings::get_thumbnail_width($_POST['ptype']);
+	   $thumb_height = BDDB_Settings::get_thumbnail_height($_POST['ptype']);
+
 	   $image = new Bddb_SimpleImage();
 	   $image->load($poster_full_name);
 	   $image->resize($full_width, $full_height);

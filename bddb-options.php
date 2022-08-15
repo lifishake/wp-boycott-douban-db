@@ -124,6 +124,14 @@ function bddb_settings_init(  ) {
   add_settings_field(
   'bddb_a_poster_setting',
   '专辑预留',
+  'bddb_a_poster_render',
+  'bddb_album_tab',
+  'bddb_album_section'
+  );
+
+  add_settings_field(
+  'bddb_a_test_setting',
+  '专辑预留',
   'bddb_test_field_render',
   'bddb_album_tab',
   'bddb_album_section'
@@ -234,6 +242,21 @@ function bddb_g_giantbomb_key_render()
 	<input type='text' name='bddb_settings[g_giantbomb_key]' size='64' value='<?php echo $options['g_giantbomb_key']; ?>'/>
 <?php
 }
+
+function bddb_a_poster_render()
+{
+  //08
+	global $global_option_class;
+	$options = $global_option_class->get_options();
+?>
+  <span>设定专辑图片宽度和高度，false为与总体设定一致：</span><br />
+  <span>海报宽度：</span><input type='text' name='bddb_settings[poster_width_album]' size='24' value='<?php echo $options['poster_width_album']; ?>'/></br>
+  <span>海报高度：</span><input type='text' name='bddb_settings[poster_height_album]' size='24' value='<?php echo $options['poster_height_album']; ?>'/></br>
+	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_album]' size='24' value='<?php echo $options['thumbnail_width_album']; ?>'/></br>
+  <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_album]' size='24' value='<?php echo $options['thumbnail_height_album']; ?>'/></br>
+<?php
+}
+
 
 function bddb_settings_section_callback(  ) {
 

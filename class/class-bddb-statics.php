@@ -6,7 +6,7 @@
  * @brief	初始化、固定数据等的静态类
  * @date	2021-12-21
  * @author	大致
- * @version	0.5.1
+ * @version	0.6.0
  * @since	0.0.1
  * 
  */
@@ -353,6 +353,16 @@ class BDDB_Statics {
 	public static function is_valid_type($type) {
 		$bddb_types = array_keys(self::$post_types);
 		return in_array($type, $bddb_types);
+	}
+
+	/**
+	 * 取得本插件支持的所有种类。
+	 * @public
+	 * @since 	0.6.0
+	 * @return	array
+	 */
+	public static function get_valid_types() {
+		return array_keys(self::$post_types);
 	}
 
 	/******  直接调用的外部函数 结束  ******/
