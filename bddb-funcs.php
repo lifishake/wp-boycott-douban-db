@@ -178,10 +178,6 @@ function bddb_get_poster_names($post_type, $ID) {
 	$poster_height = BDDB_Settings::get_poster_height($post_type);
 	$thumb_width = BDDB_Settings::get_thumbnail_width($post_type);
 	$thumb_height = BDDB_Settings::get_thumbnail_height($post_type);
-	if ('album' == $post_type) {
-		$poster_height = $poster_width;
-		$thumb_height = $thumb_width;
-	}
 	$ret['nopic_thumb_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $thumb_width, $thumb_height );
 	$ret['nopic_poster_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $poster_width, $poster_height );
 	return (object)$ret;

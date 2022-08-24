@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.6.0
+ * Version:     0.6.1
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -72,7 +72,6 @@ function bddb_create_nopic($width, $height) {
 	if (file_exists ($dest)) {
 		return;
 	}
-	print_r($dest);
 	$image = new Bddb_SimpleImage();
 	$image->load($src);
 	$image->resize($width,$height);
@@ -123,8 +122,6 @@ function bddb_init()
 	add_action('init', 'bddb_init_actions', 11);
 }
 
-
-
 /* Plugin页面追加配置选项 */
 function bddb_init_actions()
 {   
@@ -137,19 +134,36 @@ function bddb_init_actions()
 	//ajax 显示 page 回调
 	add_action('wp_ajax_bddb_next_gallery_page', 'ajax_get_gallery_page');
 	add_action('wp_ajax_nopriv_bddb_next_gallery_page', 'ajax_get_gallery_page');
-	//add_filter('page_template_hierarchy', 'bddb_theme_template_supported');
+	//修改主题对应的模板名
+	add_filter('page_template_hierarchy', 'bddb_add_theme_template_supported');
 }
 
-/*
-function bddb_theme_template_supported($templates) {
+/**
+ * @brief	解析豆瓣页面内容。
+ * @param	string	$pic_mass	批量图片地址
+ * @param	string	$default	默认图片地址
+ * @return 	array
+ * @since 	0.6.1
+*/
+function bddb_add_theme_template_supported($templates) {
+	$bfound = false;
 	foreach($templates as $template) {
 		foreach(BDDB_Statics::get_valid_types() as $bddb_type) {
-
+			$imaged_name = sprintf("page-%ssgallery.php", $bddb_type);
+			if ($imaged_name === $template) {
+				$bfound = true;
+				break;
+			}
 		}
+		if ($bfound) {
+			break;
+		}
+	}
+	if ($bfound) {
+		array_unshift($templates, "page-bddbgallery.php");
 	}
 	return $templates;
 }
-*/
 
 function qt_show_record($atts, $content = null) {
 	extract( $atts );
