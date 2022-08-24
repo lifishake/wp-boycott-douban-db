@@ -13,11 +13,20 @@ class BDDB_Settings{
 			'g_giantbomb_key'=>'',
 			'primary_common_order'=>'bddb_personal_rating',
 			'poster_width'=>400,
+			'poster_height'=>592,
 			'thumbnail_width'=>100,
+			'thumbnail_height'=>148,
 			'thumbnails_per_page'=>48,
+			'poster_height_book'=>568,
+			'thumbnail_width_book'=>100,
+			'thumbnail_height_book'=>142,
 			'b_max_serial_count'=>18,
+			'poster_height_album'=>400,
 			'thumbnail_width_album'=>100,
 			'thumbnail_height_album'=>100,
+			'poster_height_game'=>568,
+			'thumbnail_width_game'=>100,
+			'thumbnail_height_game'=>142,
 			//TODO
 			'general_order' => array(
 				'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
@@ -159,12 +168,22 @@ class BDDB_Settings{
 	public static function get_poster_height($type){
 		$options = self::get_options();
 		if (!BDDB_Statics::is_valid_type($type)) {
-			return floor($options['poster_width']*1.48);
+			return $options['poster_height'];
 		}
 		$key = 'poster_height_'.$type;
-		return self::get_sized_template($options, $key, floor($options['poster_width']*1.48));
+		return self::get_sized_template($options, $key, $options['poster_height']);
 	}
 
+	/**
+	 * @brief	获取每页显示的海报数。
+	 * @param	array		$type		种类
+	 * @return 	int
+	 * @since	0.3.6
+	 * @version	0.6.0
+	 * @see		bddb_get_poster_names()
+	 * @see		bddb_check_paths()
+	 * @see		BDDB_Editor::download_pic()
+	 */
 	public static function get_thumbnails_per_page(){
 		$options = self::get_options();
 		return $options['thumbnails_per_page'];
@@ -204,10 +223,10 @@ class BDDB_Settings{
 	public static function get_thumbnail_height($type){
 		$options = self::get_options();
 		if (!BDDB_Statics::is_valid_type($type)) {
-			return floor($options['thumbnail_width']*1.48);
+			return $options['thumbnail_height'];
 		}
 		$key = 'thumbnail_height_'.$type;
-		return self::get_sized_template($options, $key, floor($options['thumbnail_width']*1.48));
+		return self::get_sized_template($options, $key, $options['thumbnail_height']);
 	}
 	public static function get_default_folder(){
 		$options = self::get_options();

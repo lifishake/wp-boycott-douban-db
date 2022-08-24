@@ -223,6 +223,12 @@ class BDDB_Typed_List {
 			if (isset($columns[$col['key']])) {
 				$columns[$col['key']] = $col['label'];
 			}
+
+			//临时功能，图片是否符合规格
+			if ('game' == $post_type) {
+				$columns['meta-pic'] = '封面状态';
+			}
+			
 		}
 
 		//加回日期
@@ -244,15 +250,38 @@ class BDDB_Typed_List {
 		if ( 0 === strpos( $column_name, 'meta-' ) ) {
 			$meta = substr( $column_name, 5 );
 		} else {
-			return;
+			return '';
 		}
+		if ('pic' == $meta) {
+			$image = new Bddb_SimpleImage();
+			$names = bddb_get_poster_names('game', $id);
+	   		$poster_full_name = $names->poster_name;
+			$image->load($poster_full_name);
+			$image_info = getimagesize($poster_full_name);
+			$full_width = BDDB_Settings::get_poster_width('game');
+			$full_height = BDDB_Settings::get_poster_height('game');
+			if (!$image_info ||
+				!is_array($image_info) ||
+				$image_info[0] != $full_width ||
+				$image_info[1] != $full_height) {
+					$out = '要！';
+			}
+			else {
+				$out = '-';
+			}
+			
 
-		$out = get_post_meta($id, $meta, true);
-		if (empty($out)) {
-			if (0 != $out) {
-				$out = '&#8212;';
+		}
+		else
+		{
+			$out = get_post_meta($id, $meta, true);
+			if (empty($out)) {
+				if (0 != $out) {
+					$out = '&#8212;';
+				}
 			}
 		}
+		
 		echo $out;
 	}
 

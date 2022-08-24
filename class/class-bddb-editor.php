@@ -179,10 +179,10 @@ class BDDB_Editor_Factory {
 	   {
 		   wp_die();
 	   }
-	   $full_width = intval($options['poster_width']);
-	   $full_height = floor($full_width * 1.48);
-	   $thumb_width = intval($options['thumbnail_width']);
-	   $thumb_height = floor($thumb_width * 1.48);
+	   $full_width = BDDB_Settings::get_poster_width('movie');
+	   $full_height = BDDB_Settings::get_poster_height('movie');
+	   $thumb_width = BDDB_Settings::get_thumb_width('movie');
+	   $thumb_height = BDDB_Settings::get_thumb_height('movie');
 	   $image = new Bddb_SimpleImage();
 	   $image->load($poster_full_name);
 	   $image->resize($full_width, $full_height);
@@ -236,8 +236,8 @@ class BDDB_Editor_Factory {
 		}
 		$options = BDDB_Settings::get_options();
 		$default_serial_count = $options['b_max_serial_count'];
-		$thumb_width = intval($options['thumbnail_width']);
-		$thumb_height = floor($thumb_width * 1.48);
+		$thumb_width = BDDB_Settings::get_thumb_width('book');
+		$thumb_height = BDDB_Settings::get_thumb_height('book');
 		if ('album' == $_POST['ptype']) {
 			$thumb_height = $thumb_width;
 		}
