@@ -225,7 +225,7 @@ class BDDB_Editor_Factory {
 	 * 获取系列封面的AJAX的Callback。
 	 * @see		AJAX::bddb_get_scovers
 	 * @since 	0.0.8
-	 * @version	0.5.4
+	 * @version	0.6.3
 	 */
 	public function download_serial_pics(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
@@ -236,11 +236,8 @@ class BDDB_Editor_Factory {
 		}
 		$options = BDDB_Settings::get_options();
 		$default_serial_count = $options['b_max_serial_count'];
-		$thumb_width = BDDB_Settings::get_thumb_width('book');
-		$thumb_height = BDDB_Settings::get_thumb_height('book');
-		if ('album' == $_POST['ptype']) {
-			$thumb_height = $thumb_width;
-		}
+		$thumb_width = BDDB_Settings::get_thumbnail_width('book');
+		$thumb_height = BDDB_Settings::get_thumbnail_height('book');
 		$obj_names = bddb_get_poster_names($_POST['ptype'],$_POST['id']);
 		$slinks = $_POST['slinks'];
 		$parts = explode(";", $slinks);
