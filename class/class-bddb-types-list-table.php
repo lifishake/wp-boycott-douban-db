@@ -225,7 +225,7 @@ class BDDB_Typed_List {
 			}
 
 			//临时功能，图片是否符合规格
-			if ('game' == $post_type) {
+			if ('book' == $post_type) {
 				$columns['meta-pic'] = '封面状态';
 			}
 			
@@ -254,12 +254,15 @@ class BDDB_Typed_List {
 		}
 		if ('pic' == $meta) {
 			$image = new Bddb_SimpleImage();
-			$names = bddb_get_poster_names('game', $id);
+			$names = bddb_get_poster_names('book', $id);
 	   		$poster_full_name = $names->poster_name;
-			$image->load($poster_full_name);
+			if (!file_exists($poster_full_name)) {
+				$out = '冇';
+				return $out;
+			}
 			$image_info = getimagesize($poster_full_name);
-			$full_width = BDDB_Settings::get_poster_width('game');
-			$full_height = BDDB_Settings::get_poster_height('game');
+			$full_width = BDDB_Settings::get_poster_width('book');
+			$full_height = BDDB_Settings::get_poster_height('book');
 			if (!$image_info ||
 				!is_array($image_info) ||
 				$image_info[0] != $full_width ||
