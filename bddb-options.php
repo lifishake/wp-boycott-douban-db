@@ -133,7 +133,6 @@ function bddb_settings_init(  ) {
   'bddb_book_section'
   );
 
-  /*
   add_settings_field(
   'bddb_b_poster_setting',
   '封面',
@@ -141,7 +140,6 @@ function bddb_settings_init(  ) {
   'bddb_book_tab',
   'bddb_book_section'
   );
-  */
   
   add_settings_field(
   'bddb_g_giantbomb_key',
@@ -269,7 +267,7 @@ function bddb_b_poster_render()
 	global $global_option_class;
 	$options = $global_option_class->get_options();
 ?>
-  <span>设定书籍封面宽度和高度，false为与总体设定一致，建议比例1：1.42：</span><br />
+  <span>设定书籍封面宽度和高度，false为与总体设定一致，建议比例1：1.40：</span><br />
   <span>封面宽度：</span><input type='text' name='bddb_settings[poster_width_book]' size='24' value='<?php echo $options['poster_width_book']; ?>'/></br>
   <span>封面高度：</span><input type='text' name='bddb_settings[poster_height_book]' size='24' value='<?php echo $options['poster_height_book']; ?>'/></br>
 	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_book]' size='24' value='<?php echo $options['thumbnail_width_book']; ?>'/></br>
