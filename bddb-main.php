@@ -7,7 +7,7 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.6.3
+ * Version:     0.6.4
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -237,12 +237,26 @@ function bddb_scripts() {
 		wp_enqueue_script( 'bddb-color-thief', BDDB_PLUGIN_URL . 'js/color-thief.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20220712', true );
 		wp_localize_script( 'bddb-fancy-func', 'ajaxurl', admin_url('admin-ajax.php'));
-		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css' );
-		if (is_page('albumsgallery')) {
-			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-square.css', array(), '20220526' );
-		}else {
-			wp_enqueue_style( 'bddb-gallery-pagestyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-oblong.css', array(), '20220526' );
+		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css', array(), '20220829' );
+		$css = '';
+		$rate = floatval(BDDB_Settings::get_poster_height(false)/BDDB_Settings::get_poster_width(false));
+
+		if (is_page('booksgallery')) {
+			$rate = floatval(BDDB_Settings::get_poster_height('book')/BDDB_Settings::get_poster_width('book'));
 		}
+		elseif (is_page('moviesgallery')) {
+			$rate = floatval(BDDB_Settings::get_poster_height('movie')/BDDB_Settings::get_poster_width('movie'));
+		}
+		elseif (is_page('gamesgallery')) {
+			$rate = floatval(BDDB_Settings::get_poster_height('game')/BDDB_Settings::get_poster_width('game'));
+		}
+		elseif (is_page('albumsgallery')) {
+			$rate = floatval(BDDB_Settings::get_poster_height('album')/BDDB_Settings::get_poster_width('album'));
+		}
+		$thumbs_height = intval(80 * $rate);
+		$css = ".fancybox__container {	--fancybox-thumbs-width: 80px;	--fancybox-thumbs-height: {$thumbs_height}px;  }";
+		wp_add_inline_style('bddb-boxstyle', $css);
+
 		if (bddb_is_debug_mode()) {
 			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery-debug.css', array(), '20220712' );
 		} else {
