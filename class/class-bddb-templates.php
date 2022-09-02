@@ -1117,7 +1117,7 @@ class BDDB_Common_Template {
 	 * @return string	只有图标部分，不包括前后的html标签
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.3.3
+	 * @version	0.6.5
 	 * @see		summary_callback()->display_movie_misc
 	 * @see		panel_callback()->panel_movie_misc
 	 */
@@ -1126,21 +1126,11 @@ class BDDB_Common_Template {
 		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
 		if (is_wp_error($str_array)) return '';
 		foreach($str_array as $key => $slug) {
-			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
-			switch($slug) {
-				case 'sanji':
-				case 'cat':
-				case 'dou250':
-				case '404':
-				case 'restricted':
-				case 'imdb250':
-				case 'remake':
-				case 'cinema':
-					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
-				break;
-				default:
-				break;
+			if (!BDDB_Settings::is_pictured_misc($slug,'movie')) {
+				continue;
 			}
+			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
+			$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
 		}
 		return $feature;
 	}
@@ -1228,7 +1218,7 @@ class BDDB_Common_Template {
 	 * @return string	只有图标部分，不包括前后的html标签
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.6.5
 	 * @see		summary_callback()->display_book_misc
 	 * @see		panel_callback()->panel_book_misc
 	 */
@@ -1237,16 +1227,11 @@ class BDDB_Common_Template {
 		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
 		if (is_wp_error($str_array)) return '';
 		foreach($str_array as $key => $slug) {
-			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
-			switch($slug) {
-				case 'cat':
-				case '404':
-				case 'doved':
-					$feature.=sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
-				break;
-				default:
-				break;
+			if (!BDDB_Settings::is_pictured_misc($slug,'book')) {
+				continue;
 			}
+			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
+			$feature.=sprintf('<img class="b-misc-brand" src="%s" alt="%s"/>', $img, $slug);
 		}
 		return $feature;
 	}
