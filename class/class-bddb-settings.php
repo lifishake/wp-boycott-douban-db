@@ -1,8 +1,14 @@
 <?php
-
 /**
-* 设定项管理类
-*/
+ * @file	class-bddb-settings.php
+ * @class	BDDB_Settings
+ * @brief	设定项管理类
+ * @date	2021-12-02
+ * @author	大致
+ * @version	0.6.4
+ * @since	0.1.0
+ * 
+ */
 class BDDB_Settings{
 	public static $bddb_options = false;			//成员
 	/*默认值*/
@@ -18,15 +24,19 @@ class BDDB_Settings{
 			'thumbnail_height'=>148,
 			'thumbnails_per_page'=>48,
 			'poster_height_book'=>560,
-			'thumbnail_width_book'=>100,
-			'thumbnail_height_book'=>140,
+			'thumbnail_width_book'=>false,
+			'thumbnail_height_book'=>false,
 			'b_max_serial_count'=>18,
 			'poster_height_album'=>400,
-			'thumbnail_width_album'=>100,
-			'thumbnail_height_album'=>100,
+			'thumbnail_width_album'=>false,
+			'thumbnail_height_album'=>false,
 			'poster_height_game'=>568,
-			'thumbnail_width_game'=>100,
-			'thumbnail_height_game'=>142,
+			'thumbnail_width_game'=>false,
+			'thumbnail_height_game'=>false,
+			'b_misc_map'=>'',
+			'm_misc_map'=>'',
+			'g_misc_map'=>'',
+			'a_misc_map'=>'',
 			//TODO
 			'general_order' => array(
 				'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
@@ -266,4 +276,27 @@ class BDDB_Settings{
 		}
 		return $options[$key];
 	}
-};
+
+	/**
+	 * @brief	判断是否是支持图片的misc项。
+	 * @param	string		$slug				misc的key名
+	 * @param	string		$type				要判断的种类
+	 * @return 	bool
+	 * @since	0.6.5
+	 * @see		movie_misc_special()
+	 * @see		book_misc_special()
+	 */
+	public static function is_pictured_misc($slug, $type) {
+		if (!BDDB_Statics::is_valid_type($type)) {
+			return false;
+		}
+		$key = substr($type,0,1).'_misc_map';
+		$options = self::get_options();
+		if (!array_key_exists($key, $options)) {
+			return false;
+		}
+		$valid_slugs = explode(';' , $options[$key]);
+		$valid_slugs = array_map('trim', $valid_slugs);
+		return in_array(trim($slug), $valid_slugs);
+	}
+};//class

@@ -118,6 +118,15 @@ function bddb_settings_init(  ) {
 	);
   
   add_settings_field(
+    'bddb_m_misc_map',
+    '特殊图标列表',
+    'bddb_all_misc_map_render',
+    'bddb_movie_tab',
+    'bddb_movie_section',
+    array('type'=>'movie')
+    );
+
+  add_settings_field(
   'bddb_b_max_serial_count',
   '系列书籍有效本数',
   'bddb_b_max_serial_count_render',
@@ -140,6 +149,15 @@ function bddb_settings_init(  ) {
   'bddb_book_tab',
   'bddb_book_section'
   );
+
+  add_settings_field(
+    'bddb_b_misc_map',
+    '特殊图标列表',
+    'bddb_all_misc_map_render',
+    'bddb_book_tab',
+    'bddb_book_section',
+    array('type'=>'book')
+    );
   
   add_settings_field(
   'bddb_g_giantbomb_key',
@@ -205,6 +223,30 @@ function bddb_basic_setting_render1(  ) {
   ?>
   </select>
   <?php
+}
+
+/**
+ * @brief	  渲染misc的有图标对应项。
+ * @param   array   $args
+ *                  type  =>  book,movie,game,album
+ * @since	  0.6.5
+*/
+function bddb_all_misc_map_render($args) {
+  if (!is_array($args)|| !array_key_exists('type', $args)) {
+    return;
+  }
+  $type = $args['type'];
+  if (!BDDB_Statics::is_valid_type($type)) {
+    return;
+  }
+  $misc_key = substr($type,0,1).'_misc_map';
+  $option_key = 'bddb_settings['.$misc_key.']';
+  global $global_option_class;
+	$options = $global_option_class->get_options();
+?>
+  <span>slug用半角分号分割：</span><br />
+	<textarea rows='4' cols='40' name='<?php echo $option_key; ?>' ><?php echo $options[$misc_key]; ?></textarea>
+<?php
 }
 
 function bddb_poster_render() {
@@ -285,6 +327,10 @@ function bddb_b_max_serial_count_render()
 <?php
 }
 
+/**
+ * @brief	渲染图书国名缩写输入项。
+ * @since	  0.5.3
+*/
 function bddb_b_countries_map_render() {
   global $global_option_class;
 	$options = $global_option_class->get_options();
@@ -310,6 +356,7 @@ function bddb_g_poster_render()
   <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_game]' size='24' value='<?php echo $options['thumbnail_height_game']; ?>'/></br>
 <?php
 }
+
 
 function bddb_g_giantbomb_key_render()
 {
