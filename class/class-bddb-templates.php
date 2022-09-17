@@ -433,7 +433,7 @@ class BDDB_Common_Template {
 	 * @brief	追加和修改book类型的显示和排序。
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.6.6
 	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_book_items() {
@@ -444,6 +444,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_book_publish_time');
 		$this->common_items['bddb_view_time']['label'] = '阅读时间';
 		$this->common_items['bddb_view_time']['panel'] = '03';			//上墙显示
+		$this->common_items['bddb_view_time']['sort'] = 'DESC';			//同分时改为降序。
 		$this->common_items['bddb_view_time']['panel_callback'] = array($this, 'panel_time_only_year');
 		$add_items = array(
 			'b_region' => array(			'name' => 'b_region',
