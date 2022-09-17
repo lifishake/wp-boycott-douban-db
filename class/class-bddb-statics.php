@@ -6,7 +6,7 @@
  * @brief	初始化、固定数据等的静态类
  * @date	2021-12-21
  * @author	大致
- * @version	0.6.0
+ * @version	0.6.7
  * @since	0.0.1
  * 
  */
@@ -188,6 +188,14 @@ class BDDB_Statics {
 			'slug' => 'g_platform',
 			'complex_name' => 'platforms',
 			'show_admin_column' => true,
+			),
+		//附加情报/游戏
+	array('tax' => 'g_misc_brand',
+			'obj' => array( 'game' ),
+			'label' => 'Brand',
+			'slug' => 'g_misc_brand',
+			'complex_name' => 'brands',
+			'show_admin_column' => false,
 			),
 		//音乐人/专辑
 	array(	'tax' => 'a_p_musician',

@@ -50,7 +50,8 @@ div.abstract > p > span {
 }
 
 .b-misc-brand,
-.m-misc-brand {
+.m-misc-brand,
+.g-misc-brand {
     margin: 0 5px;
     height: 20px;
 }
