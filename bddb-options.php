@@ -3,7 +3,7 @@
 /**
  * BDDB后台配置页面
  * @since   0.0.1
- * @version 0.6.2
+ * @version 0.6.7
  * 工具URL: http://wpsettingsapi.jeroensormani.com/
 */
 
@@ -28,6 +28,7 @@ function bddb_add_admin_menu() {
 	/**
 	 * @brief   添加渲染用的组件
 	 * @since	  0.0.1
+   * @version 0.6.7
 	*/
 function bddb_settings_init(  ) {
 	$arg = array(
@@ -175,6 +176,15 @@ function bddb_settings_init(  ) {
   'bddb_game_section'
   );
   
+  add_settings_field(
+    'bddb_g_misc_map',
+    '特殊图标列表',
+    'bddb_all_misc_map_render',
+    'bddb_game_tab',
+    'bddb_game_section',
+    array('type'=>'game')
+    );
+
   add_settings_field(
   'bddb_a_poster_setting',
   '专辑规格',

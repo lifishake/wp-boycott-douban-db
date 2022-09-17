@@ -565,6 +565,14 @@ class BDDB_Common_Template {
 											'summary' => '26',
 											'panel' => '13',
 											),
+			'g_misc_brand' => array(	'name' => 'g_misc_brand',
+											'label' => 'TOBEDELETE',
+											'type' => 'tax',
+											'summary' => '99',
+											'summary_callback' => array($this, 'display_game_misc'),
+											'panel' => '99',
+											'panel_callback' => array($this, 'panel_game_misc'),
+											),
 			'g_giantbomb_id'	=>		array(	'name' => 'g_giantbomb_id',
 											'label' => 'GiantBomb编号',
 											),
@@ -1481,6 +1489,65 @@ class BDDB_Common_Template {
 		}
 		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
 	}
+
+	/**
+	 * @brief	显示游戏特殊图标。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string
+	 * @protected
+	 * @version	0.6.7
+	 * @see		summary_callback()
+	 */
+	protected function display_game_misc($id, $item) {
+		$val = $this->game_misc_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<span class="abs-list">%s</span>', $val);
+	}
+
+		/**
+	 * @brief	显示游戏特殊属性图标。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string	只有图标部分，不包括前后的html标签
+	 * @private
+	 * @since	0.6.7
+	 * @see		summary_callback()->display_game_misc
+	 * @see		panel_callback()->panel_game_misc
+	 */
+	public function game_misc_special($id, $item) {
+		$feature='';
+		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
+		if (is_wp_error($str_array)) return '';
+		foreach($str_array as $key => $slug) {
+			if (!BDDB_Settings::is_pictured_misc($slug,'game')) {
+				continue;
+			}
+			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
+			$feature.=sprintf('<img class="g-misc-brand" src="%s" alt="%s"/>', $img, $slug);
+		}
+		return $feature;
+	}
+
+	/**
+	 * @brief	上墙游戏特殊图标。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string
+	 * @protected
+	 * @since	0.6.7
+	 * @see		panel_callback()
+	 */
+	protected function panel_game_misc($id, $item) {
+		$val = $this->game_misc_special($id, $item);
+		if (empty($val)) {
+			return false;
+		}
+		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
+	}
+
 	/****   显示处理用内部回调函数 结束   ****/
 	/********    私有函数 结束    ********/
 };

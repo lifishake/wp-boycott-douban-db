@@ -1142,10 +1142,10 @@ class BDDB_Editor {
 		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
 	/**
-	 * 设置电影的表示条目。
+	 * 设置游戏的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 	0.1.0
-	 * @version 0.4.1
+	 * @version 0.6.7
 	 */
 	private function set_additional_items_game() {
 		$this->common_items['bddb_display_name']['label'] = '游戏名';
@@ -1193,6 +1193,11 @@ class BDDB_Editor {
 											'label' => 'GB编号',
 											'size' => 16,
 											'comment' => array($this, 'echo_giantbomb_button'),
+											),
+			'g_misc_brand'		=>	array(	'name' => 'g_misc_brand',
+											'label' => '特殊头衔',
+											'size' => 16,
+											'type' => 'tax',
 											),
 		);
 		$this->total_items = array_merge($this->common_items, $additional_items);
