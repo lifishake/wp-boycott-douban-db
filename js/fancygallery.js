@@ -15,6 +15,8 @@ jQuery( document ).ready( function( $ ) {
 		e.each(function (i, v) {
 			var el;
 			var ig = $(v).find('img');
+			ig.fadeIn(200);
+			/*
 			if (
 				ig.attr('lazy') !== undefined &&
 				ig.attr('data-src') !== undefined
@@ -25,6 +27,7 @@ jQuery( document ).ready( function( $ ) {
 				ig.removeAttr('data-src');
 				ig.fadeIn(200);
 			}
+			*/
 		});
 	};//thumb_lazy_load
 	

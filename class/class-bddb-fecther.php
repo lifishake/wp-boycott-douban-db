@@ -192,6 +192,7 @@ class BDDB_Fetcher{
 	 * @param	string	$type
 	 * @return 	array
 	 * @since 	0.0.1
+	 * @version 0.6.8
 	 */
 	public static function parse_douban_movie_body($body) {
 		$fetch = array(
@@ -260,7 +261,7 @@ class BDDB_Fetcher{
 					$value = $obj['arr'][0];
 					$value = str_replace(array("（","）"),array("(",")"),$value);
 					$value = self::remove_words_in_sig($value, "(", ")");
-					$fetch['m_length'] = trim(str_replace('分钟','', $value));
+					$fetch['m_length'] = trim(str_replace(array('分钟','分','minutes','minute','min'),'', $value));
 				}			
 			}//for
 
