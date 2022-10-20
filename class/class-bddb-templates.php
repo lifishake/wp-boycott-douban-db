@@ -718,8 +718,9 @@ class BDDB_Common_Template {
 		//$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
 		//恢复让海报一直刷新的功能 20220607
 		
-		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
-		
+		//$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' lazy='false' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
+
 		return $ret;
 	
 	}
@@ -1359,7 +1360,7 @@ class BDDB_Common_Template {
 	 * @return	string
 	 * @protected
 	 * @since	0.3.2
-	 * @version	0.3.2
+	 * @version	0.6.6
 	 * @remarks	暂时只用于演员
 	 * @see		panel_callback()
 	 */
@@ -1381,6 +1382,9 @@ class BDDB_Common_Template {
 					$str_name = mb_substr($str_name, $p+1);
 				}
 			$val_str .= $str_name;
+		}
+		if (empty($val_str)) {
+			return '';
 		}
 		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val_str);
 	}
