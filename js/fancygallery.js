@@ -150,7 +150,7 @@ function set_funcy_panel(fancybox, $trigger) {
 	var img = $trigger.firstChild;
 	//Use colorthief to fetch main color of poster.
 	var colorThief = new ColorThief();
-	var picmaincolor=colorThief.getColor(img);
+	var picmaincolor=colorThief.getColor(img, 7);
 	var lcolor = rgb_to_rgba_string(picmaincolor,0.92);
 	var rcolor = rgb_to_rgba_string(picmaincolor,0.54);
 
