@@ -257,17 +257,23 @@ jQuery(document).ready(function($) {
     //取图片按钮
 	$('button[name="bddb_get_pic_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("bddb_poster_link");
+        var need_rotate_90 = document.getElementsByName("bddb_pic_rrotate");
 		var dest_pic = this.getAttribute('dest_src');
 		if (pic_bar.length != 1) {
 			return;
 		}
+        if (need_rotate_90.length != 1) {
+            return;
+        }
 		var pic_link = pic_bar[0].value;
+        var need_rrotate = need_rotate_90[0].value;
 		var data = {
             action: 'bddb_get_pic',
             nonce: this.getAttribute('wpnonce'),
             id:this.getAttribute('pid'),
             ptype:this.getAttribute('ptype'),
 			piclink:pic_link,
+            rrotate:need_rrotate,
 		};
 		$.ajax({
             url: ajaxurl,
