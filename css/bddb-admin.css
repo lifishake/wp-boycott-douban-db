@@ -7,6 +7,10 @@
 	cursor: pointer;
 }
 
+.check-r90 {
+	margin-left: 1rem;
+}
+
 #bddb-recent-dashboard ul span,
 #movie-recent-dashboard ul span,
 #book-recent-dashboard ul span,

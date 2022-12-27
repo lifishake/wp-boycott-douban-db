@@ -1,10 +1,14 @@
 <?php
 
-/*
- * 作用: 处理图片
- * 来源: 网络
- * URL:
-*/
+/**
+ * @class	Bddb_SimpleImage
+ * @brief	封装图像处理
+ * @date	2022-12-27
+ * @author	网络
+ * @version	0.7.0
+ * @since	0.1.4
+ * 
+ */
 class Bddb_SimpleImage {
 
    var $image;
@@ -111,6 +115,17 @@ class Bddb_SimpleImage {
    function resize($width,$height) {
       $new_image = imagecreatetruecolor($width, $height);
       imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
+      $this->image = $new_image;
+   }
+
+   /**
+	 * 图像旋转。
+	 * @param int $angle	旋转角度(逆时针为正)
+	 * @since 	0.7.0
+	 * @version	0.7.0
+	 */
+   function rotate($angle) {
+      $new_image = imagerotate($this->image, $angle, 0);
       $this->image = $new_image;
    }
 

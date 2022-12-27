@@ -98,6 +98,13 @@ class BDDB_Editor_Factory {
 	   if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-pic-".$_POST['id'])) { 
 		   wp_die();
 	   }
+	   if (!isset($_POST['rrotate'])) {
+		$need_rotate = 0;
+	   }
+	   else {
+		$need_rotate = $_POST['rrotate'];
+	   }
+
 	   $options = BDDB_Settings::get_options();
 	   $names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
 	   $poster_full_name = $names->poster_name;
@@ -133,6 +140,9 @@ class BDDB_Editor_Factory {
 
 	   $image = new Bddb_SimpleImage();
 	   $image->load($poster_full_name);
+	   if ($need_rotate) {
+		$image->rotate(-90);
+	   }
 	   $image->resize($full_width, $full_height);
 	   $image->save($poster_full_name);
 	   $image->resize($thumb_width, $thumb_height);
@@ -766,7 +776,7 @@ class BDDB_Editor {
 	protected function echo_poster_button( $post ) {
 		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
 		$names = bddb_get_poster_names($post->post_type, $post->ID);
-		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button>';
+		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button><input class="check-r90" type="checkbox" name="bddb_pic_rrotate" value="1"/>';
 		return $btn_get;
 	}
 

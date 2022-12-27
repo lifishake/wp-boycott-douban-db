@@ -205,7 +205,7 @@ Fancybox.bind('[data-fancybox="gallery"]', {
 			const $rightCol = document.createElement("div");
 			$rightCol.classList.add("fancybox__rightCol");
 
-			$rightCol.innerHTML = '<p class="screen-reader-text">概要</p>';
+			$rightCol.innerHTML = '<p class="screen-reader-text">榤掤��/p>';
 
 			// Create info-box
 			const $info = document.createElement("div");
