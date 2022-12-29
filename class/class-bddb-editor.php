@@ -89,7 +89,7 @@ class BDDB_Editor_Factory {
 	 * 获取封面的Callback。
 	 * @see		AJAX::bddb_get_pic
 	 * @since 	0.0.1
-	 * @version	0.5.4
+	 * @version	0.7.1
 	 */
 	public static function download_pic(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
@@ -100,9 +100,13 @@ class BDDB_Editor_Factory {
 	   }
 	   if (!isset($_POST['rrotate'])) {
 		$need_rotate = 0;
+	   } else {
+		$need_rotate = intval($_POST['rrotate']);
 	   }
-	   else {
-		$need_rotate = $_POST['rrotate'];
+	   if (!isset($_POST['makecover'])) {
+		$need_cover = 0;
+	   } else {
+		$need_cover = intval($_POST['makecover']);
 	   }
 
 	   $options = BDDB_Settings::get_options();
@@ -140,9 +144,14 @@ class BDDB_Editor_Factory {
 
 	   $image = new Bddb_SimpleImage();
 	   $image->load($poster_full_name);
+
 	   if ($need_rotate) {
 		$image->rotate(-90);
 	   }
+	   if ($need_cover) {
+		$image->addcover($full_width, $full_height, 5);
+	   }
+
 	   $image->resize($full_width, $full_height);
 	   $image->save($poster_full_name);
 	   $image->resize($thumb_width, $thumb_height);
@@ -772,11 +781,14 @@ class BDDB_Editor {
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
 	 * @since 	0.0.1
+	 * @version 0.7.1
 	 */
 	protected function echo_poster_button( $post ) {
 		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
 		$names = bddb_get_poster_names($post->post_type, $post->ID);
-		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button><input class="check-r90" type="checkbox" name="bddb_pic_rrotate" value="1"/>';
+		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button>';
+		$btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_rrotate" value="0"/>右转90°</label>';
+		$btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_cover" value="0"/>剪裁封面</label>';
 		return $btn_get;
 	}
 
