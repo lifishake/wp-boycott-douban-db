@@ -3,7 +3,7 @@
  * @brief	处理后台编辑画面
  * @date	2021-12-21
  * @author	大致
- * @version	0.5.2
+ * @version	0.7.1
  * @since	0.0.1
  * 
  */
@@ -258,6 +258,7 @@ jQuery(document).ready(function($) {
 	$('button[name="bddb_get_pic_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("bddb_poster_link");
         var need_rotate_90 = document.getElementsByName("bddb_pic_rrotate");
+        var need_cover = document.getElementsByName("bddb_pic_cover");
 		var dest_pic = this.getAttribute('dest_src');
 		if (pic_bar.length != 1) {
 			return;
@@ -265,8 +266,12 @@ jQuery(document).ready(function($) {
         if (need_rotate_90.length != 1) {
             return;
         }
+        if (need_cover.length != 1) {
+            return;
+        }
 		var pic_link = pic_bar[0].value;
-        var need_rrotate = need_rotate_90[0].value;
+        var need_rrotate = need_rotate_90[0].checked ? "1" : "0";
+        var need_c = need_cover[0].checked ? "1" : "0";
 		var data = {
             action: 'bddb_get_pic',
             nonce: this.getAttribute('wpnonce'),
@@ -274,6 +279,7 @@ jQuery(document).ready(function($) {
             ptype:this.getAttribute('ptype'),
 			piclink:pic_link,
             rrotate:need_rrotate,
+            makecover:need_c,
 		};
 		$.ajax({
             url: ajaxurl,

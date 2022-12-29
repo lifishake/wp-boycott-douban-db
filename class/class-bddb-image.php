@@ -5,7 +5,7 @@
  * @brief	封装图像处理
  * @date	2022-12-27
  * @author	网络
- * @version	0.7.0
+ * @version	0.7.1
  * @since	0.1.4
  * 
  */
@@ -127,6 +127,48 @@ class Bddb_SimpleImage {
    function rotate($angle) {
       $new_image = imagerotate($this->image, $angle, 0);
       $this->image = $new_image;
+   }
+
+   /**
+	 * 制作封面。
+	 * @param int $new_width	封面宽度
+    * @param int $new_height	封面高度
+    * @param int $border_width	边框宽度
+	 * @since 	0.7.1
+	 * @version	0.7.1
+	 */
+   function addcover($new_width, $new_height, $border_width=0) {
+      $bg0 = imagecreatetruecolor($new_width, $new_height);
+      $white = imagecolorallocate($bg0, 255, 255, 255);
+
+      //第一次，用白色填充全部
+      imagefilledrectangle($bg0, 0, 0, $new_width, $new_height, $white);
+
+      //外套。将图片拉伸或缩小到高度，然后从中间截取。
+      $original_img = $this->image;    //backup源
+      $this->resizeToHeight($new_height);
+      $mid_x = $this->getWidth()/2;
+      $start_x = $mid_x - $new_width/2;
+
+      imagecopymerge( $bg0, $this->image, 0, 0, $start_x, 0, $new_width, $new_height, 50);
+
+      //白框，无框全覆盖
+      $th_x = 7;
+      $th_width = $new_width - $th_x * 2;
+      $ratio = imagesy($original_img) / imagesx($original_img);
+      $th_height = intval($th_width*$ratio);
+      $th_y = intval(($new_height-$th_height) / 2);
+      imagefilledrectangle($bg0, $th_x, $th_y, $th_x +$th_width, $th_y +$th_height, $white);
+
+
+      $th_width -= 2*$border_width;
+      $th_height -= 2*$border_width;
+      //$th_y = 120;
+      $th_y += $border_width;
+      $th_x += $border_width;
+      imagecopyresized($bg0, $original_img, $th_x, $th_y, 0, 0, $th_width, $th_height, imagesx($original_img), imagesy($original_img));
+      imagedestroy($original_img);
+      $this->image = $bg0;
    }
 
 }
