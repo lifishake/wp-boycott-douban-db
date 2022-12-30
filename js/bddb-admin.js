@@ -257,21 +257,26 @@ jQuery(document).ready(function($) {
     //取图片按钮
 	$('button[name="bddb_get_pic_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("bddb_poster_link");
-        var need_rotate_90 = document.getElementsByName("bddb_pic_rrotate");
-        var need_cover = document.getElementsByName("bddb_pic_cover");
+        var check_rotate_90 = document.getElementsByName("bddb_pic_rrotate");
+        var check_cover = document.getElementsByName("bddb_pic_cover");
+        var check_adapt = document.getElementsByName("bddb_pic_adape");
 		var dest_pic = this.getAttribute('dest_src');
+        var need_rrotate = "0";
+        var need_cover = "0";
+        var need_adapt = "0";
 		if (pic_bar.length != 1) {
 			return;
 		}
-        if (need_rotate_90.length != 1) {
-            return;
+        if (check_rotate_90.length == 1) {
+            need_rrotate = check_rotate_90[0].checked ? "1" : "0";
         }
-        if (need_cover.length != 1) {
-            return;
+        if (check_cover.length == 1) {
+            need_cover = check_cover[0].checked ? "1" : "0";
+        }
+        if (check_adapt.length == 1) {
+            need_adapt = check_adapt[0].checked ? "1" : "0";
         }
 		var pic_link = pic_bar[0].value;
-        var need_rrotate = need_rotate_90[0].checked ? "1" : "0";
-        var need_c = need_cover[0].checked ? "1" : "0";
 		var data = {
             action: 'bddb_get_pic',
             nonce: this.getAttribute('wpnonce'),
@@ -279,7 +284,8 @@ jQuery(document).ready(function($) {
             ptype:this.getAttribute('ptype'),
 			piclink:pic_link,
             rrotate:need_rrotate,
-            makecover:need_c,
+            makecover:need_cover,
+            adapt:need_adapt,
 		};
 		$.ajax({
             url: ajaxurl,
