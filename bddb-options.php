@@ -267,7 +267,7 @@ function bddb_poster_render() {
 	<span>图像宽度：</span><input type='text' name='bddb_settings[poster_width]' size='24' value='<?php echo $options['poster_width']; ?>'/><br />
   <span>图像高度：</span><input type='text' name='bddb_settings[poster_height]' size='24' value='<?php echo $options['poster_height']; ?>'/><br />
 	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' size='24' value='<?php echo $options['thumbnail_width']; ?>'/></br>、
-  <span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_height]' size='24' value='<?php echo $options['thumbnail_height']; ?>'/></br>
+  <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height]' size='24' value='<?php echo $options['thumbnail_height']; ?>'/></br>
 <?php
 }
 

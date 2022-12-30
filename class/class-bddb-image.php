@@ -3,9 +3,9 @@
 /**
  * @class	Bddb_SimpleImage
  * @brief	封装图像处理
- * @date	2022-12-27
+ * @date	2022-12-30
  * @author	网络
- * @version	0.7.1
+ * @version	0.7.2
  * @since	0.1.4
  * 
  */
@@ -160,15 +160,47 @@ class Bddb_SimpleImage {
       $th_y = intval(($new_height-$th_height) / 2);
       imagefilledrectangle($bg0, $th_x, $th_y, $th_x +$th_width, $th_y +$th_height, $white);
 
-
+      // 图像缩放拷贝
       $th_width -= 2*$border_width;
       $th_height -= 2*$border_width;
-      //$th_y = 120;
       $th_y += $border_width;
       $th_x += $border_width;
       imagecopyresized($bg0, $original_img, $th_x, $th_y, 0, 0, $th_width, $th_height, imagesx($original_img), imagesy($original_img));
       imagedestroy($original_img);
       $this->image = $bg0;
    }
+   /**
+	 * 裁去按高或宽缩放后多余的区域。
+	 * @param int $new_width	封面宽度
+    * @param int $new_height	封面高度
+	 * @since 	0.7.2
+	 * @version	0.7.2
+	 */
+   function adapt($new_width, $new_height) {
+      $original_img = $this->image;    //backup源
+      $original_ratio = floatval(imagesy($original_img) / imagesx($original_img));
+      $new_ratio = floatval($new_height / $new_width);
+      $delta = $original_ratio - $new_ratio;
 
+      if ($delta <= 0.05 && $delta >= -0.05) {
+         //直接缩放
+         $new_image = imagecreatetruecolor($new_width, $new_height);
+         imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $new_width, $new_height, $this->getWidth(), $this->getHeight());
+         $this->image = $new_image;
+      } else if ($delta>0) {
+         $bg0 = imagecreatetruecolor($new_width, $new_height);
+         //图比封面高，按宽度截取
+         $this->resizeToWidth($new_width);
+         $start_y = intval(($this->getHeight() - $new_height)/2);
+         imagecopymerge( $bg0, $this->image, 0, 0, 0, $start_y, $new_width, $new_height, 100);
+         $this->image = $bg0;
+      } else if ($delta<0) {
+         $bg0 = imagecreatetruecolor($new_width, $new_height);
+         //图比封面胖，按高度截取
+         $this->resizeToHeight($new_height);
+         $start_x = intval(($this->getWidth() - $new_width)/2);
+         imagecopymerge( $bg0, $this->image, 0, 0, $start_x, 0, $new_width, $new_height, 100);
+         $this->image = $bg0;
+      }
+   }
 }

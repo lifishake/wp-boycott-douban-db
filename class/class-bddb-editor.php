@@ -89,7 +89,7 @@ class BDDB_Editor_Factory {
 	 * 获取封面的Callback。
 	 * @see		AJAX::bddb_get_pic
 	 * @since 	0.0.1
-	 * @version	0.7.1
+	 * @version	0.7.2
 	 */
 	public static function download_pic(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
@@ -107,6 +107,11 @@ class BDDB_Editor_Factory {
 		$need_cover = 0;
 	   } else {
 		$need_cover = intval($_POST['makecover']);
+	   }
+	   if (!isset($_POST['adapt'])) {
+		$need_adapt = 0;
+	   } else {
+		$need_adapt = intval($_POST['adapt']);
 	   }
 
 	   $options = BDDB_Settings::get_options();
@@ -150,6 +155,9 @@ class BDDB_Editor_Factory {
 	   }
 	   if ($need_cover) {
 		$image->addcover($full_width, $full_height, 5);
+	   }
+	   else if ($need_adapt) {
+		$image->adapt($full_width, $full_height);
 	   }
 
 	   $image->resize($full_width, $full_height);
@@ -781,7 +789,7 @@ class BDDB_Editor {
 	 * @return	string	显示用字符串
 	 * @see 	$this->show_meta_box()->iscallable('comment')
 	 * @since 	0.0.1
-	 * @version 0.7.1
+	 * @version 0.7.2
 	 */
 	protected function echo_poster_button( $post ) {
 		$nonce_str = wp_create_nonce('bddb-get-pic-'.$post->ID);
@@ -789,6 +797,7 @@ class BDDB_Editor {
 		$btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="'.$post->ID.'" ptype="'.$post->post_type.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >取得</button>';
 		$btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_rrotate" value="0"/>右转90°</label>';
 		$btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_cover" value="0"/>剪裁封面</label>';
+		$btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_adape" value="0"/>自适应</label>';
 		return $btn_get;
 	}
 
