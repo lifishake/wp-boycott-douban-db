@@ -4,9 +4,9 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2021-12-21
+ * @date	2022-12-31
  * @author	大致
- * @version	0.4.5
+ * @version	0.7.3
  * @since	0.0.1
  * 
  */
@@ -39,11 +39,13 @@ class BDDB_Common_Template {
 			'summary_callback' => false,	//插入显示的特殊处理回调
 			'panel' => false,		//上墙
 			'panel_callback' => false,	//上墙回调
+			'portrait_ok' => false,	//竖屏具体信息时显示
 		);
 		$this->common_items = array(
 			'bddb_display_name' => array(	'name' => 'bddb_display_name',
 											'label' => '表示名',
 											'priority' => '10',
+											'portrait_ok' => true,
 											),
 			'bddb_original_name' => array(	'name' => 'bddb_original_name',
 											'label' => '原名',
@@ -69,11 +71,13 @@ class BDDB_Common_Template {
 											'priority' => '03',
 											'sort' => 'DESC',
 											'summary' => '21',
+											'portrait_ok' => true,
 											),
 			'bddb_view_time' => array(		'name' => 'bddb_view_time',
 											'label' => '邂逅年月',
 											'priority' => '02',
 											'sort' => 'ASC',
+											'portrait_ok' => true,
 											),
 			'bddb_personal_rating' => array( 'name' => 'bddb_personal_rating',
 											'label' => '评分',
@@ -325,6 +329,22 @@ class BDDB_Common_Template {
 		return $val_str;
 	}
 
+	/**
+	 * @brief	获取条目的class。竖屏项目增加.loly类
+	 * @private
+	 * @param	array	$item	    条目信息。
+	 * @param	string	$base_class	基本类。
+	 * @return  string	组合后的类
+	 * @since	0.7.3
+	 * @see		panel_common_loop()
+	 * @see		panel_callback()
+	 */
+	private function get_item_class($item, $base_class="bddb-disp-item") {
+		if (isset($item['portrait_ok']) && $item['portrait_ok']){
+			return $base_class;
+		}
+		return $base_class.' loly';
+	}
 
 	/**
 	 * @brief	设置模板的类型。
@@ -358,6 +378,7 @@ class BDDB_Common_Template {
 	 */
 	private function add_movie_items() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
+		$this->common_items['bddb_original_name']['portrait_ok'] = true;
 		$this->common_items['bddb_publish_time']['panel'] = '02';		//上墙显示。
 		$this->common_items['bddb_publish_time']['label'] = '首映时间';
 		$this->common_items['bddb_publish_time']['panel_callback'] = array($this, 'panel_time_only_year');
@@ -377,6 +398,7 @@ class BDDB_Common_Template {
 											'type' => 'tax',
 											'summary' => '02',			//插入显示。
 											'panel' => '11',			//上墙显示。
+											'portrait_ok' => true,
 											),
 			'm_p_actor' => array(	'name' => 'm_p_actor',
 											'label' => '主演',
@@ -384,12 +406,14 @@ class BDDB_Common_Template {
 											'summary' => '03',			//插入显示。
 											'panel' => '12',			//上墙显示。
 											'panel_callback' => array($this, 'panel_movie_people'),
+											'portrait_ok' => true,
 											),
 			'm_genre' => array(	'name' => 'm_genre',
 											'label' => '类型',
 											'type' => 'tax',
 											'summary' => '04',			//插入显示。
 											'panel' => '04',			//上墙显示。
+											'portrait_ok' => true,
 											),
 			'm_publisher' => array(	'name' => 'm_publisher',
 											'label' => '制作/发行方',
@@ -458,28 +482,33 @@ class BDDB_Common_Template {
 											'type' => 'tax',
 											'summary' => '02',
 											'panel' => '01',			//上墙显示
+											'portrait_ok' => true,
 											),
 			'b_p_translator' => array(	'name' => 'b_p_translator',
 											'label' => '译者',
 											'type' => 'tax',
 											'summary' => '03',
 											'panel' => '12',			//上墙显示
+											'portrait_ok' => true,
 											),
 			'b_p_editor' => array(	'name' => 'b_p_editor',
 											'label' => '编者',
 											'type' => 'tax',
 											'panel' => '13',			//上墙显示
+											'portrait_ok' => true,
 											),
 			'b_publisher' => array(	'name' => 'b_publisher',
 											'label' => '出版社',
 											'type' => 'tax',
 											'summary' => '05',
 											'panel' => '20',			//上墙显示
+											'portrait_ok' => true,
 											),
 			'b_genre' => array(	'name' => 'b_genre',
 											'label' => '分类',
 											'type' => 'tax',
 											'panel' => '04',			//上墙显示
+											'portrait_ok' => true,
 											),
 			'b_series_total' => array(	'name' => 'b_series_total',
 											'label' => '全套册数',
@@ -524,6 +553,7 @@ class BDDB_Common_Template {
 	 */
 	private function add_game_items() {
 		$this->common_items['bddb_display_name']['label'] = '游戏名';
+		$this->common_items['bddb_original_name']['portrait_ok'] = false;
 		$this->common_items['bddb_publish_time']['label'] = '发行年月';
 		$this->common_items['bddb_publish_time']['panel'] = '11';
 		$this->common_items['bddb_publish_time']['priority'] = '09';
@@ -532,6 +562,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_view_time']['priority'] = '03';
 		$this->common_items['bddb_aka']['panel'] = '02';
 		$this->common_items['bddb_aka']['summary'] = '02';
+		$this->common_items['bddb_aka']['portrait_ok'] = true;
 		$add_items = array(
 			'g_language' => array(			'name' => 'g_language',
 											'label' => '语言版本',
@@ -550,12 +581,14 @@ class BDDB_Common_Template {
 											'type' => 'tax',
 											'summary' => '04',
 											'panel' => '03',
+											'portrait_ok' => true,
 											),
 			'g_publisher'	=>		array(	'name' => 'g_publisher',
 											'label' => '厂商',
 											'type' => 'tax',
 											'summary' => '05',
 											'panel' => '05',
+											'portrait_ok' => true,
 											),
 			'g_cost_time'	=>		array(	'name' => 'g_cost_time',
 											'label' => '耗时',
@@ -598,12 +631,14 @@ class BDDB_Common_Template {
 											'type' => 'tax',
 											'summary' => '11',
 											'panel'	=> '04',
+											'portrait_ok' => true,
 											),
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'type' => 'tax',
 											'summary' => '08',
 											'panel'	=> '02',
+											'portrait_ok' => true,
 											),
 			'a_p_musician'	=>		array(	'name' => 'a_p_musician',
 											'label' => '音乐家',
@@ -611,6 +646,7 @@ class BDDB_Common_Template {
 											'type' => 'tax',
 											'summary' => '02',
 											'panel'	=> '01',
+											'portrait_ok' => true,
 											),
 			'a_quantity'	=>		array(	'name' => 'a_quantity',
 											'label' => '专辑规格',
@@ -928,7 +964,7 @@ class BDDB_Common_Template {
 	 * @return string	多行
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.7.3
 	 * @see		get_xxx_panel_info()
 	 */
 	private function panel_common_loop($id) {
@@ -952,7 +988,7 @@ class BDDB_Common_Template {
 				if (empty($val_str)){
 					continue;
 				}
-				$row_str = sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val_str);
+				$row_str = sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), $item['label'], $val_str);
 			}
 			$panel_str .= $row_str;
 		}
@@ -1360,7 +1396,7 @@ class BDDB_Common_Template {
 	 * @return	string
 	 * @protected
 	 * @since	0.3.2
-	 * @version	0.6.6
+	 * @version	0.7.3
 	 * @remarks	暂时只用于演员
 	 * @see		panel_callback()
 	 */
@@ -1386,7 +1422,7 @@ class BDDB_Common_Template {
 		if (empty($val_str)) {
 			return '';
 		}
-		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val_str);
+		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), $item['label'], $val_str);
 	}
 
 	/**
@@ -1396,11 +1432,11 @@ class BDDB_Common_Template {
 	 * @return	string
 	 * @protected
 	 * @since	0.4.0
-	 * @version	0.4.0
+	 * @version	0.7.3
 	 * @see		panel_callback()
 	 */
 	protected function panel_time_only_year($id, $item) {
-		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], date("Y", strtotime($this->get_meta_str($item['name'], $id))));
+		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), $item['label'], date("Y", strtotime($this->get_meta_str($item['name'], $id))));
 	}
 
 
@@ -1429,7 +1465,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.7.3
 	 * @see		panel_callback()
 	 */
 	protected function panel_book_publish_time($id, $item) {
@@ -1437,7 +1473,7 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), $item['label'], $val);
 	}
 
 	/**
@@ -1447,7 +1483,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.7.3
 	 * @see		panel_callback()
 	 */
 	protected function panel_book_series_total($id, $item) {
@@ -1455,7 +1491,7 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), $item['label'], $val);
 	}
 
 	/**
@@ -1465,7 +1501,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.7.3
 	 * @see		panel_callback()
 	 */
 	protected function panel_original_name($id, $item) {
@@ -1473,7 +1509,7 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), $item['label'], $val);
 	}
 	
 	/**
