@@ -1,9 +1,9 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2022-07-22
+ * @date	2023-02-08
  * @author	大致
- * @version	0.5.5
+ * @version	0.7.4
  * @since	0.5.5
  * 
  */
@@ -298,6 +298,8 @@ class BDDB_Fetcher{
 	 * @param	string	$body	页面html内容
 	 * @return 	array
 	 * @since 	0.4.1
+	 * @version 0.7.4
+	 * @date	2023-02-08
 	 */
 	public static function parse_douban_game_body($body) {
 		$fetch = array(
@@ -348,7 +350,10 @@ class BDDB_Fetcher{
 							$fetch['platform'] = str_replace("/", ",", $temp);
 							break;
 						case "别名:":
-							$fetch['akas'] = str_replace("/", ",", $temp);
+							$temp = str_replace("/", ",", $temp);
+							$arr_temp = explode(',' , $temp);
+							$arr_temp = array_map("trim", $arr_temp);
+							$fetch['akas'] = implode(" / ", $arr_temp);
 							break;
 						case "开发商:":
 							$fetch['publisher'] = str_replace("/", ",", $temp);
@@ -933,7 +938,7 @@ class BDDB_Fetcher{
 		curl_setopt($curl, CURLOPT_USERAGENT, 'API Test UA');
 		curl_setopt($curl, CURLOPT_TIMEOUT, 180);
 		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 60);
-		curl_setopt ($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
 		$response = curl_exec($curl);
 		curl_close($curl);
