@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.7.4
- * Date:        2023-02-08
+ * Version:     0.7.5
+ * Date:        2023-02-13
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -19,7 +19,7 @@ define ('BDDB_PLUGIN_BASE_NAME', plugin_basename(__FILE__));
 define('BDDB_GALLERY_URL',home_url('/',is_ssl()?'https':'http').'wp-content/poster_gallery/');
 //define('BDDB_GALLERY_DIR', ABSPATH.'wp-content/poster_gallery/');
 define('BDDB_TAX_VER', '20220101');
-define('BDDB_META_VER', '20211103');
+define('BDDB_META_VER', '20230210');
 
 register_activation_hook( __FILE__, 'bddb_plugin_activation' );
 register_deactivation_hook( __FILE__,'bddb_plugin_deactivation' );
@@ -126,6 +126,7 @@ function bddb_init()
 /* Plugin页面追加配置选项 */
 function bddb_init_actions()
 {   
+	BDDB_Statics::check_db();
 	BDDB_Statics::check_taxonomies();
 	BDDB_Statics::check_types();
 	//js和css加载
@@ -270,7 +271,7 @@ function bddb_scripts() {
 
 /* 统一处理后台相关的脚本 */
 function bddb_admin_scripts() {
-    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20221230', true);
+    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array(), '20230213', true);
 	wp_localize_script( 'bddb-js-admin', 'nomouse_names', array('nothing'));
     wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
     wp_deregister_style( 'open-sans' );

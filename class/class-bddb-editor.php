@@ -10,9 +10,9 @@ if (!class_exists('BDDB_Settings')) {
 /**
  * @class	BDDB_Editor_Factory
  * @brief	编辑类工厂，用于生成编辑类以及外部静态接口
- * @date	2022-07-21
+ * @date	2023-02-13
  * @author	大致
- * @version	0.5.4
+ * @version	0.7.5
  * @since	0.5.4
  * 
  */
@@ -20,7 +20,8 @@ class BDDB_Editor_Factory {
 	/**
 	 * 后台初始化。
 	 * @since 	0.5.4
-	 * @version 0.5.4
+	 * @version 0.7.5
+	 * @date 2023-02-13
 	 * @see		bddb_admin_init()
 	 */
 	public static function admin_init() {
@@ -29,7 +30,6 @@ class BDDB_Editor_Factory {
 		add_filter ( 'wp_insert_post_data', 'BDDB_Editor_Factory::generate_content', 10, 2);
 		add_action( 'wp_ajax_bddb_get_pic', 'BDDB_Editor_Factory::download_pic');
 		add_action( 'wp_ajax_bddb_get_imdbpic', 'BDDB_Editor_Factory::download_imdbpic');
-		add_action( 'wp_ajax_bddb_get_from_giantbomb', 'BDDB_Editor_Factory::get_from_giantbomb');
 		add_action( 'wp_ajax_bddb_get_scovers', 'BDDB_Editor_Factory::download_serial_pics');
 	}
 	public static function add_meta_boxes($pt) {
@@ -218,35 +218,6 @@ class BDDB_Editor_Factory {
 	   $image->save($thumbnail_full_name);
 	   wp_die();
 	}
-
-	 /**
-	 * 获取封面的Callback。
-	 * @see		AJAX::bddb_get_from_giantbomb
-	 * @since 	0.4.1
-	 * @version	0.5.4
-	 */
-	public static function get_from_giantbomb() {
-		$resp = array('result' => 'ERROR');
-		if (!isset($_GET['nonce']) || 
-			!isset($_GET['id']) || 
-			!isset($_GET['giantbombno']) || 
-			!isset($_GET['language']) || 
-			!isset($_GET['platform'])) {
-			wp_die();
-		}
-		if ( !wp_verify_nonce($_GET['nonce'],"bddb-get-giantbomb-".$_GET['id'])) { 
-			wp_die();
-		}
-		$arg = array(
-			'language' => $_GET['language'],
-			'platform' => $_GET['platform'],
-		);
-		
-		$resp['result'] = 'OK';
-		$resp['content'] = BDDB_Fetcher::get_from_giantbomb($_GET['giantbombno'], $arg);
-		wp_send_json($resp) ;
-		wp_die();
-	 }
 
 	/**
 	 * 获取系列封面的AJAX的Callback。
@@ -846,19 +817,6 @@ class BDDB_Editor {
 	}
 
 	/**
-	 * 取giantbomb情报按钮。
-	 * @param object $post
-	 * @return	string	显示用字符串
-	 * @see 	$this->show_meta_box()->iscallable('comment')
-	 * @since 	0.4.1
-	 */
-	protected function echo_giantbomb_button($post) {
-		$nonce_str = wp_create_nonce('bddb-get-giantbomb-'.$post->ID);
-		$btn_get = '<button class="button" name="bddb_get_giantbomb_btn" type="button" pid="'.$post->ID.'" wpnonce="'.$nonce_str.'" >GB</button>';
-		return $btn_get;
-	}
-
-	/**
 	 * 为taxinomy类型的输入项增加辅助标签。
 	 * @param int $id	正在编辑的post_ID
 	 * @param array $item	要更新的条目
@@ -1219,11 +1177,6 @@ class BDDB_Editor {
 											'max' => '9999.0',
 											'step' => '0.1',
 											'sanitize_callback' => array($this, 'sanitize_cost_time'),
-											),
-			'g_giantbomb_id'	=>		array(	'name' => 'g_giantbomb_id',
-											'label' => 'GB编号',
-											'size' => 16,
-											'comment' => array($this, 'echo_giantbomb_button'),
 											),
 			'g_misc_brand'		=>	array(	'name' => 'g_misc_brand',
 											'label' => '特殊头衔',

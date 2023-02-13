@@ -4,9 +4,9 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2022-12-31
+ * @date	2023-02-13
  * @author	大致
- * @version	0.7.3
+ * @version	0.7.5
  * @since	0.0.1
  * 
  */
@@ -606,9 +606,7 @@ class BDDB_Common_Template {
 											'panel' => '99',
 											'panel_callback' => array($this, 'panel_game_misc'),
 											),
-			'g_giantbomb_id'	=>		array(	'name' => 'g_giantbomb_id',
-											'label' => 'GiantBomb编号',
-											),
+
 		);
 		$this->total_items = array_merge($this->common_items, $add_items);
 	}

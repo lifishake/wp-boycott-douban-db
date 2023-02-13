@@ -4,9 +4,9 @@
  * @file	class-bddb-statics.php
  * @class	BDDB_Statics
  * @brief	初始化、固定数据等的静态类
- * @date	2021-12-21
+ * @date	2023-02-13
  * @author	大致
- * @version	0.6.7
+ * @version	0.7.5
  * @since	0.0.1
  * 
  */
@@ -338,6 +338,25 @@ class BDDB_Statics {
 	}
 
 	/**
+	 * 检查已经存在的分类法，注册分类法。
+	 * @public
+	 * @since 	0.7.5
+	 * @date	2023-02-10
+	 * @see		bddb_init_actions()
+	 */
+	public static function check_db(){
+		$available_vals[] = '20230210';
+		foreach ($available_vals as $new_val_str){
+			$current_version = BDDB_Settings::get_type_version();
+			if (intval($current_version) < intval($new_val_str)) {
+				if (is_callable("self::db_update_{$new_val_str}")){
+					call_user_func("self::db_update_{$new_val_str}");
+				}
+			}
+		}
+	}
+
+	/**
 	 * 后台初始化。
 	 * @public
 	 * @since 	0.1.1
@@ -621,5 +640,20 @@ class BDDB_Statics {
 		BDDB_Settings::update_tax_version('20220102');
 		//这里好像应该调用unregister_taxonomy。
 	}
+
+	/**
+	 * 数据库升级函数20230210。删除g_giantbomb_id
+	 * @protected
+	 * @since 	0.7.5
+	 * @version 0.7.5
+	 */
+	protected function db_update_20230210(){
+		global $wpdb;
+		$wpdb->get_results( "
+		DELETE FROM {$wpdb->postmeta} WHERE `meta_key` = 'g_giantbomb_id'
+		" );
+		BDDB_Settings::update_type_version('20230210');
+	}
+
 	/********    私有函数 结束    ********/
 };
