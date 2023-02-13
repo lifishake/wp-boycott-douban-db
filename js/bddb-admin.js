@@ -1,9 +1,9 @@
 /**
- * @file	class-admin.js
+ * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2021-12-21
+ * @date	2023-02-13
  * @author	大致
- * @version	0.7.1
+ * @version	0.7.5
  * @since	0.0.1
  * 
  */
@@ -335,78 +335,6 @@ jQuery(document).ready(function($) {
 			},
             error: function(request) {
 				mypicbar.value="取图片异常.";
-			},
-        });
-	})
-
-    //取GA信息按钮，鸡肋
-	$('button[name="bddb_get_giantbomb_btn"]').click(function(){
-		var gbid_edit = document.getElementsByName("g_giantbomb_id");
-		var language_edit = document.getElementsByName("g_language");
-		var platform_deit = document.getElementsByName("g_platform");
-		//var dest_pic = this.getAttribute('dest_src');
-		
-		var data = {
-            action: 'bddb_get_from_giantbomb',
-            nonce: this.getAttribute('wpnonce'),
-            id:this.getAttribute('pid'),
-			giantbombno:gbid_edit[0].value,
-			language:language_edit[0].value,
-			platform:platform_deit[0].value,
-		};
-		$.ajax({
-            url: ajaxurl,
-            type: 'GET',
-            data: data,
-            success:function(response){
-				var the_input = document.getElementsByName("bddb_original_name");
-                var update_title = false;
-				if ($('#title-prompt-text').length == 1) {
-					if ($('#title-prompt-text')[0].innerText === "Enter title here") {
-						$('#title-prompt-text')[0].innerHTML = "";
-						update_title = true;
-					}
-				}
-                if (the_input.length == 1 && response.content.original_name){
-                    the_input[0].value = response.content.original_name;
-                }
-                the_input = document.getElementsByName("bddb_external_link");
-                if (the_input.length == 1 && response.content.url !== undefined && !the_input[0].value){
-                    the_input[0].value = response.content.url;
-                }
-				the_input = document.getElementsByName("bddb_aka");
-                if (the_input.length == 1 && response.content.akas !== undefined){
-                    the_input[0].value = response.content.akas;
-                }
-				the_input = document.getElementsByName("bddb_publish_time");
-                if (the_input.length == 1 && response.content.pubdate !== undefined){
-                    the_input[0].value = response.content.pubdate;
-                }
-				the_input = document.getElementsByName("bddb_poster_link");
-                if (the_input.length == 1 && response.content.pic !== undefined){
-                    the_input[0].value = response.content.pic;
-                }
-                the_input = document.getElementsByName("g_genre");
-                if (the_input.length == 1 && response.content.genre !== undefined && !the_input[0].value){
-                    the_input[0].value = response.content.genre;
-                }
-                the_input = document.getElementsByName("g_publisher");
-                if (the_input.length == 1 && response.content.publisher !== undefined){
-                    the_input[0].value = response.content.publisher;
-                }
-                the_input = document.getElementsByName("g_platform");
-                if (the_input.length == 1 && response.content.platform !== undefined && !the_input[0].value){
-                    the_input[0].value = response.content.platform;
-                }
-                myfetchstsbar.value = "网页已抓取.";
-                mypicbar.value="giantbomb取得成功.";
-            },
-            beforeSend: function () {
-                //$("#img_poster_thumbnail").attr('src','');
-				mypicbar.value="giantbomb获得中...";
-			},
-            error: function(request) {
-				mypicbar.value="giantbomb取得异常.";
 			},
         });
 	})

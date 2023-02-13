@@ -251,6 +251,15 @@ class BDDB_Settings{
 		$options['tax_version'] = $version;
 		update_option('bddb_settings', $options);
 	}
+	public static function get_type_version(){
+		$options = self::get_options();
+		return $options['type_version'];
+	}
+	public static function update_type_version($version){
+		$options = self::get_options();
+		$options['type_version'] = $version;
+		update_option('bddb_settings', $options);
+	}
 
 	/**
 	 * @brief	图片规格相关的几个函数的模板。
