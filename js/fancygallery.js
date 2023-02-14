@@ -15,8 +15,7 @@ jQuery( document ).ready( function( $ ) {
 		e.each(function (i, v) {
 			var el;
 			var ig = $(v).find('img');
-			ig.fadeIn(200);
-			/*
+			//ig.fadeIn(200);
 			if (
 				ig.attr('lazy') !== undefined &&
 				ig.attr('data-src') !== undefined
@@ -27,7 +26,6 @@ jQuery( document ).ready( function( $ ) {
 				ig.removeAttr('data-src');
 				ig.fadeIn(200);
 			}
-			*/
 		});
 	};//thumb_lazy_load
 	
@@ -205,7 +203,7 @@ Fancybox.bind('[data-fancybox="gallery"]', {
 			const $rightCol = document.createElement("div");
 			$rightCol.classList.add("fancybox__rightCol");
 
-			$rightCol.innerHTML = '<p class="screen-reader-text">榤掤��/p>';
+			$rightCol.innerHTML = '<p class="screen-reader-text">榤掤��/p>';
 
 			// Create info-box
 			const $info = document.createElement("div");
