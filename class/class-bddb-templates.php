@@ -4,9 +4,9 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2023-02-13
+ * @date	2023-02-14
  * @author	大致
- * @version	0.7.5
+ * @version	0.7.6
  * @since	0.0.1
  * 
  */
@@ -721,7 +721,8 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.7.6
+	 * @date 2023-02-14
 	 * @see		the_gallery()
 	 */
 	private function get_poster_for_gallery($id) {
@@ -739,13 +740,17 @@ class BDDB_Common_Template {
 		}else{
 			$poster_url = $obj_name->nopic_poster_url;
 		}
+		$thumb_url = $poster_url;
 		$tooltip = $this->get_poster_tooltip($id);
 		
+		/*
+		20230214暂时注掉，不用缩略图看看效果
 		if(file_exists($obj_name->thumb_name)) {
 			$thumb_url = $obj_name->thumb_url;
 		}else{
 			$thumb_url = $obj_name->nopic_thumb_url;
 		}
+		*/
 
 		
 		$ts = "?ts=".strval(time() + mt_rand(0,9999));		
