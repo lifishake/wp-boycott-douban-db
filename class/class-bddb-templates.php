@@ -4,9 +4,9 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2023-02-14
+ * @date	2023-03-13
  * @author	大致
- * @version	0.7.7
+ * @version	0.7.8
  * @since	0.0.1
  * 
  */
@@ -721,8 +721,8 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.7.7
-	 * @date 2023-02-14
+	 * @version	0.7.8
+	 * @date 2023-03-13
 	 * @see		the_gallery()
 	 */
 	private function get_poster_for_gallery($id) {
@@ -743,6 +743,10 @@ class BDDB_Common_Template {
 		$thumb_url = $poster_url;
 		$tooltip = $this->get_poster_tooltip($id);
 		
+		//20230313 使用最后更新时间作为缩略图刷新标识
+		//U是php中相对1970-01-01的秒数，足够了。
+		$ts = "?ts=".strval(get_post_modified_time( "U", false, $id ));
+
 		/*
 		20230214暂时注掉，不用缩略图看看效果
 		if(file_exists($obj_name->thumb_name)) {
@@ -753,7 +757,7 @@ class BDDB_Common_Template {
 		*/
 
 		
-		$ts = "?ts=".strval(time() + mt_rand(0,9999));		
+		//$ts = "?ts=".strval(time() + mt_rand(0,9999));		
 		//$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
 		//恢复让海报一直刷新的功能 20220607
 		
