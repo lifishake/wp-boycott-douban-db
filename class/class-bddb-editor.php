@@ -171,7 +171,7 @@ class BDDB_Editor_Factory {
 	 * 获取imdb封面的Callback。
 	 * @see		AJAX::bddb_get_imdbpic
 	 * @since 	0.3.6
-	 * @version	0.5.4
+	 * @version	0.7.9
 	 */
 	public static function download_imdbpic(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['imdbno']) ) {
@@ -208,8 +208,8 @@ class BDDB_Editor_Factory {
 	   }
 	   $full_width = BDDB_Settings::get_poster_width('movie');
 	   $full_height = BDDB_Settings::get_poster_height('movie');
-	   $thumb_width = BDDB_Settings::get_thumb_width('movie');
-	   $thumb_height = BDDB_Settings::get_thumb_height('movie');
+	   $thumb_width = BDDB_Settings::get_thumbnail_width('movie');
+	   $thumb_height = BDDB_Settings::get_thumbnail_height('movie');
 	   $image = new Bddb_SimpleImage();
 	   $image->load($poster_full_name);
 	   $image->resize($full_width, $full_height);
