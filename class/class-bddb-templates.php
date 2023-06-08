@@ -221,7 +221,7 @@ class BDDB_Common_Template {
 	 * @param	array	$atts	短代码属性，该函数中只包括一个$id。
 	 * @public
 	 * @since	0.1.4
-	 * @version	0.5.1
+	 * @version	0.8.0
 	 * @see		add_shortcode()
 	 */
 	public function show_record($atts, $content = null) {
@@ -238,7 +238,7 @@ class BDDB_Common_Template {
 		array_multisort( array_column($this->total_items,'summary'), array_column($this->total_items,'name'), $this->total_items);
 
 		if (empty($src_is_series)){
-			$template = '<div class="apip-item"><div class="mod"><div class="%1$s"><div class="apiplist-post">%2$s</div><div class="title">%3$s</div><div class="rating">%4$s</div><div class="abstract">%5$s</div></div></div></div>';
+			$template = '<div class="bddb-item"><div class="mod"><div class="%1$s"><div class="apiplist-post">%2$s</div><div class="title">%3$s</div><div class="rating">%4$s</div><div class="abstract">%5$s</div></div></div></div>';
 			//1.悬挂体风格
 			$subject_class="v-overflowHidden doulist-subject";//1
 			//2.缩略图
@@ -264,7 +264,7 @@ class BDDB_Common_Template {
 			}
 			return sprintf($template, $subject_class, $img_str, $title_str, $rating_str, $abstract_str);
 		}else{ //系列
-			$template = '<div class="apip-item"><div class="mod"><div class="v-overflowHidden doulist-subject"><div class="title">%1$s</div>%2$s</div></div></div>';
+			$template = '<div class="bddb-item"><div class="mod"><div class="v-overflowHidden doulist-subject"><div class="title">%1$s</div>%2$s</div></div></div>';
 			if (is_callable(array($this, "get_{$this->self_post_type}_abstract_series"))){
 				$abstract_str = call_user_func(array($this, "get_{$this->self_post_type}_abstract_series"), $id);
 			}
@@ -1040,10 +1040,10 @@ class BDDB_Common_Template {
 
 	/**
 	 * @brief	生成专辑摘要显示的其它内容。
-	 * @param	int		$id			post_ID
+	 * @param	int		$id			post_ID1	 
 	 * @return string	摘要字符串，多行
 	 * @since	0.5.5
-	 * @version	0.5.5
+	 * @version	0.8.0
 	 * @see		show_record()->get_{$this->self_post_type}_abstract
 	 */
 	private function get_album_abstract($id) {
@@ -1082,7 +1082,7 @@ class BDDB_Common_Template {
 	 * @return string	摘要字符串，多行
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.8.0
 	 * @see		show_record()->get_{$this->self_post_type}_abstract
 	 */
 	private function abstract_common_loop($id){
@@ -1104,7 +1104,7 @@ class BDDB_Common_Template {
 				if (empty($val_str)){
 					continue;
 				}
-				$tmp_str = sprintf('<span class="abs-list">%s：%s</span>', $item['label'], str_replace(",", " / ", $val_str));
+				$tmp_str = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], str_replace(",", " / ", $val_str));
 			}
 			$abs_str .= $tmp_str;
 		}
@@ -1296,14 +1296,14 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.8.0
 	 * @see		summary_callback()
 	 */
 	protected function display_movie_publish_time($id, $item) {
 		//只显示年
 		$val = $this->get_meta_str($item['name'], $id);
 		if (!$val) return false;
-		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], substr($val,0,4));
+		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], substr($val,0,4));
 	}
 	
 	/**
@@ -1331,7 +1331,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.8.0
 	 * @see		summary_callback()
 	 */
 	protected function display_original_name($id, $item) {
@@ -1339,7 +1339,7 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
 	}
 
 	/**
@@ -1367,7 +1367,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.8.0
 	 * @see		summary_callback()
 	 */
 	protected function display_book_publish_time($id, $item) {
@@ -1375,7 +1375,7 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
 	}
 
 	/**
@@ -1385,7 +1385,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.8.0
 	 * @see		summary_callback()
 	 */
 	protected function display_book_series_total($id, $item) {
@@ -1393,7 +1393,7 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list">%s：%s</span>', $item['label'], $val);
+		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
 	}
 
 	/**
