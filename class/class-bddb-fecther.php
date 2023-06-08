@@ -1,9 +1,9 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2023-02-08
+ * @date	2023-06-08
  * @author	大致
- * @version	0.7.4
+ * @version	0.8.1
  * @since	0.5.5
  * 
  */
@@ -60,6 +60,11 @@ class BDDB_Fetcher{
 				$url = rtrim($url, "/");
 				//直接走imdb
 				return self::fetch_from_omdb($url);
+			} elseif (strpos($url, "qidian.com")) {
+				$type = "book";
+				$url = rtrim($url, "/");
+				//直接走imdb
+				return self::fetch_from_qidian_page($url);
 			} else {
 				if (strpos($url, "tt") !== false) {
 					$type = "movie";
@@ -102,6 +107,60 @@ class BDDB_Fetcher{
 		$ret['content']['dou_id'] = '';
 		$ret['content']['title'] = '';
 		$ret['result'] = 'OK';
+		return $ret;
+	}
+
+	/**
+	 * @brief	从起点中文获取。
+	 * @param	string	$url
+	 * @return 	array
+	 * @since 	0.8.1
+	 * @version 0.8.1
+	 */
+	public static function fetch_from_qidian_page($url) {
+		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
+		$response = @wp_remote_get( 
+			htmlspecialchars_decode($url), 
+			array( 'timeout'  => 10000, 
+					'limit_response_size ' => 20480,
+			) 
+		);
+		if ( is_wp_error( $response ) || !is_array($response) ) {
+			$ret['reason'] = "wp_remote_get() failed.";
+			return $ret;
+		}
+		$body = wp_remote_retrieve_body($response);
+		//$content['title']=;
+		$content = array(
+			'pic' => '',
+			'average_score' => '',
+			'genre' => '小说',
+			'publisher' => '起点中文网',
+			'pubdate' => '',
+			'country' => '大陆',
+			'original_name' => '',
+			'author' => '',
+			'aka' => '',
+			'translator' => '',
+			'editor' => '',
+			'url' => $url,
+		);
+		$ret['result'] = 'OK';
+		preg_match_all('/(<meta property=("og:title"|"og:image"|"og:novel:author").+?\/>)|(<li data-rid="1">.+?<\/li>)/', $body, $matches);
+		if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=4) {
+			$title_str = $matches[0][0];
+			$img_str = $matches[0][1];
+			$author_str = $matches[0][2];
+			$pubdate_str = $matches[0][3];
+			$content['title'] = bddbt_get_in_qouta($title_str, 'content');
+			$content['author'] = bddbt_get_in_qouta($author_str, 'content');
+			$content['pic'] = "https:".preg_replace('/\/180$/','', trim(bddbt_get_in_qouta($img_str, 'content')));
+			preg_match('/[0-9]{4}-[0-9]{2}/', $pubdate_str, $mt);
+			if (is_array($mt)) {
+				$content['pubdate'] = $mt[0];
+			}
+		}
+		$ret['content'] = $content;
 		return $ret;
 	}
 
