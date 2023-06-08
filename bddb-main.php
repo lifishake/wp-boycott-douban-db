@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     0.7.9
- * Date:        2023-03-27
+ * Version:     0.8.0
+ * Date:        2023-06-08
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -237,7 +237,7 @@ function bddb_scripts() {
 		remove_action( 'wp_print_styles', 'print_emoji_styles');
 		wp_enqueue_script( 'bddb-fancy', BDDB_PLUGIN_URL . 'js/fancybox.umd.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-color-thief', BDDB_PLUGIN_URL . 'js/color-thief.js', array(), '20221128', true );
-		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20230214', true );
+		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20230608', true );
 		wp_localize_script( 'bddb-fancy-func', 'ajaxurl', admin_url('admin-ajax.php'));
 		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css', array(), '20220829' );
 		$css = '';
@@ -259,14 +259,10 @@ function bddb_scripts() {
 		$css = ".fancybox__container {	--fancybox-thumbs-width: 80px;	--fancybox-thumbs-height: {$thumbs_height}px;  }";
 		wp_add_inline_style('bddb-boxstyle', $css);
 
-		if (bddb_is_debug_mode()) {
-			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery-debug.css', array(), '20230214' );
-		} else {
-			wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css', array(), '20230214' );
-		}
+		wp_enqueue_style( 'bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css', array(), '20230608' );
 		
 	}
-	wp_enqueue_style( 'bddb-style-front', BDDB_PLUGIN_URL . 'css/bddb.css', array(), '20220917' );
+	wp_enqueue_style( 'bddb-style-front', BDDB_PLUGIN_URL . 'css/bddb.css', array(), '20230608' );
 }
 
 /* 统一处理后台相关的脚本 */

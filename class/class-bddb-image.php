@@ -203,4 +203,74 @@ class Bddb_SimpleImage {
          $this->image = $bg0;
       }
    }
+
+   function makebookcover($title, $writer) {
+      $tl = mb_strlen($title, 'UTF-8');
+      $wl = mb_strlen($writer, 'UTF-8');
+      if (0===$tl) {
+         return;
+      }
+      if (0===$wl) {
+         $writer="佚名";
+         $wl = 2;
+      }
+      $width = imagesx($this->image);
+      $height = imagesy($this->image);
+      $color = imagecolorallocate($this->image, rand(160,225), rand(160,225), rand(160,225));
+      $ty = intval($height/8)*3;
+      $tx = intval($width/2);
+      $wy = $ty + 15;
+      switch ($tl) {
+         case 1:
+            $tpt = 36; //48px
+            $tx = $tx - 24;
+            $wx = $tx + 24;
+            break;
+         case 2:
+            $tpt = 30; //40px
+            $tx = $tx - 40;
+            $wx = $tx + 40;
+            break;
+         case 3:
+            $tpt = 27; //36px
+            $tx = $tx - 54;
+            $wx = $tx + 54;
+            break;
+         case 4:
+            $tpt = 24; //32px
+            $tx = $tx - 64;
+            $wx = $tx + 64;
+            break;
+         case 5:
+            $tpt = 19.5; //26px
+            $tx = $tx - 65;
+            $wx = $tx + 65;
+            break;
+         case 6:
+            $tpt = 18; //24px
+            $tx = $tx - 72;
+            $wx = $tx + 72;
+            break;
+         case 7:
+            $tpt = 16.5; //22px
+            $tx = $tx - 77;
+            $wx = $tx + 77;
+            break;
+         case 8:
+            $tpt = 16.5; //22px
+            $tx = $tx - 88;
+            $wx = $tx + 88;
+            break;
+         default:
+            $tx = $tx - intval(20*(floatval($tl/2)));
+            $tpt = 15; //20px
+            $wx = $tx + intval(20*(floatval(($wl+3)/2)));
+            break;
+      }
+      //title
+      imagettftext($this->image, $tpt, 0, $tx, $ty, $color, 'ruizi.ttf', $title);
+
+      //writer
+   }
+   
 }
