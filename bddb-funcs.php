@@ -124,6 +124,17 @@ function bddbt_substr_n_pos($str,$find,$n){
     return $str;
 }
 
+function bddbt_get_in_qouta($src, $key) {
+	$ret='';
+	$preg=sprintf('/(?<=%s=").*?(?=")/',$key);
+	preg_match($preg, $src, $matches);
+	if (!is_array($matches)) {
+		return $ret;
+	}
+	$ret = trim($matches[0]);
+	return $ret;
+}
+
 //供主题使用，最好在page里，不要使用the_post
 function bddb_the_gallery($post_type) {
 	if (!BDDB_Statics::is_valid_type($post_type)) {

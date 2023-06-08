@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2023-02-13
+ * @date	2023-06-08
  * @author	大致
- * @version	0.7.5
+ * @version	0.8.1
  * @since	0.0.1
  * 
  */
@@ -169,6 +169,10 @@ jQuery(document).ready(function($) {
                     if (response.result.series_total > 1) {
                         document.getElementsByName("b_bl_series")[0].checked = true;
                     }
+                }
+                the_input = document.getElementsByName("b_genre");
+                if (the_input.length == 1 && response.result.genre !== undefined){
+                    the_input[0].value = response.result.genre;
                 }
 
                 //影
