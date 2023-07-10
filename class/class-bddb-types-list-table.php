@@ -204,7 +204,7 @@ class BDDB_Typed_List {
 	 * @return array
 	 * @see		filter::manage_posts_columns
 	 * @since 	0.1.0
-	 * @version 0.5.4
+	 * @version 0.8.2
 	 */
 	public static function fix_list_headers($columns, $post_type) {
 		$my_columns  = self::get_columns($post_type) ;
@@ -223,11 +223,6 @@ class BDDB_Typed_List {
 			if (isset($columns[$col['key']])) {
 				$columns[$col['key']] = $col['label'];
 			}
-
-			//临时功能，图片是否符合规格
-			if ('book' == $post_type) {
-				$columns['meta-pic'] = '封面状态';
-			}
 			
 		}
 
@@ -244,7 +239,7 @@ class BDDB_Typed_List {
 	 * @return array
 	 * @see		action::manage_posts_custom_column
 	 * @since 	0.2.0
-	 * @version 0.5.4
+	 * @version 0.8.2
 	 */	
 	public static function show_custom_meta_value($column_name, $id) {
 		if ( 0 === strpos( $column_name, 'meta-' ) ) {
@@ -252,6 +247,7 @@ class BDDB_Typed_List {
 		} else {
 			return '';
 		}
+		/*
 		if ('pic' == $meta) {
 			$image = new Bddb_SimpleImage();
 			$names = bddb_get_poster_names('book', $id);
@@ -276,6 +272,7 @@ class BDDB_Typed_List {
 
 		}
 		else
+		*/
 		{
 			$out = get_post_meta($id, $meta, true);
 			if (empty($out)) {
