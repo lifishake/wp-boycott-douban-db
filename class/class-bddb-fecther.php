@@ -1,9 +1,9 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2023-06-08
+ * @date	2023-07-10
  * @author	大致
- * @version	0.8.1
+ * @version	0.8.2
  * @since	0.5.5
  * 
  */
@@ -115,7 +115,7 @@ class BDDB_Fetcher{
 	 * @param	string	$url
 	 * @return 	array
 	 * @since 	0.8.1
-	 * @version 0.8.1
+	 * @version 0.8.2
 	 */
 	public static function fetch_from_qidian_page($url) {
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
@@ -147,18 +147,21 @@ class BDDB_Fetcher{
 		);
 		$ret['result'] = 'OK';
 		preg_match_all('/(<meta property=("og:title"|"og:image"|"og:novel:author").+?\/>)|(<li data-rid="1">.+?<\/li>)/', $body, $matches);
-		if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=4) {
+		if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
 			$title_str = $matches[0][0];
 			$img_str = $matches[0][1];
 			$author_str = $matches[0][2];
-			$pubdate_str = $matches[0][3];
 			$content['title'] = bddbt_get_in_qouta($title_str, 'content');
 			$content['author'] = bddbt_get_in_qouta($author_str, 'content');
 			$content['pic'] = "https:".preg_replace('/\/180$/','', trim(bddbt_get_in_qouta($img_str, 'content')));
-			preg_match('/[0-9]{4}-[0-9]{2}/', $pubdate_str, $mt);
-			if (is_array($mt)) {
-				$content['pubdate'] = $mt[0];
+			if (count($matches[0])==4) {
+				$pubdate_str = $matches[0][3];
+				preg_match('/[0-9]{4}-[0-9]{2}/', $pubdate_str, $mt);
+				if (is_array($mt)) {
+					$content['pubdate'] = $mt[0];
+				}
 			}
+			
 		}
 		$ret['content'] = $content;
 		return $ret;
