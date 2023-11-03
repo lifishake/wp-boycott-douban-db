@@ -3,7 +3,7 @@
   margin:2em auto 0.5em;
   max-width: 800px;
   text-align: left;
-  font-family: Helvetica, Arial, Calibri, 'Lucida Grande', 'Noto Serif SC', 'Microsoft YaHei', SimHei, STHeitiTC-Light,"PingFang TC", "Helvetica Neue", sans-serif;
+  font-family: Helvetica, Tahoma, Arial, "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
 }
 
 .bddb-item .mod {
@@ -14,7 +14,7 @@
 }
 
 .bddb-item .title {
-  font-family: Impact, 'Noto Sans SC', 'Microsoft YaHei';
+  font-family: Elephant, 'Arial Black', 'Noto Sans SC', 'Microsoft YaHei';
 }
 
 .bddblist-subject {
