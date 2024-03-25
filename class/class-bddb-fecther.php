@@ -1,9 +1,9 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2023-07-10
+ * @date	2024-03-25
  * @author	大致
- * @version	0.8.2
+ * @version	0.8.4
  * @since	0.5.5
  * 
  */
@@ -709,6 +709,8 @@ class BDDB_Fetcher{
 	 * @param   bool|array	$input		要合并的内容
 	 * @return 	array
 	 * @since 	0.0.1
+	 * @version	0.8.4
+	 * @date	2024-03-25
 	*/
 	public static function get_from_omdb($id, $input=false){
 		$default = array(
@@ -736,7 +738,7 @@ class BDDB_Fetcher{
 		if(empty($api_key)) {
 			return $output;
 		}
-		$url = "https://www.omdbapi.com/?i=".$id."&apikey=".$api_key;
+		$url = "http://www.omdbapi.com/?i=".$id."&apikey=".$api_key;
 		$response = @wp_remote_get($url);
 		if (is_wp_error($response))
 		{
