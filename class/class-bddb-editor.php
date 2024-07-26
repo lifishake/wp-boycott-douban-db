@@ -623,14 +623,14 @@ class BDDB_Editor {
 	 * @return string	原名
 	 * @see		update_meta()->sanitize_callback
 	 * @since 	0.0.1
-	 * @version 0.5.3
+	 * @version 0.8.5
 	 */
 	protected function sanitize_personal_review($str) {
 		if (empty($str) && isset($_POST['bddb_display_name'])) {
 			$str = "没有评价。";
 		}
 		$punctuation = mb_substr($str, -1);
-		$good_punct = array("！","。","？","…");
+		$good_punct = array("！","。","？","…",".","?","!");
 		if (!in_array($punctuation, $good_punct)) {
 			$str .= "。";
 		}
