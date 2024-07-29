@@ -201,7 +201,7 @@ class BDDB_Typed_List {
 	 * 后台类别列表修改增加标题。
 	 * @param string 	$columns	修改前的标题
 	 * @param string 	$post_type	list的种类
-	 * @return array
+	 * @return string
 	 * @see		filter::manage_posts_columns
 	 * @since 	0.1.0
 	 * @version 0.8.2
@@ -235,8 +235,8 @@ class BDDB_Typed_List {
 	 * 后台类别列表增加显示内容。
 	 * @public
 	 * @param string 	$column_name	列标题
-	 * @param string 	$id				post_ID
-	 * @return array
+	 * @param int 		$id				post_ID
+	 * @return string
 	 * @see		action::manage_posts_custom_column
 	 * @since 	0.2.0
 	 * @version 0.8.2

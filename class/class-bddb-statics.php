@@ -205,11 +205,11 @@ class BDDB_Statics {
 			'complex_name' => 'musicians',
 			'show_admin_column' => true,
 			),
-		//制作人/专辑
-	array(	'tax' => 'a_p_producer',
+		//语言/专辑
+	array(	'tax' => 'a_language',
 			'obj' => array( 'album' ),
 			'label' => 'Producer',
-			'slug' => 'a_p_producer',
+			'slug' => 'a_language',
 			'complex_name' => 'producers',
 			'show_admin_column' => false,
 			),

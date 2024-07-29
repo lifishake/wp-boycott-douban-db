@@ -630,7 +630,7 @@ class BDDB_Fetcher{
 	 * @brief	解析豆瓣页面内容。
 	 * @param	string	$pic_mass	批量图片地址
 	 * @param	string	$default	默认图片地址
-	 * @return 	array
+	 * @return 	string
 	 * @since 	0.0.1
 	*/	
 	public static function get_detail_douban_pic($pic_mass, $default){
@@ -699,7 +699,7 @@ class BDDB_Fetcher{
 	 * @return string
 	 * @since 0.0.1
 	*/
-	private function trim_contry_title($c){
+	public static function trim_contry_title($c){
 		return str_replace(array("中国","/"),array("",","),$c);
 	}
 

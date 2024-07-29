@@ -622,6 +622,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
 		$this->common_items['bddb_publish_time']['label'] = '发行年月';
 		$this->common_items['bddb_publish_time']['panel'] = '11';
+		$this->common_items['bddb_publish_time']['priority'] = '07';
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
 		$add_items = array(
 			'a_region' => array(			'name' => 'a_region',
@@ -631,6 +632,12 @@ class BDDB_Common_Template {
 											'panel'	=> '04',
 											'portrait_ok' => true,
 											),
+			'a_language' => array(			'name' => 'a_language',
+											'label' => '语言',
+											'type' => 'tax',
+											'priority' => '03',
+											'sort' => 'DESC',
+											),								
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'type' => 'tax',
@@ -641,6 +648,7 @@ class BDDB_Common_Template {
 			'a_p_musician'	=>		array(	'name' => 'a_p_musician',
 											'label' => '音乐家',
 											'sort' => 'ASC',
+											'priority' => '04',
 											'type' => 'tax',
 											'summary' => '02',
 											'panel'	=> '01',
@@ -654,7 +662,6 @@ class BDDB_Common_Template {
 			'a_publisher'	=>		array(	'name' => 'a_publisher',
 											'label' => '厂牌',
 											'type' => 'tax',
-											'panel'	=> '05',
 											),
 			'a_bl_multicreator'	=>	array(	'name' => 'a_bl_multicreator',
 											'label' => '多人创作',
