@@ -615,7 +615,7 @@ class BDDB_Common_Template {
 	 * @brief	追加和修改album类型的显示和排序。
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	0.8.6
 	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_album_items() {
@@ -624,6 +624,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel'] = '11';
 		$this->common_items['bddb_publish_time']['priority'] = '07';
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
+		$this->common_items['bddb_view_time']['priority'] = '02';
 		$add_items = array(
 			'a_region' => array(			'name' => 'a_region',
 											'label' => '地区',
@@ -631,12 +632,14 @@ class BDDB_Common_Template {
 											'summary' => '11',
 											'panel'	=> '04',
 											'portrait_ok' => true,
+											'panel_callback' => array($this, 'panel_album_region'),
 											),
 			'a_language' => array(			'name' => 'a_language',
 											'label' => '语言',
-											'type' => 'tax',
 											'priority' => '03',
 											'sort' => 'DESC',
+											'summary' => false,
+											'panel' => false,
 											),								
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
@@ -647,8 +650,6 @@ class BDDB_Common_Template {
 											),
 			'a_p_musician'	=>		array(	'name' => 'a_p_musician',
 											'label' => '音乐家',
-											'sort' => 'ASC',
-											'priority' => '04',
 											'type' => 'tax',
 											'summary' => '02',
 											'panel'	=> '01',
@@ -658,10 +659,14 @@ class BDDB_Common_Template {
 											'label' => '专辑规格',
 											'type' => 'tax',
 											'panel'	=> '10',
+											'summary' => false,
+											'panel' => false,
 											),
 			'a_publisher'	=>		array(	'name' => 'a_publisher',
 											'label' => '厂牌',
 											'type' => 'tax',
+											'summary' => false,
+											'panel' => '05',
 											),
 			'a_bl_multicreator'	=>	array(	'name' => 'a_bl_multicreator',
 											'label' => '多人创作',
@@ -712,7 +717,7 @@ class BDDB_Common_Template {
 				$current_meta = array();
 				$current_meta['key'] = $key;
 				$current_meta['compare'] = 'EXIST';
-				if (isset($item['ctype'])) {
+				if (isset($item['ctype'])&& 'list' != $item['ctype']) {
 					$current_meta['type'] = $item['ctype'];
 				}
 				$ret['meta_query'][$key] = $current_meta;
@@ -1600,6 +1605,43 @@ class BDDB_Common_Template {
 			return false;
 		}
 		return sprintf('<p class="bddb-disp-item align-left">%s</p>', $val);
+	}
+
+	/**
+	 * @brief	上墙专辑地区和语种。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string | bool
+	 * @protected
+	 * @since	0.8.6
+	 * @see		panel_callback()
+	 */
+	protected function panel_album_region($id, $item) {
+		$arr_regions = wp_get_post_terms($id, $item['name']);
+		$str_regions = "";
+		if (empty($arr_regions)){
+			return false;
+		}
+		$arr_str_region = array();
+		foreach ($arr_regions as $region) {
+			if (!empty($region->description)) {
+				$arr_str_region[] = $region->description;
+			}
+			else {
+				$arr_str_region[] = $region->name;
+			}
+		}
+		if (empty($arr_str_region)){
+			return false;
+		}
+		$str_regions = implode(',', $arr_str_region);
+
+		$val_l = $this->get_meta_str('a_language', $id);
+		if (!empty($val_l)) {
+			$val_l = preg_replace('/[0-9]{3}-/i', "", $val_l);
+			$str_regions .=  " / " . $val_l;
+		}
+		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), "产地", $str_regions);
 	}
 
 	/****   显示处理用内部回调函数 结束   ****/

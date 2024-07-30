@@ -3,9 +3,9 @@
  * @file	class-bddb-settings.php
  * @class	BDDB_Settings
  * @brief	设定项管理类
- * @date	2021-12-02
+ * @date	2024-07-30
  * @author	大致
- * @version	0.6.4
+ * @version	0.8.6
  * @since	0.1.0
  * 
  */
@@ -37,6 +37,7 @@ class BDDB_Settings{
 			'm_misc_map'=>'',
 			'g_misc_map'=>'',
 			'a_misc_map'=>'',
+			'a_languages_def'=>'603-普通话;601-粤语;550-英语;796-日语;000-纯音乐;001-韩语',
 			//TODO
 			'general_order' => array(
 				'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
@@ -144,6 +145,21 @@ class BDDB_Settings{
 	public static function get_giantbomb_key(){
 		$options = self::get_options();
 		return $options['g_giantbomb_key'];
+	}
+	//album
+	/**
+	 * @brief	获取编辑用语言列表
+	 * @param	none
+	 * @return 	array
+	 * @since	0.8.6
+	 * @version	0.8.6
+	 * @see		BDDB_Editor::set_additional_items_album()
+	 */
+	public static function get_language_list(){
+		$options = self::get_options();
+		$ret = array();
+		$ret = explode(';', $options['a_languages_def']);
+		return $ret;
 	}
 
 	/**
@@ -308,4 +324,5 @@ class BDDB_Settings{
 		$valid_slugs = array_map('trim', $valid_slugs);
 		return in_array(trim($slug), $valid_slugs);
 	}
+	
 };//class

@@ -4,9 +4,9 @@
  * @file	class-bddb-statics.php
  * @class	BDDB_Statics
  * @brief	初始化、固定数据等的静态类
- * @date	2023-02-13
+ * @date	2024-07-30
  * @author	大致
- * @version	0.7.5
+ * @version	0.8.6
  * @since	0.0.1
  * 
  */
@@ -204,14 +204,6 @@ class BDDB_Statics {
 			'slug' => 'a_p_musician',
 			'complex_name' => 'musicians',
 			'show_admin_column' => true,
-			),
-		//语言/专辑
-	array(	'tax' => 'a_language',
-			'obj' => array( 'album' ),
-			'label' => 'Producer',
-			'slug' => 'a_language',
-			'complex_name' => 'producers',
-			'show_admin_column' => false,
 			),
 		//专辑长度/专辑
 	array(	'tax' => 'a_quantity',

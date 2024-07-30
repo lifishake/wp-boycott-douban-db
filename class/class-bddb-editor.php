@@ -511,7 +511,7 @@ class BDDB_Editor {
 	 * @param object $post	正在编辑的wp的post
 	 * @see		add_meta_box()
 	 * @since 	0.0.1
-	 * @version 0.5.1
+	 * @version 0.8.6
 	 */
 	public function show_meta_box($post) {
 		echo '<div  class="misc-pub-section"><table><tr><th>项目</th><th>输入</th><th>说明</th></tr>';
@@ -570,6 +570,14 @@ class BDDB_Editor {
 					}
 					$val_str .= " value='1' ";
 					$type_str = " type='checkbox' ";
+				} elseif('list' === $arg['inputstyle']) {
+					$type_str .= " list='cList-{$arg['name']}' ";
+					$comment_before = "<datalist id='cList-{$arg['name']}'>";
+					foreach ($arg['clist'] as $ilist) {
+						$comment_before .= "<option value = '{$ilist}'></option>";
+					}
+					$comment_before .= "</datalist>";
+					$comment_str = $comment_before.$comment_str;
 				}
 			}else{
 			}
@@ -1190,6 +1198,7 @@ class BDDB_Editor {
 	 * 设置电影的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
+	 * @version 0.8.6
 	 */
 	private function set_additional_items_album() {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
@@ -1204,12 +1213,16 @@ class BDDB_Editor {
 			'a_language' 		=> 	array(	'name' => 'a_language',
 											'label' => '语言',
 											'size' => 16,
-											'type' => 'tax',
+											'type' => 'meta',
+											'inputstyle' => 'list',
+											'clist' => array(
+												"",
+												),
 											),								
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
 											'size' => 16,
-											'type' => 'tax',
+											'type' => 'meta',
 											),
 			'a_p_musician'	=>		array(	'name' => 'a_p_musician',
 											'label' => '音乐家',
@@ -1236,6 +1249,8 @@ class BDDB_Editor {
 											'inputstyle' => 'boolean',
 											),
 		);
+		$arr_defined = BDDB_Settings::get_language_list();
+		$additional_items['a_language']['clist'] = array_merge($additional_items['a_language']['clist'], $arr_defined);
 		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
 	/******      工具函数 结束      ******/

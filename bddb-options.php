@@ -3,7 +3,7 @@
 /**
  * BDDB后台配置页面
  * @since   0.0.1
- * @version 0.6.7
+ * @version 0.8.6
  * 工具URL: http://wpsettingsapi.jeroensormani.com/
 */
 
@@ -28,7 +28,7 @@ function bddb_add_admin_menu() {
 	/**
 	 * @brief   添加渲染用的组件
 	 * @since	  0.0.1
-   * @version 0.6.7
+   * @version 0.8.6
 	*/
 function bddb_settings_init(  ) {
 	$arg = array(
@@ -194,6 +194,14 @@ function bddb_settings_init(  ) {
   );
 
   add_settings_field(
+  'bddb_a_language_define',
+  '专辑语种',
+  'bddb_a_language_define_render',
+  'bddb_album_tab',
+  'bddb_album_section'
+  );
+
+  add_settings_field(
   'bddb_a_test_setting',
   '专辑预留',
   'bddb_test_field_render',
@@ -266,7 +274,7 @@ function bddb_poster_render() {
 	<span>每页缓存海报数：</span><input type='text' name='bddb_settings[thumbnails_per_page]' size='24' value='<?php echo $options['thumbnails_per_page']; ?>'/></br>
 	<span>图像宽度：</span><input type='text' name='bddb_settings[poster_width]' size='24' value='<?php echo $options['poster_width']; ?>'/><br />
   <span>图像高度：</span><input type='text' name='bddb_settings[poster_height]' size='24' value='<?php echo $options['poster_height']; ?>'/><br />
-	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' size='24' value='<?php echo $options['thumbnail_width']; ?>'/></br>、
+	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' size='24' value='<?php echo $options['thumbnail_width']; ?>'/></br>
   <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height]' size='24' value='<?php echo $options['thumbnail_height']; ?>'/></br>
 <?php
 }
@@ -395,6 +403,21 @@ function bddb_a_poster_render()
 <?php
 }
 
+/**
+ * @brief	定义语种情报
+ * @since	  0.8.6
+*/
+function bddb_a_language_define_render()
+{
+	global $global_option_class;
+	$options = $global_option_class->get_options();
+?>
+  <span>设定专辑语种。格式为000-语言，多种语言合并用半角逗号【,】分割；多个语言用半角分号【;】分割</span><br />
+  <textarea rows='6' cols='40' name='bddb_settings[a_languages_def]' ><?php echo $options['a_languages_def']; ?></textarea>
+
+<?php
+}
+
 	/**
 	 * @brief	section渲染时的回调函数，根据section id显示不同的文字。
 	 * @param	array	$section			section
@@ -435,8 +458,6 @@ function bddb_options_page(	 ) {
 	<div id="bddb_page_content" class="wrap bddb-option" >
   <h1><span>B</span>oycott <span>D</span>ouban <span>D</span>ata<span>b</span>ase</h1>
   <div class="description">This is description of the page.</div>
-			<?php settings_errors(); ?>
-
 			<h2 class="nav-tab-wrapper">
 				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_option" class="nav-tab <?php echo $active_tab == 'tab_option' ? 'nav-tab-active' : ''; ?>">基本功能</a>
 				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_movie" class="nav-tab <?php echo $active_tab == 'tab_movie' ? 'nav-tab-active' : ''; ?>">影片设定</a>
