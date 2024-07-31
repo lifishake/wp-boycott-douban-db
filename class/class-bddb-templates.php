@@ -1614,11 +1614,15 @@ class BDDB_Common_Template {
 	 * @return string | bool
 	 * @protected
 	 * @since	0.8.6
-	 * @version 0.8.8
+	 * @version 0.8.9
 	 * @see		panel_callback()
 	 */
 	protected function panel_album_region($id, $item) {
-		$arr_regions = wp_get_post_terms($id, $item['name']);
+		$args = array(
+			'orderby' => 'term_id',
+			'order' => 'DESC',
+		);
+		$arr_regions = wp_get_post_terms($id, $item['name'], $args);
 		$str_regions = "";
 		if (empty($arr_regions)){
 			return false;
@@ -1631,6 +1635,7 @@ class BDDB_Common_Template {
 			return false;
 		}
 		$str_regions = implode(' , ', $arr_str_region);
+		$str_regions = str_replace(" , ", " ",$str_regions);
 
 		$val_l = $this->get_meta_str('a_language', $id);
 		if (!empty($val_l)) {
