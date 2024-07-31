@@ -1614,6 +1614,7 @@ class BDDB_Common_Template {
 	 * @return string | bool
 	 * @protected
 	 * @since	0.8.6
+	 * @version 0.8.8
 	 * @see		panel_callback()
 	 */
 	protected function panel_album_region($id, $item) {
@@ -1624,24 +1625,19 @@ class BDDB_Common_Template {
 		}
 		$arr_str_region = array();
 		foreach ($arr_regions as $region) {
-			if (!empty($region->description)) {
-				$arr_str_region[] = $region->description;
-			}
-			else {
-				$arr_str_region[] = $region->name;
-			}
+			$arr_str_region[] = sprintf('<img src="https://flagcdn.com/16x12/%1$s.png"  alt="%2$s" />', $region->slug, $region->name);
 		}
 		if (empty($arr_str_region)){
 			return false;
 		}
-		$str_regions = implode(',', $arr_str_region);
+		$str_regions = implode(' , ', $arr_str_region);
 
 		$val_l = $this->get_meta_str('a_language', $id);
 		if (!empty($val_l)) {
 			$val_l = preg_replace('/[0-9]{3}-/i', "", $val_l);
 			$str_regions .=  " / " . $val_l;
 		}
-		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), "产地", $str_regions);
+		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), "区域", $str_regions);
 	}
 
 	/****   显示处理用内部回调函数 结束   ****/
