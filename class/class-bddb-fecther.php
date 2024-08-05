@@ -1,9 +1,9 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2024-03-25
+ * @date	2024-08-05
  * @author	大致
- * @version	0.8.4
+ * @version	0.9.0
  * @since	0.5.5
  * 
  */
@@ -173,7 +173,7 @@ class BDDB_Fetcher{
 	 * @param	string	$type
 	 * @return array
 	 * @since 	0.0.1
-	 * @version 0.5.5
+	 * @version 0.9.0
 	 */
 	public static function fetch_from_douban_page($url, $type) {
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
@@ -193,6 +193,7 @@ class BDDB_Fetcher{
 			$title_str = substr($body, $start_pos, ($end_pos - $start_pos)+strlen("</title>") );
 		}
 		$title = str_replace(array("(豆瓣)","<title>","</title>"), "", $title_str);
+		$title = htmlspecialchars_decode($title);
 		$ret['result'] = 'OK';
 		if ('movie' === $type) {
 			$ret['content'] = self::parse_douban_movie_body($body);
@@ -231,7 +232,7 @@ class BDDB_Fetcher{
 	 * @param	string	$type
 	 * @return 	array
 	 * @since 	0.0.1
-	 * @version 0.6.8
+	 * @version 0.9.0
 	 */
 	public static function parse_douban_movie_body($body) {
 		$fetch = array(
@@ -269,6 +270,7 @@ class BDDB_Fetcher{
 			$got_arr = self::douban_info_to_array($info_div_str);
 			$aka_arr = array();
 			foreach ($got_arr as $label => $obj) {
+				$obj['content'] = htmlspecialchars_decode($obj['content']);
 				if ("导演" == $label) {
 					$fetch['director'] = $obj['content'];
 				}
@@ -337,7 +339,7 @@ class BDDB_Fetcher{
 	 * @param	string	$body	页面html内容
 	 * @return 	array
 	 * @since 	0.4.1
-	 * @version 0.7.4
+	 * @version 0.9.0
 	 * @date	2023-02-08
 	 */
 	public static function parse_douban_game_body($body) {
@@ -374,6 +376,7 @@ class BDDB_Fetcher{
 			$label = "";
 			for ($i=0;$i<count($matches[0]);++$i) {
 				$temp = trim(strip_tags($matches[0][$i]));
+				$temp = htmlspecialchars_decode($temp);
 				if (0 == $i%2) {
 					$label = $temp;
 					continue;
@@ -416,6 +419,7 @@ class BDDB_Fetcher{
 	 * @param	string	$body	页面html内容
 	 * @return 	array
 	 * @since 	0.5.5
+	 * @version	0.9.0
 	 */
 	public static function parse_douban_book_body($body) {
 		$fetch = array(
@@ -452,6 +456,7 @@ class BDDB_Fetcher{
 			unset($matches);
 			$got_arr = self::douban_info_to_array($info_div_str);
 			foreach ($got_arr as $label => $obj) {
+				$obj['content'] = htmlspecialchars_decode($obj['content']);
 				if ("出版社" == $label) {
 					$fetch['publisher'] = $obj['content'];
 				}
@@ -492,6 +497,7 @@ class BDDB_Fetcher{
 					$fetch['publisher'] = trim($publisher_str);
 				}
 				$count_str = bddbt_get_inlabel($data, '<div class="clear-both">','</div>');
+				$count_str = htmlspecialchars_decode($count_str);
 				if (!empty($count_str)){
 					$count_str = strip_tags($count_str);
 					$count_str = str_replace('&nbsp;','',$count_str);
@@ -511,6 +517,7 @@ class BDDB_Fetcher{
 	 * @param	string	$body	页面html内容
 	 * @return 	array
 	 * @since 	0.5.5
+	 * @version	0.9.0
 	 */
 	public static function parse_douban_album_body($body) {
 		$fetch = array(
@@ -560,6 +567,7 @@ class BDDB_Fetcher{
 					$temp_array = explode(',' , $value);
 					$value = self::items_implode($temp_array);
 				}
+				$value= htmlspecialchars_decode($value);
 				if ("出版者" == $label) {
 					$fetch['publisher'] = $value;
 				}
