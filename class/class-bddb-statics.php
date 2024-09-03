@@ -4,9 +4,9 @@
  * @file	class-bddb-statics.php
  * @class	BDDB_Statics
  * @brief	初始化、固定数据等的静态类
- * @date	2024-07-30
+ * @date	2024-09-03
  * @author	大致
- * @version	0.8.6
+ * @version	0.9.1
  * @since	0.0.1
  * 
  */
@@ -205,13 +205,20 @@ class BDDB_Statics {
 			'complex_name' => 'musicians',
 			'show_admin_column' => true,
 			),
+	array(	'tax' => 'a_p_asstants',
+			'obj' => array( 'album' ),
+			'label' => 'AsstantMusician',
+			'slug' => 'a_p_asstants',
+			'complex_name' => 'asstants',
+			'show_admin_column' => false,
+			),
 		//专辑长度/专辑
 	array(	'tax' => 'a_quantity',
 			'obj' => array( 'album' ),
 			'label' => 'Quantities',
 			'slug' => 'a_quantity',
 			'complex_name' => 'quantities',
-			'show_admin_column' => false,
+			'show_admin_column' => true,
 			),
 	); //插件用到的分类法
 	protected static $post_types = array(

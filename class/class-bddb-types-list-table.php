@@ -139,7 +139,7 @@ class BDDB_Typed_List {
 				'style' =>	'',
 			),
 			'a_p_musician' => array(
-				'key'	=>	'meta-a_p_musician',
+				'key'	=>	'taxonomy-a_p_musician',
 				'label'	=>	'主创',
 				'type'	=>	'tax',
 				'style' =>	'',

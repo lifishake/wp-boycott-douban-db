@@ -316,6 +316,29 @@ class BDDB_Common_Template {
 	}
 
 	/**
+	 * @brief	读取1条term的值。
+	 * @param	string	$tax_name	taxonomy名。
+	 * @param	int		$id			postID。
+	 * @param	string	$va			超出限量显示的字符串。
+	 * @param	int		$limit		超出n个字显示字符串。
+	 * @return	string	要读取的taxonomy的值
+	 * @since	0.9.1
+	 * @version	0.9.1
+	 */
+	private function get_tax_str_va($tax_name, $id, $va, $limit) {
+		$str_array = wp_get_post_terms($id, $tax_name, array('fields'=>'names'));
+		if (count($str_array) > $limit) {
+			return $va;
+		}
+		elseif(count($str_array) == 1) {
+			$val_str =trim($str_array[0]);
+		}
+		else{
+			$val_str = implode(', ', $str_array);
+		}
+		return $val_str;
+	}
+	/**
 	 * @brief	读取meta的值。
 	 * @private
 	 * @param	string	$meta_name	meta名。
@@ -615,7 +638,8 @@ class BDDB_Common_Template {
 	 * @brief	追加和修改album类型的显示和排序。
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.8.6
+	 * @version	0.9.1
+	 * @date	2024-09-03
 	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
 	private function add_album_items() {
@@ -652,9 +676,17 @@ class BDDB_Common_Template {
 											'label' => '音乐家',
 											'type' => 'tax',
 											'summary' => '02',
+											'summary_callback' => array($this, 'summary_album_musician'),
 											'panel'	=> '01',
+											'panel_callback' => array($this, 'panel_album_musician'),
 											'portrait_ok' => true,
 											),
+			'a_p_asstants'	=>		array(	'name' => 'a_p_asstants',
+											'label' => '协助音乐家',
+											'type' => 'tax',
+											'summary' => false,
+											'panel'	=> false,
+											),								
 			'a_quantity'	=>		array(	'name' => 'a_quantity',
 											'label' => '专辑规格',
 											'type' => 'tax',
@@ -786,7 +818,8 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.4.0
-	 * @version	0.5.5
+	 * @version	0.9.1
+	 * @date	2024-09-03
 	 * @see		get_gallery_page()
 	 */
 	private function get_poster_tooltip($id) {
@@ -820,6 +853,17 @@ class BDDB_Common_Template {
 				$var = $this->get_meta_str($val, $id);
 				if (!empty($var)) {
 					$results[] = substr($var,0,4);
+				}
+			} else if ('musician' == $key) {
+				$is_multi = $this->get_meta_str('a_bl_multicreator', $id);
+				if ("1" === $is_multi) {
+					$var = "群星";
+				}
+				else {
+					$var = $this->get_tax_str_va($val, $id, "群星", 5);
+				}
+				if (!empty($var)) {
+					$results[] = $var;
 				}
 			} else {
 				$var = $this->get_first_tax_str($val, $id);
@@ -1643,6 +1687,46 @@ class BDDB_Common_Template {
 			$str_regions .=  " / " . $val_l;
 		}
 		return sprintf('<p class="%s"><span class="bddb-disp-label">%s:</span>%s</p>', $this->get_item_class($item), "区域", $str_regions);
+	}
+
+	/**
+	 * @brief	显示专辑音乐家。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string | bool
+	 * @protected
+	 * @since	0.9.1
+	 * @version 0.9.1
+	 * @see		summary_callback()
+	 */
+	protected function summary_album_musician($id, $item) {
+		$val = $this->get_tax_str($item['name'], $id);
+		if (!$val) return false;
+		$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		$val = $this->get_tax_str('a_p_asstants', $id);
+		if (!$val) return $ret;
+		$ret .= sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', '协作', $val);
+		return $ret;
+	}
+
+		/**
+	 * @brief	上墙专辑音乐家。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string | bool
+	 * @protected
+	 * @since	0.9.1
+	 * @version 0.9.1
+	 * @see		summary_callback()
+	 */
+	protected function panel_album_musician($id, $item) {
+		$val = $this->get_tax_str($item['name'], $id);
+		if (!$val) return false;
+		$ret = sprintf('<p class="bddb-disp-item align-left"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+		$val = $this->get_tax_str('a_p_asstants', $id);
+		if (!$val) return $ret;
+		$ret .= sprintf('<p class="bddb-disp-item align-left"><span class="bddb-disp-label">%s:</span>%s</p>', '协作', $val);
+		return $ret;
 	}
 
 	/****   显示处理用内部回调函数 结束   ****/

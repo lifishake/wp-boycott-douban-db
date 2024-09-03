@@ -10,9 +10,9 @@ if (!class_exists('BDDB_Settings')) {
 /**
  * @class	BDDB_Editor_Factory
  * @brief	编辑类工厂，用于生成编辑类以及外部静态接口
- * @date	2024-07-30
+ * @date	2024-09-03
  * @author	大致
- * @version	0.8.7
+ * @version	0.9.1
  * @since	0.5.4
  * 
  */
@@ -1198,7 +1198,7 @@ class BDDB_Editor {
 	 * 设置电影的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
-	 * @version 0.8.7
+	 * @version 0.9.1
 	 */
 	private function set_additional_items_album() {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
@@ -1229,6 +1229,13 @@ class BDDB_Editor {
 											'size' => 16,
 											'type' => 'tax',
 											'placeholder'=>'演唱者/乐队/演奏家',
+											'sanitize_callback' => array($this, 'sanitize_name'),
+											),
+			'a_p_asstants'	=>		array(	'name' => 'a_p_asstants',
+											'label' => '合作音乐家',
+											'size' => 16,
+											'type' => 'tax',
+											'placeholder'=>'伴唱，对唱等',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'a_quantities'	=>		array(	'name' => 'a_quantity',
