@@ -4,9 +4,9 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2023-03-13
+ * @date	2024-09-04
  * @author	大致
- * @version	0.7.8
+ * @version	0.9.2
  * @since	0.0.1
  * 
  */
@@ -1716,16 +1716,16 @@ class BDDB_Common_Template {
 	 * @return string | bool
 	 * @protected
 	 * @since	0.9.1
-	 * @version 0.9.1
+	 * @version 0.9.2
 	 * @see		summary_callback()
 	 */
 	protected function panel_album_musician($id, $item) {
 		$val = $this->get_tax_str($item['name'], $id);
 		if (!$val) return false;
-		$ret = sprintf('<p class="bddb-disp-item align-left"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
+		$ret = sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val);
 		$val = $this->get_tax_str('a_p_asstants', $id);
 		if (!$val) return $ret;
-		$ret .= sprintf('<p class="bddb-disp-item align-left"><span class="bddb-disp-label">%s:</span>%s</p>', '协作', $val);
+		$ret .= sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', '协作', $val);
 		return $ret;
 	}
 
