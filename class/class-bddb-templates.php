@@ -638,7 +638,7 @@ class BDDB_Common_Template {
 	 * @brief	追加和修改album类型的显示和排序。
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.9.1
+	 * @version	0.9.5
 	 * @date	2024-09-03
 	 * @see		set_working_mode()->add_{$this->self_post_type}_items
 	 */
@@ -648,7 +648,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel'] = '11';
 		$this->common_items['bddb_publish_time']['priority'] = '07';
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
-		$this->common_items['bddb_view_time']['priority'] = '03';
+		$this->common_items['bddb_view_time']['priority'] = '02';
 		$add_items = array(
 			'a_region' => array(			'name' => 'a_region',
 											'label' => '地区',
@@ -660,7 +660,7 @@ class BDDB_Common_Template {
 											),
 			'a_language' => array(			'name' => 'a_language',
 											'label' => '语言',
-											'priority' => '02',
+											'priority' => '03',
 											'sort' => 'DESC',
 											'summary' => false,
 											'panel' => false,
