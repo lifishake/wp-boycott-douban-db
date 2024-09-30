@@ -648,7 +648,7 @@ class BDDB_Common_Template {
 		$this->common_items['bddb_publish_time']['panel'] = '11';
 		$this->common_items['bddb_publish_time']['priority'] = '07';
 		$this->common_items['bddb_view_time']['label'] = '欣赏年月';
-		$this->common_items['bddb_view_time']['priority'] = '02';
+		$this->common_items['bddb_view_time']['priority'] = '03';
 		$add_items = array(
 			'a_region' => array(			'name' => 'a_region',
 											'label' => '地区',
@@ -660,7 +660,7 @@ class BDDB_Common_Template {
 											),
 			'a_language' => array(			'name' => 'a_language',
 											'label' => '语言',
-											'priority' => '03',
+											'priority' => '02',
 											'sort' => 'DESC',
 											'summary' => false,
 											'panel' => false,
@@ -692,7 +692,9 @@ class BDDB_Common_Template {
 											'type' => 'tax',
 											'panel'	=> '10',
 											'summary' => false,
-											'panel' => false,
+											'panel' => true,
+											'panel_callback' => array($this, 'panel_album_quantity'),
+											'portrait_ok' => true,
 											),
 			'a_publisher'	=>		array(	'name' => 'a_publisher',
 											'label' => '厂牌',
@@ -1726,6 +1728,36 @@ class BDDB_Common_Template {
 		$val = $this->get_tax_str('a_p_asstants', $id);
 		if (!$val) return $ret;
 		$ret .= sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', '协作', $val);
+		return $ret;
+	}
+	/**
+	 * @brief	上墙专辑规格，只显示特殊属性。
+	 * @param	int		$id			post_ID
+	 * @param	array	$item		条目
+	 * @return string | bool
+	 * @protected
+	 * @since	0.9.4
+	 * @see		summary_callback()
+	 */
+	protected function panel_album_quantity($id, $item) {
+		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'names'));
+		if (is_wp_error($str_array) || !is_array($str_array)) {
+			return false;
+		}
+		$arr_val = array_intersect($str_array, array("单曲", "Live", "精选", "EP", "2CD", "3CD", "4CD"));
+		if (!is_array($arr_val))
+		{
+			return false;
+		}
+		if (count($arr_val)>1) {
+			$val_str = implode(', ', $arr_val);
+		} elseif(count($arr_val) == 1) {
+			$val_str =trim($arr_val[0]);
+		}
+		else {
+			return false;
+		}
+		$ret = sprintf('<p class="bddb-disp-item"><span class="bddb-disp-label">%s:</span>%s</p>', $item['label'], $val_str);
 		return $ret;
 	}
 
