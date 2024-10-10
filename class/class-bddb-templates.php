@@ -788,7 +788,7 @@ class BDDB_Common_Template {
 		}
 		$thumb_url = $poster_url;
 		$tooltip = $this->get_poster_tooltip($id);
-		
+		$addi_class = call_user_func(array($this, "get_{$this->self_post_type}_poster_class"), $id);
 		//20230313 使用最后更新时间作为缩略图刷新标识
 		//U是php中相对1970-01-01的秒数，足够了。
 		$ts = "?ts=".strval(get_post_modified_time( "U", false, $id ));
@@ -807,7 +807,7 @@ class BDDB_Common_Template {
 		//$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
 		//恢复让海报一直刷新的功能 20220607
 		
-		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
 		//$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' lazy='false' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
 
 		return $ret;
@@ -979,6 +979,76 @@ class BDDB_Common_Template {
 		return $detail_str;
 	}
 	
+	/**
+	 * @brief	生成上墙显示的电影海报附加风格。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @private
+	 * @since	0.9.7
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_poster_class
+	 */
+	private function get_movie_poster_class($id) {
+		return "";
+	}
+
+	/**
+	 * @brief	生成上墙显示的书籍海报附加风格。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @private
+	 * @since	0.9.7
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_poster_class
+	 */
+	private function get_book_poster_class($id) {
+		return "";
+	}
+
+	/**
+	 * @brief	生成上墙显示的游戏海报附加风格。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @private
+	 * @since	0.9.7
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_poster_class
+	 */
+	private function get_game_poster_class($id) {
+		return "";
+	}
+
+	/**
+	 * @brief	生成上墙显示的专辑海报附加风格。
+	 * @param	int		$id			post_ID
+	 * @return string
+	 * @private
+	 * @since	0.9.7
+	 * @see		the_gallery()->get_poster_for_gallery()->get_{$this->self_post_type}_poster_class
+	 */
+	private function get_album_poster_class($id) {
+		$ret = '';
+		$the_class = '';
+		$str_a_quantity = $this->get_tax_str('a_quantity', $id);
+		if (stristr($str_a_quantity, "单曲")) {
+			$the_class .= " &#xf0cc ";
+		}
+		if (stristr($str_a_quantity, "live")) {
+			$the_class .= " &#xf211 ";
+		}
+		if (stristr($str_a_quantity, "精选")) {
+			$the_class .= " &#xf1b8 ";
+		}
+		if (stristr($str_a_quantity, "EP")) {
+			$the_class .= " &#xf0c3 ";
+		}
+		if ("1" == $this->get_meta_str('a_bl_multicreator', $id)) {
+			$the_class .= " &#xf0c0 ";
+		}
+		if ($the_class)	{
+			$the_class = trim($the_class);
+			$ret = "<span class = 'quantity'>{$the_class}</span>";
+		}
+		return $ret;
+	}
+
 	/**
 	 * @brief	生成上墙显示的标题。
 	 * @param	int		$id			post_ID
