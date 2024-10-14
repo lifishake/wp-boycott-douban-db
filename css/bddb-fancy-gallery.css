@@ -383,15 +383,27 @@ span.bddb-disp-label {
 
 .bddb-poster-thumb .quantity {
   font-family: 'Fontawesome';
-  height:20px;
+  height: 28px;
   background-color: rgba(129, 125, 125, 0.618);
   color: rgba(255, 255, 255, 0.774);
   text-align: center;
   padding: 2px 5px;
   border-radius: 3px;
-  font-size: 10px;
+  font-size: 16px;
   bottom: 10px;
   right: 2px;
   position: absolute;
+  cursor: zoom-in;
   z-index: 1;
+  cursor: zoom-in;
+}
+
+@media screen and (max-width: 48em) {
+  .bddb-poster-thumb .quantity {
+    font-size: 32px;
+    height: 48px;
+    right: 16px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
