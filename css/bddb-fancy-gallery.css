@@ -393,7 +393,6 @@ span.bddb-disp-label {
   bottom: 10px;
   right: 2px;
   position: absolute;
-  cursor: zoom-in;
   z-index: 1;
   cursor: zoom-in;
 }
