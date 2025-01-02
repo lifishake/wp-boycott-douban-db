@@ -1210,7 +1210,8 @@ class BDDB_Common_Template {
 	 * @return string	摘要字符串，多行
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.8.0
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		show_record()->get_{$this->self_post_type}_abstract
 	 */
 	private function abstract_common_loop($id){
@@ -1232,7 +1233,12 @@ class BDDB_Common_Template {
 				if (empty($val_str)){
 					continue;
 				}
+				if (is_feed()) {
+					$tmp_str = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], str_replace(",", " / ", $val_str));
+				} else {
 				$tmp_str = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], str_replace(",", " / ", $val_str));
+			}
+				
 			}
 			$abs_str .= $tmp_str;
 		}
@@ -1421,27 +1427,34 @@ class BDDB_Common_Template {
 	 * @brief	显示电影出版时间。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
+	 * @return string | bool
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.8.0
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function display_movie_publish_time($id, $item) {
 		//只显示年
 		$val = $this->get_meta_str($item['name'], $id);
 		if (!$val) return false;
-		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], substr($val,0,4));
+		if (is_feed()) {
+			$ret = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], substr($val,0,4));
+		} else {
+			$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], substr($val,0,4));
+		}
+		return $ret;
 	}
 	
 	/**
 	 * @brief	显示电影特殊图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
+	 * @return string | bool
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function display_movie_misc($id, $item) {
@@ -1449,17 +1462,23 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list">%s</span>', $val);
+		if (is_feed() ) {
+			$ret = sprintf('<span class="abs-list style="display:block;">%s</span>', $val);
+		} else {
+			$ret = sprintf('<span class="abs-list">%s</span>', $val);
+		}
+		return $ret;
 	}
 
 	/**
 	 * @brief	显示电影原名。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
+	 * @return string | bool
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.8.0
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function display_original_name($id, $item) {
@@ -1467,17 +1486,23 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		if (is_feed()) {
+			$ret = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], $val);
+		} else {
+			$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		}
+		return $ret;
 	}
 
 	/**
 	 * @brief	显示书籍特殊图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
+	 * @return string | bool
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.0.1
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function display_book_misc($id, $item) {
@@ -1485,17 +1510,23 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list">%s</span>', $val);
+		if (is_feed()) {
+			$ret = sprintf('<span class="abs-list" style="display:block;">%s</span>', $val);
+		} else {
+			$ret = sprintf('<span class="abs-list">%s</span>', $val);
+		}
+		return $ret;
 	}
 
 	/**
 	 * 显示书籍出版时间。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
+	 * @return string | bool
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.8.0
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function display_book_publish_time($id, $item) {
@@ -1503,17 +1534,23 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		if (is_feed()) {
+			$ret = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], $val);
+		} else{
+			$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		}
+		return $ret;
 	}
 
 	/**
 	 * @brief	显示书籍系列册数。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
+	 * @return string | bool
 	 * @protected
 	 * @since	0.0.1
-	 * @version	0.8.0
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function display_book_series_total($id, $item) {
@@ -1521,7 +1558,12 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		if (is_feed()) {
+			$ret = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], $val);
+		} else {
+			$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		}
+		return $ret;
 	}
 
 	/**
@@ -1669,9 +1711,11 @@ class BDDB_Common_Template {
 	 * @brief	显示游戏特殊图标。
 	 * @param	int		$id			post_ID
 	 * @param	array	$item		条目
-	 * @return string
+	 * @return string | bool
 	 * @protected
-	 * @version	0.6.7
+	 * @since	0.6.7
+	 * @version	1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function display_game_misc($id, $item) {
@@ -1679,7 +1723,12 @@ class BDDB_Common_Template {
 		if (empty($val)) {
 			return false;
 		}
-		return sprintf('<span class="abs-list">%s</span>', $val);
+		if (is_feed()) {
+			$ret = sprintf('<span class="abs-list" style="display:block;">%s</span>', $val);
+		} else {
+			$ret = sprintf('<span class="abs-list">%s</span>', $val);
+		}
+		return $ret;
 	}
 
 		/**
@@ -1768,16 +1817,26 @@ class BDDB_Common_Template {
 	 * @return string | bool
 	 * @protected
 	 * @since	0.9.1
-	 * @version 0.9.1
+	 * @version 1.0.0
+	 * @date	2025-01-02
 	 * @see		summary_callback()
 	 */
 	protected function summary_album_musician($id, $item) {
 		$val = $this->get_tax_str($item['name'], $id);
 		if (!$val) return false;
+		if (is_feed()) {
+			$ret = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], $val);
+		} else {
 		$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+		}
+		
 		$val = $this->get_tax_str('a_p_asstants', $id);
 		if (!$val) return $ret;
+		if (is_feed()) {
+			$ret .= sprintf('<span class="abs-list"  style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', '协作', $val);
+		} else {
 		$ret .= sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', '协作', $val);
+		}
 		return $ret;
 	}
 
