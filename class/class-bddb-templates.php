@@ -1236,8 +1236,8 @@ class BDDB_Common_Template {
 				if (is_feed()) {
 					$tmp_str = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], str_replace(",", " / ", $val_str));
 				} else {
-				$tmp_str = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], str_replace(",", " / ", $val_str));
-			}
+					$tmp_str = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], str_replace(",", " / ", $val_str));
+				}
 				
 			}
 			$abs_str .= $tmp_str;
@@ -1827,7 +1827,7 @@ class BDDB_Common_Template {
 		if (is_feed()) {
 			$ret = sprintf('<span class="abs-list" style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', $item['label'], $val);
 		} else {
-		$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
+			$ret = sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', $item['label'], $val);
 		}
 		
 		$val = $this->get_tax_str('a_p_asstants', $id);
@@ -1835,7 +1835,7 @@ class BDDB_Common_Template {
 		if (is_feed()) {
 			$ret .= sprintf('<span class="abs-list"  style="display:block;"><span class="bddb-summary-label" style="font-weight:700;">%s：</span>%s</span>', '协作', $val);
 		} else {
-		$ret .= sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', '协作', $val);
+			$ret .= sprintf('<span class="abs-list"><span class="bddb-summary-label">%s：</span>%s</span>', '协作', $val);
 		}
 		return $ret;
 	}

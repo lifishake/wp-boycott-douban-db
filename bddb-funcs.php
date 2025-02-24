@@ -2,27 +2,35 @@
 /**
  * @file	bddb-funcs.php
  * @brief	外部接口和内部工具
- * @date	2021-12-21
+ * @date	2025-02-21
  * @author	大致
- * @version	0.4.1
+ * @version	1.0.1
  * @since	0.0.1
  * 
  */
-add_action('admin_print_footer_scripts','bddb_quicktags');
 
 /**
  * 乱七八糟的工具类
 */
 
+
+/**
+ * 乱七八糟的工具类
+ *
+ * @since 	0.3.2
+ * @version	0.4.1
+ *
+ * @see BDDB_Editor::update_meta()
+ */
 class BDDB_Tools {
 	//protected static
 	
 	/**
 	 * 优化出品时间。改为年-月格式。如果只输入年则默认定位到该年1月
-	 * @protected
+	 * @public
 	 * @param 	string 	$str	编辑框中的出品年份
 	 * @return 	string	修改后的出品年份
-	 * @see		update_meta()->sanitize_callback
+	 * @see		BDDB_Editor::update_meta()->sanitize_callback
 	 * @since 0.4.1
 	 */
 	public static function sanitize_year_month($str) {
@@ -150,16 +158,6 @@ function bddb_the_gallery($post_type) {
 	} elseif('album' == $post_type) {
 		BDDB_Album::getInstance()->the_gallery();
 	}
-}
-
-//short_code
-//fuck古腾堡
-function bddb_quicktags(){
-?>
-	<script type="text/javascript" charset="utf-8">
-	QTags.addButton( 'eg_bddbr', 'BDDbRd', '[bddbr id=\'', '\' /]', 'p' );
-	</script>
-<?php
 }
 
 //整合输出文件名

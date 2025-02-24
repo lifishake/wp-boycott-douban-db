@@ -290,6 +290,7 @@ function bddb_general_order_render() {
 	$options = $global_option_class->get_options();
 	$t = new BDDB_Common_Template();
 	$option_value = '';
+  $sel_list = '';
 	for($i=0;$i<10;$i++){
 		$sel_list .= sprintf("\n\t<option value='%02d'>%02d</option>",$i,$i);
 	}

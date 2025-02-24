@@ -305,7 +305,8 @@ class BDDB_Statics {
         if (self::$is_inited) {
         	return;
 		}
-		array_map('self::generte_type_taxonomies', self::$taxonomies);
+		$callable = self::class.'::generte_type_taxonomies';
+		array_map($callable, self::$taxonomies);
 		foreach( self::$post_types as $bddb_type) {
 			$labels = array(
 				'singular_name'			=> ucfirst($bddb_type['slug']),
@@ -348,8 +349,9 @@ class BDDB_Statics {
 		foreach ($available_vals as $new_val_str){
 			$current_version = BDDB_Settings::get_type_version();
 			if (intval($current_version) < intval($new_val_str)) {
-				if (is_callable("self::db_update_{$new_val_str}")){
-					call_user_func("self::db_update_{$new_val_str}");
+				$callable = self::class.'::db_update_'.$new_val_str;
+				if (is_callable($callable)){
+					call_user_func($callable);
 				}
 			}
 		}

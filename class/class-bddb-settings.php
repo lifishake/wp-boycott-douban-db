@@ -33,6 +33,8 @@ class BDDB_Settings{
 			'poster_height_game'=>568,
 			'thumbnail_width_game'=>false,
 			'thumbnail_height_game'=>false,
+			'tax_version'=>'20220101',
+			'type_version'=>'20230210',
 			'b_misc_map'=>'',
 			'm_misc_map'=>'',
 			'g_misc_map'=>'',

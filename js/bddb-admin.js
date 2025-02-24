@@ -1,18 +1,21 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2023-06-08
+ * @date	2025-02-21
  * @author	大致
- * @version	0.8.1
+ * @version	1.0.1
  * @since	0.0.1
  * 
  */
 
+//追加bddb 记录插入用button
+QTags.addButton( 'eg_bddbr', 'BDDbRd', '[bddbr id=\'', '\' /]', 'p' );
+
 /**
  * 
- * @param {number} dec 
- * @param {number} length 
- * @returns {Array}
+ * @param number dec 
+ * @param number length 
+ * @returns Array
  */
 function dec_to_hex_string(dec, length) {
     var hex = dec.toString(16).toUpperCase();
@@ -24,8 +27,8 @@ function dec_to_hex_string(dec, length) {
 
 /**
  * 
- * @param {Array} rgb_array 
- * @returns {string}
+ * @param Array rgb_array 
+ * @returns string
  */
 function rgb_to_hex_string(rgb_array) {
     var hex_string = '';
@@ -37,8 +40,8 @@ function rgb_to_hex_string(rgb_array) {
 
 /**
  * 
- * @param {Array} rgb_array 
- * @returns {string}
+ * @param Array rgb_array 
+ * @returns string
  */
 function rgb_to_rgb_string(rgb_array) {
     var rgb_string = 'RGB(';
@@ -53,7 +56,7 @@ function rgb_to_rgb_string(rgb_array) {
 
 /**
  * 
- * @param {Event} event 
+ * @param Event event 
  */
 function StopMouseWheel(event) {
     event = event || window.event;
