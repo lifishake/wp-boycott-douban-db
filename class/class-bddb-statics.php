@@ -429,7 +429,6 @@ class BDDB_Statics {
 		wp_add_dashboard_widget( 'dashboard_bddb_recent', 'BDDb', 'BDDB_Statics::dashboard_widget_div');
 	}
 	
-
 	/**
 	 * dashboard页面创建统计小工具。
 	 * @public
@@ -455,7 +454,7 @@ class BDDB_Statics {
 			echo 'Noting found.';
 		} else {
 			self::display_dashboard_block($bddb_posts, 'bddb');
-			$exclude_ids = array_map(create_function('$o', 'return $o->ID;'), $bddb_posts);
+			$exclude_ids = array_map('apip_get_object_id', $bddb_posts);
 			$quary_args['post__not_in'] = $exclude_ids;
 			$quary_args['numberposts'] = 5;
 
