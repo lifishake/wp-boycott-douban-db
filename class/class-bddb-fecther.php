@@ -520,8 +520,8 @@ class BDDB_Fetcher{
 	 * @param	string	$body	页面html内容
 	 * @return 	array
 	 * @since 	0.5.5
-	 * @version	0.9.9
-	 * @date	2024-11-06
+	 * @version	1.0.3
+	 * @date	2025-03-24
 	 */
 	public static function parse_douban_album_body($body) {
 		$fetch = array(
@@ -573,6 +573,10 @@ class BDDB_Fetcher{
 				}
 				$value= htmlspecialchars_decode($value, ENT_QUOTES);
 				if ("出版者" == $label) {
+					if ("唱片"=== mb_substr($value, -2)) {
+						$value = str_replace("唱片", "", $value);
+					}
+					$value = str_replace(array("滾石"), array("滚石"), $value);
 					$fetch['publisher'] = $value;
 				}
 				elseif ("又名" == $label) {

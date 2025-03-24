@@ -363,7 +363,7 @@ class BDDB_Typed_List {
 		//这个值是register_type的时候注册的，默认没改过，也就是type本身。
 		$post_type = $query->get( 'post_type' );
 		$my_columns  = self::get_columns($post_type) ;
-		if (!$my_columns || empty($my_columns)) {
+		if (!$my_columns || empty($my_columns) || empty($orderby)) {
 			return;
 		}
 

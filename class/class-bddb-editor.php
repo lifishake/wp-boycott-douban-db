@@ -691,7 +691,7 @@ class BDDB_Editor {
 	 * @param string $str	编辑框中的接触时间
 	 * @return string	观影/阅读/游戏/欣赏时间
 	 * @see		update_meta()->sanitize_callback
-	 * @version 0.9.5
+	 * @version 1.0.3
 	 * @since 	0.0.1
 	 */
 	protected function sanitize_view_time($str) {
@@ -700,14 +700,17 @@ class BDDB_Editor {
 				$str = date('Y');
 			} else {
 				$str = date('Y-m');
-			}
-			
+			}			
 		} elseif (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
 			if ("album" === $this->self_post_type) {
 				$str = date("Y", strtotime($str));
 			}else{
 				$str = date("Y-m", strtotime($str));
 			}			
+		} elseif (strtotime(date("Y",strtotime($str))) == strtotime($str)) {
+			if ("album" !== $this->self_post_type) {
+				$str .= "-01";
+			}		
 		}
 		return $str;
 	}
