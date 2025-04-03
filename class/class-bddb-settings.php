@@ -3,9 +3,9 @@
  * @file	class-bddb-settings.php
  * @class	BDDB_Settings
  * @brief	设定项管理类
- * @date	2024-07-30
+ * @date	2025-04-02
  * @author	大致
- * @version	0.8.6
+ * @version	1.0.4
  * @since	0.1.0
  * 
  */
@@ -23,13 +23,16 @@ class BDDB_Settings{
 			'thumbnail_width'=>100,
 			'thumbnail_height'=>148,
 			'thumbnails_per_page'=>48,
+			'poster_width_book'=>400,
 			'poster_height_book'=>560,
 			'thumbnail_width_book'=>false,
 			'thumbnail_height_book'=>false,
 			'b_max_serial_count'=>18,
+			'poster_width_album'=>400,
 			'poster_height_album'=>400,
 			'thumbnail_width_album'=>false,
 			'thumbnail_height_album'=>false,
+			'poster_width_game'=>400,
 			'poster_height_game'=>568,
 			'thumbnail_width_game'=>false,
 			'thumbnail_height_game'=>false,

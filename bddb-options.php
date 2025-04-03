@@ -3,7 +3,7 @@
 /**
  * BDDB后台配置页面
  * @since   0.0.1
- * @version 0.8.6
+ * @version 1.0.4
  * 工具URL: http://wpsettingsapi.jeroensormani.com/
 */
 
@@ -15,6 +15,8 @@ add_action( 'admin_init', 'bddb_settings_init' );
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 //定义文件宏
 define('BDDB_OPTION_FILE_NANE', 'wp-boycott-douban-db/bddb-options.php');
+//清理多余图片的ajax回调函数
+add_action( 'wp_ajax_bddb_thumb_clear', 'bddb_clear_duplicate_thumbs');
 
 	/**
 	 * @brief   追加后台菜单
@@ -28,6 +30,7 @@ function bddb_add_admin_menu() {
   add_submenu_page(__FILE__, '影设定', '影设定', 'manage_options', __FILE__.'&tab=tab_movie', 'bddb_options_page');
   add_submenu_page(__FILE__, '游戏设定', '游戏设定', 'manage_options', __FILE__.'&tab=tab_game', 'bddb_options_page');
   add_submenu_page(__FILE__, '专辑设定', '专辑设定', 'manage_options', __FILE__.'&tab=tab_album', 'bddb_options_page');
+  add_submenu_page(__FILE__, '维护功能', '维护功能', 'manage_options', __FILE__.'&tab=tab_maintain', 'bddb_options_page');
 }
 
 
@@ -76,6 +79,13 @@ function bddb_settings_init(  ) {
   '专辑选项',
   'bddb_settings_section_callback',
   'bddb_album_tab'
+  );
+
+  add_settings_section(
+  'bddb_maintain_section',
+  '检索书影游碟封面目录下，已经失去条目的图片文件。',
+  'bddb_settings_section_callback',
+  'bddb_maintain_tab'
   );
 
   //目录设定·待更改
@@ -183,13 +193,13 @@ function bddb_settings_init(  ) {
   );
   
   add_settings_field(
-    'bddb_g_misc_map',
-    '特殊图标列表',
-    'bddb_all_misc_map_render',
-    'bddb_game_tab',
-    'bddb_game_section',
-    array('type'=>'game')
-    );
+  'bddb_g_misc_map',
+  '特殊图标列表',
+  'bddb_all_misc_map_render',
+  'bddb_game_tab',
+  'bddb_game_section',
+  array('type'=>'game')
+  );
 
   add_settings_field(
   'bddb_a_poster_setting',
@@ -213,6 +223,14 @@ function bddb_settings_init(  ) {
   'bddb_test_field_render',
   'bddb_album_tab',
   'bddb_album_section'
+  );
+
+  add_settings_field(
+  'bddb_maintain_setting',
+  'POST_ID',
+  'bddb_maintain_render',
+  'bddb_maintain_tab',
+  'bddb_maintain_section'
   );
 
 }
@@ -425,6 +443,136 @@ function bddb_a_language_define_render()
 <?php
 }
 
+/**
+ * @brief	查找有图无条目的维护项。
+ * @since	  1.0.4
+*/
+function bddb_maintain_render()
+{
+  ?>
+  种类</td><td>文件</td><td>缩略图</td><td>选择</td></tr>
+  <?php
+	global $global_option_class;
+	$options = $global_option_class->get_options();
+  $options = $global_option_class->get_options();
+  $dir_o = BDDB_Settings::get_default_folder();
+	$gallery_dir = ABSPATH.$dir_o;
+  $thumb_dir = $gallery_dir."thumbnails/";
+  $files_poster = scandir($gallery_dir);
+  $files_thumb = scandir($thumb_dir);
+  $arr_query_ids = array();
+  $arr_scaned_result = array();
+  global $global_option_class;
+	$options = $global_option_class->get_options();
+  $cover_base_url = home_url('/',is_ssl()?'https':'http'). $options['default_folder'];//wp-content/poster_gallery/
+  $labels = array("book", "movie", "game", "album");
+  foreach ($files_poster as $poster_file) {
+    if( "." === $poster_file || ".." === $poster_file) {
+      continue;
+    }
+    $pos = strpos($poster_file, "_");
+    $label = substr($poster_file, 0, $pos);
+    if (!in_array($label, $labels)) {
+      continue;
+    }
+    $id = intval(substr($poster_file, $pos +1, 13));
+    $arr_query_ids[] = $id;
+    $arr_scaned_result[$id] = array("type"=>$label,
+                                    "pics"=>1, 
+                                    "files"=>array($gallery_dir.$poster_file),
+                                    "url" =>$cover_base_url.$poster_file);
+  }
+
+  foreach ($files_thumb as $thumb_file) {
+    if( "." === $thumb_file || ".." === $thumb_file) {
+      continue;
+    }
+    $pos = strpos($thumb_file, "_");
+    $label = substr($thumb_file, 0, $pos);
+    if (!in_array($label, $labels)) {
+      continue;
+    }
+    $id = intval(substr($thumb_file, $pos +1, 13));
+    $is_sub = false;
+    if ("book" === $label) {
+      $ipos = strrpos($thumb_file, "_");
+      if ($ipos != $pos) {//book sub
+        $is_sub = true;
+      }
+    }
+    if (!in_array($id, $arr_query_ids)) {
+      $arr_query_ids[] = $id;
+    }
+    if (array_key_exists($id, $arr_scaned_result)) {
+      if ($arr_scaned_result[$id]["pics"]<3) {
+        $arr_scaned_result[$id]["pics"] = 3;
+      }
+      if ($arr_scaned_result[$id]["pics"]<7 && $is_sub) {
+        $arr_scaned_result[$id]["pics"] = 7;
+      }
+      $arr_scaned_result[$id]["files"][] = $thumb_dir.$thumb_file;
+      $arr_scaned_result[$id]["url"] = $cover_base_url."thumbnails/".$thumb_file;
+    }
+    else {
+      $arr_scaned_result[$id] = array("type"=>$label,
+                                      "pics"=>2,
+                                      "files"=>array($thumb_dir.$thumb_file),
+                                      "url" =>$cover_base_url."thumbnails/".$thumb_file);
+    }
+  }
+  $quary_args = array(
+    'post_type' => $labels,
+    'post_status' => 'publish',
+    'orderby' => 'modified',
+    'order' => 'DESC',
+    'numberposts' => -1,
+    'fields' => 'ids',
+    'include' => $arr_query_ids,
+  );  
+  $result_ids = get_posts($quary_args);
+  $not_exists = array_diff($arr_query_ids, $result_ids);
+  if (empty($not_exists)) {
+    echo("<tr>");
+    return;
+  }
+  $idx = 0;
+  foreach($not_exists as $no_id) {
+    if (!array_key_exists($no_id, $arr_scaned_result)) {
+      continue;
+    }
+    if (!is_array($arr_scaned_result[$no_id]) || !array_key_exists('type', $arr_scaned_result[$no_id]))
+    {
+      continue;
+    }
+    $label = $arr_scaned_result[$no_id]['type'];
+    $width = $options['thumbnail_width'];
+    $height = $options['thumbnail_height'];
+    if (array_key_exists('thumbnail_width_'.$label, $options)) {
+      $width = $options['thumbnail_width_'.$label];
+    }
+    if (array_key_exists('thumbnail_height_'.$label, $options)) {
+      $height = $options['thumbnail_height_'.$label];
+    }
+    $pic_name = end($arr_scaned_result[$no_id]['files']);
+    $pic_src = sprintf('<img src="%1$s" width="%2$d" height="%3$d"/>',
+                        $arr_scaned_result[$no_id]['url'],
+                        $width,
+                        $height
+                      );
+    printf('<tr><th>%1$d</th><td><span>%2$s</span></td><td id="fname_%1$d">%3$s</td>
+            <td>%4$s</td><td><input type="checkbox" name="sel_thumb_%5$d" id="bddb_maintain_chk_%1$d" row_id="%1$d"/></td>
+            </tr>', 
+            $no_id,
+            $label,
+            implode('<br/>', $arr_scaned_result[$no_id]['files']),
+            $pic_src,
+            $idx++,
+        );
+  }
+?>
+<?php
+}
+
 	/**
 	 * @brief	section渲染时的回调函数，根据section id显示不同的文字。
 	 * @param	array	$section			section
@@ -433,6 +581,9 @@ function bddb_a_language_define_render()
 	*/
 function bddb_settings_section_callback( $section ) {
 
+  if (!function_exists('imagecreatefrompng')) {
+    echo '<span>警告：本插件需要GD库支持。</span></br>';
+  }
   switch ($section['id']) {
     case 'bddb_book_section':
       echo '<span>书籍相关设定</span>';
@@ -445,6 +596,13 @@ function bddb_settings_section_callback( $section ) {
       break;
     case 'bddb_album_section':
       echo '<span>专辑相关设定</span>';
+      break;
+    case 'bddb_maintain_section':
+      $nonce = 1;
+?>
+      <button class='button' type='button' id='poster_scan_btn' wpnonce='<?php echo $nonce; ?>'>Scan</button>
+      <button class="button"  type="button" id="bddb_thumb_clear" wpnonce="<?php echo wp_create_nonce('maintain-bddb-'.bddb_get_the_max_id()); ?>">Delete</button>
+<?php
       break;
     case 'bddb_pluginPage_section':
       default:
@@ -471,6 +629,7 @@ function bddb_options_page(	 ) {
 				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_book" class="nav-tab <?php echo $active_tab == 'tab_book' ? 'nav-tab-active' : ''; ?>">书籍设定</a>
 				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_game" class="nav-tab <?php echo $active_tab == 'tab_game' ? 'nav-tab-active' : ''; ?>">游戏设定</a>
 				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_album" class="nav-tab <?php echo $active_tab == 'tab_album' ? 'nav-tab-active' : ''; ?>">专辑设定</a>
+        <a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_maintain" class="nav-tab <?php echo $active_tab == 'tab_maintain' ? 'nav-tab-active' : ''; ?>">维护功能</a>
 			</h2>
 	 <form action='options.php' method='post'>
   <?php
@@ -491,6 +650,9 @@ function bddb_options_page(	 ) {
 		break;
 	  case 'tab_album':
 		do_settings_sections( 'bddb_album_tab' );
+    break;
+    case 'tab_maintain':
+    do_settings_sections( 'bddb_maintain_tab' );
 		break;
   }
   submit_button();
@@ -506,6 +668,25 @@ function bddb_test_field_render() {
 	?>
 	<span>WP->is_ssl = <?php echo is_ssl()? 'YES':'NO'; ?> "wp_http_supports( array( 'ssl' ) )" = <?php echo wp_http_supports( array( 'ssl' ) )?'YES':'NO'; ?> </span>
 	<?php
+}
+
+	/**
+	 * @brief   清理被删除或未保存条目遗留的图片（ajax回调）
+	 * @since	  1.0.4
+   * @version 1.0.4
+	*/
+function bddb_clear_duplicate_thumbs() {
+  if (!isset($_POST['nonce']) || !isset($_POST['files'])) {
+    wp_die();
+  }
+  if ( !wp_verify_nonce($_POST['nonce'],'maintain-bddb-'.bddb_get_the_max_id())) { 
+    wp_die();
+  }
+  $file_names = explode(",", $_POST['files']);
+  foreach ($file_names as $file_name) {
+    @unlink($file_name);
+  }
+  wp_die();
 }
 
 ?>

@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2025-02-21
+ * @date	2025-04-02
  * @author	大致
- * @version	1.0.1
+ * @version	1.0.4
  * @since	0.0.1
  * 
  */
@@ -397,4 +397,52 @@ jQuery(document).ready(function($) {
 		}
 		input_bar[0].value = new_value;
 	})
+
+    //取图片按钮
+	$('button[name="poster_scan_btn"]').click(function(){
+    })
+
+    //清理图片按钮
+	$('#bddb_thumb_clear').click(function(){
+        let arrPicFiles = [];
+        let del_rows = [];
+        var obj_tab;
+        rows = document.querySelectorAll( 'input[name^="sel_thumb"]:checked');
+        Array.from(rows).forEach((element, index)=>{
+            var rid = element.getAttribute('row_id');
+            if (0 == index) {
+                obj_tab = element.parentNode.parentNode.parentNode;
+            }
+            if (rid) {
+                let namecell = document.getElementById("fname_"+rid);
+                var pics = namecell.innerText.split("\n");
+                arrPicFiles.push.apply(arrPicFiles, pics);
+                var del_row = element.parentNode.parentNode;
+                del_rows.push(del_row);
+            }
+        });
+        const del_pics=arrPicFiles.join(",");
+        var data = {
+            action: 'bddb_thumb_clear',
+            nonce: this.getAttribute('wpnonce'),
+            files:del_pics,
+		};
+		$.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: data,
+            cache: false,
+            success:function(){
+                for(let i = 0; i< del_rows.length; i++) {
+                    obj_tab.removeChild(del_rows[i]);
+                }
+            },
+            beforeSend: function () {
+
+			},
+            error: function(request) {
+
+			},
+        });
+    })
 })

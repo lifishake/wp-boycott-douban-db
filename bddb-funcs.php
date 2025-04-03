@@ -2,9 +2,9 @@
 /**
  * @file	bddb-funcs.php
  * @brief	外部接口和内部工具
- * @date	2025-02-21
+ * @date	2025-04-02
  * @author	大致
- * @version	1.0.1
+ * @version	1.0.4
  * @since	0.0.1
  * 
  */
@@ -59,7 +59,7 @@ class BDDB_Tools {
 	public static function tax_slugs_to_names($tax, $imaged_slugs, $limit = 10){
 		$srcs = explode(',', $imaged_slugs);
 		$old = array_map('trim', $srcs);
-		$os = array_map('self::my_space_replace', $srcs);
+		$os = array_map('BDDB_Tools::my_space_replace', $srcs);
 		$got = array();
 		$i = 0;
 		foreach ($os as $slug) {
@@ -218,4 +218,26 @@ function bddb_array_child_value_to_str($data, $key, $name_key="name", $unknown_s
         $ret .= $unknown_str;
     }
     return $ret;
+}
+
+/**
+ * @brief   取得apip类型的最大post_id
+ * @since	1.0.4
+ * @version 1.0.4
+*/
+function bddb_get_the_max_id() {
+	$args = array(
+		'post_type' => array('book','movie','game','album'),
+		'orderby' => 'ID',
+		'order' => 'DESC',
+		'numberposts' => 1,
+		'posts_per_page' =>1,
+		'post_status' => 'any',
+		'fields' => 'ids',
+	  ); 
+	$result_ids = get_posts($args);
+	if (!is_array($result_ids)){
+		return false;
+	}
+	return $result_ids[0];
 }

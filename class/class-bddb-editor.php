@@ -700,7 +700,7 @@ class BDDB_Editor {
 				$str = date('Y');
 			} else {
 				$str = date('Y-m');
-			}			
+			}
 		} elseif (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str)) {
 			if ("album" === $this->self_post_type) {
 				$str = date("Y", strtotime($str));
