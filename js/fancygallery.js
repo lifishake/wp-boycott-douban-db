@@ -81,17 +81,17 @@ jQuery( document ).ready( function( $ ) {
 	//ajax load gallery
 	function load_next_page(t,p,n,s) {
 		var data = {
-            action: 'bddb_next_gallery_page',
-            nonce: n,
-            pid: p,
-            type: t,
+			action: 'bddb_next_gallery_page',
+			nonce: n,
+			pid: p,
+			type: t,
 			nobj: s,
 		};
 		$.ajax({
 			url: ajaxurl,
-            type: 'POST',
-            data: data,
-            cache: false,
+			type: 'POST',
+			data: data,
+			cache: false,
 			beforeSend: show_loader,
 			success: function (results) {
 				hide_loader();
@@ -123,23 +123,23 @@ jQuery( document ).ready( function( $ ) {
 });
 
 function dec_to_hex_string(dec, length) {
-    var hex = dec.toString(16).toUpperCase();
-    if (hex.length < length) {
-        hex = new Array( length - hex.length + 1 ).join( '0' ) + hex;
-    }
-    return hex;
+	var hex = dec.toString(16).toUpperCase();
+	if (hex.length < length) {
+		hex = new Array( length - hex.length + 1 ).join( '0' ) + hex;
+	}
+	return hex;
 }
 
 function rgb_to_hex_string(rgb_array) {
-    var hex_string = '';
-    for( var i = 0; i < rgb_array.length; i++) {
-        hex_string += dec_to_hex_string(rgb_array[i], 2);
-    }
-    return '#' + hex_string;
+	var hex_string = '';
+	for( var i = 0; i < rgb_array.length; i++) {
+		hex_string += dec_to_hex_string(rgb_array[i], 2);
+	}
+	return '#' + hex_string;
 }
 
 function rgb_to_rgba_string(rgb_array, ocp) {
-    return 'RGBA('+rgb_array.toString()+','+ocp.toString()+')';
+	return 'RGBA('+rgb_array.toString()+','+ocp.toString()+')';
 }
 
 //======== Modified from fancybox official ========

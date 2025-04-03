@@ -117,19 +117,19 @@ function bddbt_get_inlabel($str, $start_str, $stop_str){
 }
 
 function bddbt_substr_n_pos($str,$find,$n){
-    $pos_val=0;
-    for ($i=1;$i<=$n;$i++){
-        $pos = strpos($str,$find);
+	$pos_val=0;
+	for ($i=1;$i<=$n;$i++){
+		$pos = strpos($str,$find);
 		if(false===$pos){
 			break;
 		}
-        $str = substr($str,$pos+1);
-        $pos_val=$pos+$pos_val+1;
-    }
+		$str = substr($str,$pos+1);
+		$pos_val=$pos+$pos_val+1;
+	}
 	if ($pos_val > 0) {
 		return substr($str,0,$pos_val - 1);
 	}
-    return $str;
+	return $str;
 }
 
 function bddbt_get_in_qouta($src, $key) {
@@ -146,9 +146,9 @@ function bddbt_get_in_qouta($src, $key) {
 //供主题使用，最好在page里，不要使用the_post
 function bddb_the_gallery($post_type) {
 	if (!BDDB_Statics::is_valid_type($post_type)) {
-        the_content();
-        return;
-    }
+		the_content();
+		return;
+	}
 	if ('book' == $post_type) {
 		BDDB_Book::getInstance()->the_gallery();
 	} elseif('movie' == $post_type) {
@@ -165,7 +165,7 @@ function bddb_the_gallery($post_type) {
 function bddb_get_poster_names($post_type, $ID) {
 	$ret = array();
 	$name = sprintf("%s_%013d.jpg", $post_type, $ID);
-	$dir_o = BDDB_Settings::get_default_folder();
+	$dir_o = BDDB_Settings::getInstance()->get_default_folder();
 	$gallery_dir = ABSPATH.$dir_o;
 	$gallery_url = home_url('/',is_ssl()?'https':'http').$dir_o;
 	$rel_url = str_replace(home_url(), '', $gallery_url);
@@ -183,10 +183,10 @@ function bddb_get_poster_names($post_type, $ID) {
 	$ret['poster_url'] = $rel_url .$name;
 	$ret['thumb_url'] = $rel_url.'thumbnails/'.$name;
 	$ret['thumb_url_front'] = $rel_url.'thumbnails/';
-	$poster_width = BDDB_Settings::get_poster_width($post_type);
-	$poster_height = BDDB_Settings::get_poster_height($post_type);
-	$thumb_width = BDDB_Settings::get_thumbnail_width($post_type);
-	$thumb_height = BDDB_Settings::get_thumbnail_height($post_type);
+	$poster_width = BDDB_Settings::getInstance()->get_poster_width($post_type);
+	$poster_height = BDDB_Settings::getInstance()->get_poster_height($post_type);
+	$thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($post_type);
+	$thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height($post_type);
 	$ret['nopic_thumb_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $thumb_width, $thumb_height );
 	$ret['nopic_poster_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $poster_width, $poster_height );
 	return (object)$ret;
@@ -194,30 +194,30 @@ function bddb_get_poster_names($post_type, $ID) {
 
 function bddb_array_child_value_to_str($data, $key, $name_key="name", $unknown_str="") {
 	$ret = '';
-    if (array_key_exists($key, $data) && is_array($data[$key])) {
-        $subs = $data[$key];
-        if ( count($subs)>1 ) {
-            if ( is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
-                $items = wp_list_pluck($subs, $name_key);
-                $ret .= implode(', ', $items);
-            } else {
-                $ret .= implode(', ', $subs);
-            }
-        } else if (!empty($subs)) {
-            if (is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
-                $ret .= $subs[0][$name_key];
-            } else {
-                $ret .= $subs[0];
-            }
-        } else {
-            $ret .= $unknown_str;
-        }
-    } elseif (array_key_exists($key, $data)) {
-        $ret .= $data[$key];
-    } else {
-        $ret .= $unknown_str;
-    }
-    return $ret;
+	if (array_key_exists($key, $data) && is_array($data[$key])) {
+		$subs = $data[$key];
+		if ( count($subs)>1 ) {
+			if ( is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
+				$items = wp_list_pluck($subs, $name_key);
+				$ret .= implode(', ', $items);
+			} else {
+				$ret .= implode(', ', $subs);
+			}
+		} else if (!empty($subs)) {
+			if (is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
+				$ret .= $subs[0][$name_key];
+			} else {
+				$ret .= $subs[0];
+			}
+		} else {
+			$ret .= $unknown_str;
+		}
+	} elseif (array_key_exists($key, $data)) {
+		$ret .= $data[$key];
+	} else {
+		$ret .= $unknown_str;
+	}
+	return $ret;
 }
 
 /**

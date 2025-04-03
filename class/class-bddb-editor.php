@@ -89,7 +89,7 @@ class BDDB_Editor_Factory {
 	 * 获取封面的Callback。
 	 * @see		AJAX::bddb_get_pic
 	 * @since 	0.0.1
-	 * @version	0.7.2
+	 * @version	1.0.5
 	 */
 	public static function download_pic(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
@@ -114,7 +114,7 @@ class BDDB_Editor_Factory {
 		$need_adapt = intval($_POST['adapt']);
 	   }
 
-	   $options = BDDB_Settings::get_options();
+	   $options = BDDB_Settings::getInstance()->get_options();
 	   $names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
 	   $poster_full_name = $names->poster_name;
 	   $thumbnail_full_name = $names->thumb_name;
@@ -142,10 +142,10 @@ class BDDB_Editor_Factory {
 			wp_die();
 		   return false;
 	   }
-	   $full_width = BDDB_Settings::get_poster_width($_POST['ptype']);
-	   $full_height = BDDB_Settings::get_poster_height($_POST['ptype']);
-	   $thumb_width = BDDB_Settings::get_thumbnail_width($_POST['ptype']);
-	   $thumb_height = BDDB_Settings::get_thumbnail_height($_POST['ptype']);
+	   $full_width = BDDB_Settings::getInstance()->get_poster_width($_POST['ptype']);
+	   $full_height = BDDB_Settings::getInstance()->get_poster_height($_POST['ptype']);
+	   $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($_POST['ptype']);
+	   $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height($_POST['ptype']);
 
 	   $image = new Bddb_SimpleImage();
 	   $image->load($poster_full_name);
@@ -171,7 +171,7 @@ class BDDB_Editor_Factory {
 	 * 获取imdb封面的Callback。
 	 * @see		AJAX::bddb_get_imdbpic
 	 * @since 	0.3.6
-	 * @version	0.7.9
+	 * @version	1.0.5
 	 */
 	public static function download_imdbpic(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['imdbno']) ) {
@@ -180,7 +180,7 @@ class BDDB_Editor_Factory {
 	   if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-imdbpic-".$_POST['id'])) { 
 		   wp_die();
 	   }
-	   $options = BDDB_Settings::get_options();
+	   $options = BDDB_Settings::getInstance()->get_options();
 	   $names = bddb_get_poster_names('movie', $_POST['id']);
 	   $poster_full_name = $names->poster_name;
 	   $thumbnail_full_name = $names->thumb_name;
@@ -206,10 +206,10 @@ class BDDB_Editor_Factory {
 	   {
 		   wp_die();
 	   }
-	   $full_width = BDDB_Settings::get_poster_width('movie');
-	   $full_height = BDDB_Settings::get_poster_height('movie');
-	   $thumb_width = BDDB_Settings::get_thumbnail_width('movie');
-	   $thumb_height = BDDB_Settings::get_thumbnail_height('movie');
+	   $full_width = BDDB_Settings::getInstance()->get_poster_width('movie');
+	   $full_height = BDDB_Settings::getInstance()->get_poster_height('movie');
+	   $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width('movie');
+	   $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height('movie');
 	   $image = new Bddb_SimpleImage();
 	   $image->load($poster_full_name);
 	   $image->resize($full_width, $full_height);
@@ -223,7 +223,7 @@ class BDDB_Editor_Factory {
 	 * 获取系列封面的AJAX的Callback。
 	 * @see		AJAX::bddb_get_scovers
 	 * @since 	0.0.8
-	 * @version	0.6.3
+	 * @version	1.0.5
 	 */
 	public function download_serial_pics(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks']) ) {
@@ -232,10 +232,10 @@ class BDDB_Editor_Factory {
 		if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-scovers-".$_POST['id'])) { 
 			wp_die();
 		}
-		$options = BDDB_Settings::get_options();
+		$options = BDDB_Settings::getInstance()->get_options();
 		$default_serial_count = $options['b_max_serial_count'];
-		$thumb_width = BDDB_Settings::get_thumbnail_width('book');
-		$thumb_height = BDDB_Settings::get_thumbnail_height('book');
+		$thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width('book');
+		$thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height('book');
 		$obj_names = bddb_get_poster_names($_POST['ptype'],$_POST['id']);
 		$slinks = $_POST['slinks'];
 		$parts = explode(";", $slinks);
@@ -267,7 +267,7 @@ class BDDB_Editor_Factory {
 		}
 		wp_die();
 	 }
-	/******    AJAX回调函数 结束    ******/
+/******    AJAX回调函数 结束    ******/
 }//BDDB_Editor_Factory
 
 /**
@@ -951,13 +951,14 @@ class BDDB_Editor {
 	 * @private
 	 * @mention	每个外部和回调函数都需要种类支撑，所以外部函数都需要先调用set_working_mode
 	 * @since 0.1.0
+	 * @version 1.0.5
 	 */
 	private function set_working_mode($post_type){
 		if (!BDDB_Statics::is_valid_type($post_type)) {
 			return false;
 		}
 		$this->self_post_type = $post_type;
-		$this->options = BDDB_Settings::get_options();
+		$this->options = BDDB_Settings::getInstance()->get_options();
 		if (is_callable(array($this,"set_additional_items_{$post_type}"))){
 			call_user_func(array($this,"set_additional_items_{$post_type}"));
 		} else {
@@ -1210,7 +1211,7 @@ class BDDB_Editor {
 	 * 设置电影的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
-	 * @version 0.9.1
+	 * @version 1.0.5
 	 */
 	private function set_additional_items_album() {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
@@ -1268,7 +1269,7 @@ class BDDB_Editor {
 											'inputstyle' => 'boolean',
 											),
 		);
-		$arr_defined = BDDB_Settings::get_language_list();
+		$arr_defined = BDDB_Settings::getInstance()->get_language_list();
 		$additional_items['a_language']['clist'] = array_merge($additional_items['a_language']['clist'], $arr_defined);
 		$this->total_items = array_merge($this->common_items, $additional_items);
 	}

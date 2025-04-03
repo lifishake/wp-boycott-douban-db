@@ -374,7 +374,7 @@ class BDDB_Common_Template {
 	 * @private
 	 * @param	string	$post_type	要显示的bddb种类。
 	 * @since	0.1.4
-	 * @version	0.3.6
+	 * @version	1.0.5
 	 * @see		__construct()
 	 * @see		show_record()
 	 */
@@ -387,7 +387,7 @@ class BDDB_Common_Template {
 			call_user_func(array($this, "add_{$this->self_post_type}_items")); 
 		}
 		$this->total_items = array_map(array($this, 'merge_default_column'), $this->total_items);
-		$this->num_per_page = BDDB_Settings::get_thumbnails_per_page();
+		$this->num_per_page = BDDB_Settings::getInstance()->get_thumbnails_per_page();
 		$this->total_pages = 0;
 		$this->query = false;
 	}
@@ -1190,7 +1190,7 @@ class BDDB_Common_Template {
 		$template = '<div class="abstract-left">%s</div>%s';
 		$abs_str = $this->abstract_common_loop($id);
 		$images = '';
-		$count = BDDB_Settings::get_max_serial_count();
+		$count = BDDB_Settings::getInstance()->get_max_serial_count();
 		$obj_names = bddb_get_poster_names($this->self_post_type, $id);
 		for($i = 0; $i<$count; ++$i){
 			$short_name = sprintf('%s_%013d_%02d.jpg', $this->self_post_type, $id, $i);
@@ -1313,7 +1313,7 @@ class BDDB_Common_Template {
 		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
 		if (is_wp_error($str_array)) return '';
 		foreach($str_array as $key => $slug) {
-			if (!BDDB_Settings::is_pictured_misc($slug,'movie')) {
+			if (!BDDB_Settings::getInstance()->is_pictured_misc($slug,'movie')) {
 				continue;
 			}
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
@@ -1414,7 +1414,7 @@ class BDDB_Common_Template {
 		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
 		if (is_wp_error($str_array)) return '';
 		foreach($str_array as $key => $slug) {
-			if (!BDDB_Settings::is_pictured_misc($slug,'book')) {
+			if (!BDDB_Settings::getInstance()->is_pictured_misc($slug,'book')) {
 				continue;
 			}
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';
@@ -1746,7 +1746,7 @@ class BDDB_Common_Template {
 		$str_array = wp_get_post_terms($id, $item['name'], array('fields'=>'id=>slug'));
 		if (is_wp_error($str_array)) return '';
 		foreach($str_array as $key => $slug) {
-			if (!BDDB_Settings::is_pictured_misc($slug,'game')) {
+			if (!BDDB_Settings::getInstance()->is_pictured_misc($slug,'game')) {
 				continue;
 			}
 			$img = BDDB_PLUGIN_URL.'img/'.$slug.'.png';

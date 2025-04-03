@@ -13,9 +13,9 @@
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 
 function trim_fetched_item($value) {
-    $value = trim($value);
-    $value = str_replace(array("[", "]", "&nbsp;", ""),array("【", "】", "", "N/A"), $value);
-    return $value;
+	$value = trim($value);
+	$value = str_replace(array("[", "]", "&nbsp;", ""),array("【", "】", "", "N/A"), $value);
+	return $value;
 }
 
 if (!function_exists('TrimArray')) {
@@ -480,6 +480,7 @@ class BDDB_DoubanFetcher{
 	 * @param   bool|array	$input		要合并的内容
 	 * @return string
 	 * @since 0.0.1
+	 * @version 1.0.5
 	*/
 	private function get_from_omdb($id, $input=false){
 		$default = array(
@@ -502,7 +503,7 @@ class BDDB_DoubanFetcher{
 		if (''==$id || strpos($id, "tt")!=0) {
 			return $output;
 		}
-		$api_key = BDDB_Settings::get_omdb_key();
+		$api_key = BDDB_Settings::getInstance()->get_omdb_key();
 		if(empty($api_key)) {
 			return $output;
 		}

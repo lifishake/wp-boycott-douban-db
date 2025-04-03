@@ -421,8 +421,8 @@ class BDDB_Fetcher{
 	 * @param	string	$body	页面html内容
 	 * @return 	array
 	 * @since 	0.5.5
-	 * @version	0.9.9
-	 * @date	2024-11-06
+	 * @version	1.0.5
+	 * @date	2024-04-03
 	 */
 	public static function parse_douban_book_body($body) {
 		$fetch = array(
@@ -479,7 +479,7 @@ class BDDB_Fetcher{
 						$capital = substr($value, 0, $pos);
 						$tail = substr($value, $pos+1);
 						$capital = trim(str_replace(array("[","]"),"",$capital));
-						$country = BDDB_Settings::get_book_country_full_name($capital);
+						$country = BDDB_Settings::getInstance()->get_book_country_full_name($capital);
 						$fetch['country'] = $country;
 						$value = trim($tail);
 
@@ -725,8 +725,8 @@ class BDDB_Fetcher{
 	 * @param   bool|array	$input		要合并的内容
 	 * @return 	array
 	 * @since 	0.0.1
-	 * @version	0.8.4
-	 * @date	2024-03-25
+	 * @version	1.0.5
+	 * @date	2025-04-03
 	*/
 	public static function get_from_omdb($id, $input=false){
 		$default = array(
@@ -750,7 +750,7 @@ class BDDB_Fetcher{
 		if (''==$id || strpos($id, "tt")!=0) {
 			return $output;
 		}
-		$api_key = BDDB_Settings::get_omdb_key();
+		$api_key = BDDB_Settings::getInstance()->get_omdb_key();
 		if(empty($api_key)) {
 			return $output;
 		}

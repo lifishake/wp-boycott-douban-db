@@ -261,7 +261,7 @@ class BDDB_Statics {
 	public static function check_taxonomies(){
 		//检查已经存在的分类法，处理既存数据。
 		if (self::$is_inited) {
-        	return;
+			return;
 		}
 		self::tax_diff();
 		foreach (self::$taxonomies as $chk_tax) {
@@ -302,8 +302,8 @@ class BDDB_Statics {
 	 */
 	public static function check_types(){
 		//确定每个种类支持的分类法，存入self::$bddb_type['taxonomies']
-        if (self::$is_inited) {
-        	return;
+		if (self::$is_inited) {
+			return;
 		}
 		$callable = self::class.'::generte_type_taxonomies';
 		array_map($callable, self::$taxonomies);
@@ -341,13 +341,14 @@ class BDDB_Statics {
 	 * 检查已经存在的分类法，注册分类法。
 	 * @public
 	 * @since 	0.7.5
-	 * @date	2023-02-10
+	 * @version 1.0.5
+	 * @date	2025-04-03
 	 * @see		bddb_init_actions()
 	 */
 	public static function check_db(){
 		$available_vals[] = '20230210';
 		foreach ($available_vals as $new_val_str){
-			$current_version = BDDB_Settings::get_type_version();
+			$current_version = BDDB_Settings::getInstance()->get_type_version();
 			if (intval($current_version) < intval($new_val_str)) {
 				$callable = self::class.'::db_update_'.$new_val_str;
 				if (is_callable($callable)){
@@ -540,10 +541,11 @@ class BDDB_Statics {
 	 * 比较分类法版本号，版本号不同时调用对应的版本升级函数。
 	 * @private
 	 * @since 	0.1.5
-	 * @version 0.5.1
+	 * @version 1.0.5
+	 * @date 2025-04-03
 	 */
 	private static function tax_diff(){
-		$stored_tax_version = BDDB_Settings::get_tax_version();
+		$stored_tax_version = BDDB_Settings::getInstance()->get_tax_version();
 		if (empty($stored_tax_version)) {
 			return;
 		}
@@ -637,7 +639,7 @@ class BDDB_Statics {
 				}
 			}
 		};
-		BDDB_Settings::update_tax_version('20220102');
+		BDDB_Settings::getInstance()->update_tax_version('20220102');
 		//这里好像应该调用unregister_taxonomy。
 	}
 
@@ -652,7 +654,7 @@ class BDDB_Statics {
 		$wpdb->get_results( "
 		DELETE FROM {$wpdb->postmeta} WHERE `meta_key` = 'g_giantbomb_id'
 		" );
-		BDDB_Settings::update_type_version('20230210');
+		BDDB_Settings::getInstance()->update_type_version('20230210');
 	}
 
 	/********    私有函数 结束    ********/

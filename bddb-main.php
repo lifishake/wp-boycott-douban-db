@@ -37,29 +37,29 @@ require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-types-list-table.php');
 
 function bddb_is_debug_mode()
 {
-    if (isset( $_SERVER['PHPRC'] ) && strpos($_SERVER['PHPRC'], "xampp" ) > 0)
-    {
-        return 1;
-    }
-    return 0;
+	if (isset( $_SERVER['PHPRC'] ) && strpos($_SERVER['PHPRC'], "xampp" ) > 0)
+	{
+		return 1;
+	}
+	return 0;
 }
 
 /* 打log用 */
 function bddb_log()
 {
-    //echo '<pre>'.$any.'</pre>';
+	//echo '<pre>'.$any.'</pre>';
 	print_r(debug_backtrace());
 }
 
 /*创建目录*/
 function bddb_create_dir($dir) {
 	if (file_exists ($dir)) {
-        if (! is_writeable ( $dir )) {
-            @chmod ( $dir, '511' );
-        }
-    } else {
-        @mkdir ( $dir, '511', true );
-    }
+		if (! is_writeable ( $dir )) {
+			@chmod ( $dir, '511' );
+		}
+	} else {
+		@mkdir ( $dir, '511', true );
+	}
 }
 
 /*创建必须文件*/
@@ -86,14 +86,14 @@ function bddb_plugin_activation() {
 
 /*检查路径，检查默认文件*/
 function bddb_check_paths(){
-	$dir_o = BDDB_Settings::get_default_folder();
+	$dir_o = BDDB_Settings::getInstance()->get_default_folder();
 	$gallery_dir= ABSPATH.$dir_o;
 	$thumb_dir = $gallery_dir."thumbnails/";
 	bddb_create_dir($gallery_dir);
 	bddb_create_dir($thumb_dir);
 	foreach (BDDB_Statics::get_valid_types() as $type) {
-		bddb_create_nopic(BDDB_Settings::get_poster_width($type),BDDB_Settings::get_poster_height($type));
-		bddb_create_nopic(BDDB_Settings::get_thumbnail_width($type),BDDB_Settings::get_thumbnail_height($type));		
+		bddb_create_nopic(BDDB_Settings::getInstance()->get_poster_width($type),BDDB_Settings::getInstance()->get_poster_height($type));
+		bddb_create_nopic(BDDB_Settings::getInstance()->get_thumbnail_width($type),BDDB_Settings::getInstance()->get_thumbnail_height($type));		
 	}
 }
 
@@ -111,14 +111,14 @@ function bddb_plugin_uninstall()
 /*配置画面*/
 if (is_admin())
 {
-    require_once( BDDB_PLUGIN_DIR . '/bddb-options.php');
+	require_once( BDDB_PLUGIN_DIR . '/bddb-options.php');
 }
 
 /*变量初期化， 更早*/
 add_action('plugins_loaded', 'bddb_init', 11);
 function bddb_init()
 {
-    bddb_check_paths();
+	bddb_check_paths();
 	add_action('admin_init','bddb_admin_init');
 	add_action('init', 'bddb_init_actions', 11);
 }
@@ -130,7 +130,7 @@ function bddb_init_actions()
 	BDDB_Statics::check_taxonomies();
 	BDDB_Statics::check_types();
 	//js和css加载
-    add_action( 'wp_enqueue_scripts', 'bddb_scripts' );
+	add_action( 'wp_enqueue_scripts', 'bddb_scripts' );
 	//Quick Tag追加
 	add_shortcode('bddbr', 'qt_show_record');
 	//ajax 显示 page 回调
@@ -241,19 +241,19 @@ function bddb_scripts() {
 		wp_localize_script( 'bddb-fancy-func', 'ajaxurl', admin_url('admin-ajax.php'));
 		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css', array(), '20220829' );
 		$css = '';
-		$rate = floatval(BDDB_Settings::get_poster_height(false)/BDDB_Settings::get_poster_width(false));
+		$rate = floatval(BDDB_Settings::getInstance()->get_poster_height(false)/BDDB_Settings::getInstance()->get_poster_width(false));
 
 		if (is_page('booksgallery')) {
-			$rate = floatval(BDDB_Settings::get_poster_height('book')/BDDB_Settings::get_poster_width('book'));
+			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('book')/BDDB_Settings::getInstance()->get_poster_width('book'));
 		}
 		elseif (is_page('moviesgallery')) {
-			$rate = floatval(BDDB_Settings::get_poster_height('movie')/BDDB_Settings::get_poster_width('movie'));
+			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('movie')/BDDB_Settings::getInstance()->get_poster_width('movie'));
 		}
 		elseif (is_page('gamesgallery')) {
-			$rate = floatval(BDDB_Settings::get_poster_height('game')/BDDB_Settings::get_poster_width('game'));
+			$rate = floatval(BBDDB_Settings::getInstance()->get_poster_height('game')/BDDB_Settings::getInstance()->get_poster_width('game'));
 		}
 		elseif (is_page('albumsgallery')) {
-			$rate = floatval(BDDB_Settings::get_poster_height('album')/BDDB_Settings::get_poster_width('album'));
+			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('album')/BDDB_Settings::getInstance()->get_poster_width('album'));
 		}
 		$thumbs_height = intval(80 * $rate);
 		$css = ".fancybox__container {	--fancybox-thumbs-width: 80px;	--fancybox-thumbs-height: {$thumbs_height}px;  }";
@@ -271,10 +271,10 @@ function bddb_scripts() {
  * @version 1.0.4
 */
 function bddb_admin_scripts() {
-    wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array('jquery', 'quicktags'), '20250402', true);
+	wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array('jquery', 'quicktags'), '20250402', true);
 	wp_localize_script( 'bddb-js-admin', 'nomouse_names', array('nothing'));
-    wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
-    wp_deregister_style( 'open-sans' );
-    wp_register_style( 'open-sans', false );
+	wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
+	wp_deregister_style( 'open-sans' );
+	wp_register_style( 'open-sans', false );
 }
 
