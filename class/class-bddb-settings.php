@@ -225,7 +225,7 @@ class BDDB_Settings{
 	 * @version	0.1.0
 	 * @see TODO
 	 */
-	public static function get_giantbomb_key(){
+	public function get_giantbomb_key(){
 		$options = $this->get_options();
 		return $options['g_giantbomb_key'];
 	}
