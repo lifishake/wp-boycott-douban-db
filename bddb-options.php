@@ -3,7 +3,9 @@
 /**
  * BDDB后台配置页面
  * @since   0.0.1
- * @version 1.0.4
+ * @version 1.0.6
+ * @file	bddb-options.php
+ * @date	2025-04-07
  * 工具URL: http://wpsettingsapi.jeroensormani.com/
 */
 
@@ -15,8 +17,6 @@ add_action( 'admin_init', 'bddb_settings_init' );
 require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 //定义文件宏
 define('BDDB_OPTION_FILE_NANE', 'wp-boycott-douban-db/bddb-options.php');
-//清理多余图片的ajax回调函数
-add_action( 'wp_ajax_bddb_thumb_clear', 'bddb_clear_duplicate_thumbs');
 
 /**
  * @brief   追加后台菜单
@@ -431,15 +431,13 @@ function bddb_a_language_define_render()
 }
 
 /**
- * @brief	查找有图无条目的维护项。
- * @since	  1.0.4
- * @version	  1.0.5
+ * @brief	查找无主条目并生成显示用字符串。
+ * @since	1.0.6
+ * @version	1.0.6
+ * @return	string
+ * @date	2025-04-07
 */
-function bddb_maintain_render()
-{
-	?>
-	种类</td><td>文件</td><td>缩略图</td><td>选择</td></tr>
-	<?php
+function bddb_list_no_id_pics() {
 	$options = BDDB_Settings::getInstance()->get_options();
 	$dir_o = BDDB_Settings::getInstance()->get_default_folder();
 	$gallery_dir = ABSPATH.$dir_o;
@@ -504,6 +502,8 @@ function bddb_maintain_render()
 											"url" =>$cover_base_url."thumbnails/".$thumb_file);
 		}
 	}
+	$echoOut = "种类</td><td>文件</td><td>缩略图</td><td>选择</td></tr>";
+
 	$quary_args = array(
 		'post_type' => $labels,
 		'post_status' => 'publish',
@@ -516,8 +516,8 @@ function bddb_maintain_render()
 	$result_ids = get_posts($quary_args);
 	$not_exists = array_diff($arr_query_ids, $result_ids);
 	if (empty($not_exists)) {
-		echo("<tr>");
-		return;
+		$echoOut .= "<tr>";
+		return $echoOut;
 	}
 	$idx = 0;
 	foreach($not_exists as $no_id) {
@@ -543,7 +543,7 @@ function bddb_maintain_render()
 												$width,
 												$height
 											);
-		printf('<tr><th>%1$d</th><td><span>%2$s</span></td><td id="fname_%1$d">%3$s</td>
+		$echoOut .= sprintf('<tr><th>%1$d</th><td><span>%2$s</span></td><td id="fname_%1$d">%3$s</td>
 				<td>%4$s</td><td><input type="checkbox" name="sel_thumb_%5$d" id="bddb_maintain_chk_%1$d" row_id="%1$d"/></td>
 				</tr>', 
 				$no_id,
@@ -553,6 +553,19 @@ function bddb_maintain_render()
 				$idx++,
 		);
 	}
+	return $echoOut;
+}
+
+
+/**
+ * @brief	查找有图无条目的维护项。
+ * @since	1.0.4
+ * @version	1.0.7
+ * @date	2025-04-07
+*/
+function bddb_maintain_render() {
+	$resp = bddb_list_no_id_pics();
+	printf($resp);
 ?>
 <?php
 }
@@ -564,7 +577,7 @@ function bddb_maintain_render()
 	 * @version	0.6.2
 	*/
 function bddb_settings_section_callback( $section ) {
-
+	$nonce = null;
 	if (!function_exists('imagecreatefrompng')) {
 		echo '<span>警告：本插件需要GD库支持。</span></br>';
 	}
@@ -582,10 +595,10 @@ function bddb_settings_section_callback( $section ) {
 			echo '<span>专辑相关设定</span>';
 			break;
 		case 'bddb_maintain_section':
-			$nonce = 1;
+			$nonce = wp_create_nonce('maintain-bddb-'.bddb_get_the_max_id());
 ?>
-			<button class='button' type='button' id='poster_scan_btn' wpnonce='<?php echo $nonce; ?>'>Scan</button>
-			<button class="button"  type="button" id="bddb_thumb_clear" wpnonce="<?php echo wp_create_nonce('maintain-bddb-'.bddb_get_the_max_id()); ?>">Delete</button>
+			<button class='button' type='button' id='bddb_poster_scan' wpnonce='<?php echo $nonce; ?>'>Scan</button>
+			<button class="button"  type="button" id="bddb_thumb_clear" wpnonce="<?php echo $nonce; ?>">Delete</button>
 <?php
 			break;
 		case 'bddb_pluginPage_section':
@@ -637,13 +650,14 @@ function bddb_options_page(	 ) {
 			do_settings_sections( 'bddb_maintain_tab' );
 			break;
 	}
+	if ($active_tab !== 'tab_maintain') {
 	submit_button();
+	}
 	?>
 
 	</form>
 </div>
 	<?php
-
 }
 
 function bddb_test_field_render() {
@@ -654,10 +668,11 @@ function bddb_test_field_render() {
 
 /**
  * @brief   清理被删除或未保存条目遗留的图片（ajax回调）
- * @since	  1.0.4
+ * @since	1.0.4
  * @version 1.0.4
+ * @date	2025-04-02
 */
-function bddb_clear_duplicate_thumbs() {
+function ajax_clear_duplicate_thumbs() {
 	if (!isset($_POST['nonce']) || !isset($_POST['files'])) {
 		wp_die();
 	}
@@ -668,6 +683,24 @@ function bddb_clear_duplicate_thumbs() {
 	foreach ($file_names as $file_name) {
 		@unlink($file_name);
 	}
+	wp_die();
+}
+
+/**
+ * @brief   显示目录下的缩略图（ajax回调）
+ * @since	1.0.6
+ * @version 1.0.6
+ * @date	2025-04-07
+*/
+function ajax_scan_thumb_folder() {
+	if (!isset($_GET['nonce'])) {
+		wp_die();
+	}
+	if ( !wp_verify_nonce($_GET['nonce'],'maintain-bddb-'.bddb_get_the_max_id())) { 
+		wp_die();
+	}
+	$resp = bddb_list_no_id_pics();
+	wp_send_json('<tr><th scope="row">POST_ID</th><td>'.$resp) ;
 	wp_die();
 }
 

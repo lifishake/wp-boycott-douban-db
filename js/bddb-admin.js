@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2025-04-02
+ * @date	2025-04-07
  * @author	大致
- * @version	1.0.4
+ * @version	1.0.6
  * @since	0.0.1
  * 
  */
@@ -399,7 +399,30 @@ jQuery(document).ready(function($) {
 	})
 
 	//取图片按钮
-	$('button[name="poster_scan_btn"]').click(function(){
+	$('#bddb_poster_scan').click(function(){
+		var tableOuter = document.getElementsByClassName('form-table');
+		if (tableOuter.length == 0) {
+			return;
+		}
+		var tabody = tableOuter[0].getElementsByTagName('tbody')[0];
+		tabody.innerHTML = '';
+		var data = {
+			action: 'bddb_rescan_thumb_folder',
+			nonce: this.getAttribute('wpnonce'),
+		};
+		$.ajax({
+			url: ajaxurl,
+			type: 'GET',
+			data: data,
+			cache: false,
+			success:function(response){
+				tabody.innerHTML = response;
+			},
+			beforeSend: function () {
+			},
+			error: function(request) {
+			},
+		});
 	})
 
 	//清理图片按钮

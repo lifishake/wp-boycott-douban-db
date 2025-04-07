@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.0.5
- * Date:        2025-04-03
+ * Version:     1.0.6
+ * Date:        2025-04-07
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -100,7 +100,6 @@ function bddb_check_paths(){
 /*插件反激活*/
 function bddb_plugin_deactivation()
 {
-
 }
 
 /*插件卸载*/
@@ -201,7 +200,7 @@ function ajax_get_gallery_page() {
 
 /*取豆瓣信息的ajax回调函数*/
 //TODO 放进类中
-function bddb_ajax_douban_fetch() {
+function ajax_douban_fetch() {
 	$resp = array('title' => 'here is the title', 'content' => 'finished') ;
 	if (!isset($_GET['nonce']) || !isset($_GET['id']) || !isset($_GET['ptype']) || !isset($_GET['doulink']) ) {
 		wp_die();
@@ -224,7 +223,11 @@ function bddb_ajax_douban_fetch() {
 //后台初始化
 function bddb_admin_init() {
 	add_action( 'admin_enqueue_scripts', 'bddb_admin_scripts' );
-	add_action( 'wp_ajax_bddb_douban_fetch', 'bddb_ajax_douban_fetch' );
+	add_action( 'wp_ajax_bddb_douban_fetch', 'ajax_douban_fetch' );
+	//清理多余图片的ajax回调函数
+	add_action( 'wp_ajax_bddb_thumb_clear', 'ajax_clear_duplicate_thumbs');
+	//重新刷新目录并显示的ajax回调函数
+	add_action( 'wp_ajax_bddb_rescan_thumb_folder', 'ajax_scan_thumb_folder');
 	BDDB_Statics::admin_init();
 	BDDB_Typed_List::admin_init();
 	BDDB_Editor_Factory::admin_init();
@@ -271,7 +274,7 @@ function bddb_scripts() {
  * @version 1.0.4
 */
 function bddb_admin_scripts() {
-	wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array('jquery', 'quicktags'), '20250402', true);
+	wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array('jquery', 'quicktags'), '20250407', true);
 	wp_localize_script( 'bddb-js-admin', 'nomouse_names', array('nothing'));
 	wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
 	wp_deregister_style( 'open-sans' );
