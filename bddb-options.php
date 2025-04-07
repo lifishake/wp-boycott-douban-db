@@ -34,11 +34,11 @@ function bddb_add_admin_menu() {
 }
 
 
-	/**
-	 * @brief   添加渲染用的组件
-	 * @since	  0.0.1
-	 * @version 0.8.6
-	*/
+/**
+ * @brief   添加渲染用的组件
+ * @since	0.0.1
+ * @version 0.8.6
+*/
 function bddb_settings_init(  ) {
 	$arg = array(
 		'sanitize_callback' => 'bddb_sanitize_options',
@@ -116,32 +116,32 @@ function bddb_settings_init(  ) {
 	);
 
 	add_settings_field(
-		'special_function',
-		'特殊功能',
-		'bddb_special_function_render',
-		'bddb_option_tab',
-		'bddb_pluginPage_section'
-		);
+	'special_function',
+	'特殊功能',
+	'bddb_special_function_render',
+	'bddb_option_tab',
+	'bddb_pluginPage_section'
+	);
 
 	//08
 	//-1
 	
 	add_settings_field(
-		'bddb_m_omdb_key',
-		'OMDB Auth KEY',
-		'bddb_m_omdb_key_render',
-		'bddb_movie_tab',
-		'bddb_movie_section'
+	'bddb_m_omdb_key',
+	'OMDB Auth KEY',
+	'bddb_m_omdb_key_render',
+	'bddb_movie_tab',
+	'bddb_movie_section'
 	);
 	
 	add_settings_field(
-		'bddb_m_misc_map',
-		'特殊图标列表',
-		'bddb_all_misc_map_render',
-		'bddb_movie_tab',
-		'bddb_movie_section',
-		array('type'=>'movie')
-		);
+	'bddb_m_misc_map',
+	'特殊图标列表',
+	'bddb_all_misc_map_render',
+	'bddb_movie_tab',
+	'bddb_movie_section',
+	array('type'=>'movie')
+	);
 
 	add_settings_field(
 	'bddb_b_max_serial_count',
@@ -570,12 +570,12 @@ function bddb_maintain_render() {
 <?php
 }
 
-	/**
-	 * @brief	section渲染时的回调函数，根据section id显示不同的文字。
-	 * @param	array	$section			section
-	 * @since	  0.0.1
-	 * @version	0.6.2
-	*/
+/**
+ * @brief	section渲染时的回调函数，根据section id显示不同的文字。
+ * @param	array	$section			section
+ * @since	0.0.1
+ * @version	0.6.2
+*/
 function bddb_settings_section_callback( $section ) {
 	$nonce = null;
 	if (!function_exists('imagecreatefrompng')) {
@@ -618,40 +618,40 @@ function bddb_options_page(	 ) {
 	<div id="bddb_page_content" class="wrap bddb-option" >
 	<h1><span>B</span>oycott <span>D</span>ouban <span>D</span>ata<span>b</span>ase</h1>
 	<div class="description">This is description of the page.</div>
-			<h2 class="nav-tab-wrapper">
-				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_option" class="nav-tab <?php echo $active_tab == 'tab_option' ? 'nav-tab-active' : ''; ?>">基本功能</a>
-				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_movie" class="nav-tab <?php echo $active_tab == 'tab_movie' ? 'nav-tab-active' : ''; ?>">影片设定</a>
-				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_book" class="nav-tab <?php echo $active_tab == 'tab_book' ? 'nav-tab-active' : ''; ?>">书籍设定</a>
-				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_game" class="nav-tab <?php echo $active_tab == 'tab_game' ? 'nav-tab-active' : ''; ?>">游戏设定</a>
-				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_album" class="nav-tab <?php echo $active_tab == 'tab_album' ? 'nav-tab-active' : ''; ?>">专辑设定</a>
-				<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_maintain" class="nav-tab <?php echo $active_tab == 'tab_maintain' ? 'nav-tab-active' : ''; ?>">维护功能</a>
-			</h2>
+		<h2 class="nav-tab-wrapper">
+			<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_option" class="nav-tab <?php echo $active_tab == 'tab_option' ? 'nav-tab-active' : ''; ?>">基本功能</a>
+			<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_movie" class="nav-tab <?php echo $active_tab == 'tab_movie' ? 'nav-tab-active' : ''; ?>">影片设定</a>
+			<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_book" class="nav-tab <?php echo $active_tab == 'tab_book' ? 'nav-tab-active' : ''; ?>">书籍设定</a>
+			<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_game" class="nav-tab <?php echo $active_tab == 'tab_game' ? 'nav-tab-active' : ''; ?>">游戏设定</a>
+			<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_album" class="nav-tab <?php echo $active_tab == 'tab_album' ? 'nav-tab-active' : ''; ?>">专辑设定</a>
+			<a href="?page=<?php echo BDDB_OPTION_FILE_NANE;?>&tab=tab_maintain" class="nav-tab <?php echo $active_tab == 'tab_maintain' ? 'nav-tab-active' : ''; ?>">维护功能</a>
+		</h2>
 	 <form action='options.php' method='post'>
 	<?php
 	settings_fields( 'bddb_settings_group' );
 	switch($active_tab) {
 		case 'tab_option':
 		default:
-			do_settings_sections( 'bddb_option_tab' );
+			do_settings_sections('bddb_option_tab');
 			break;
 		case 'tab_movie':
-			do_settings_sections( 'bddb_movie_tab' );
+			do_settings_sections('bddb_movie_tab');
 			break;
 		case 'tab_book':
-			do_settings_sections( 'bddb_book_tab' );
+			do_settings_sections('bddb_book_tab');
 			break;
 		case 'tab_game':
-			do_settings_sections( 'bddb_game_tab' );
+			do_settings_sections('bddb_game_tab');
 			break;
 		case 'tab_album':
-			do_settings_sections( 'bddb_album_tab' );
+			do_settings_sections('bddb_album_tab');
 			break;
 		case 'tab_maintain':
-			do_settings_sections( 'bddb_maintain_tab' );
+			do_settings_sections('bddb_maintain_tab');
 			break;
 	}
 	if ($active_tab !== 'tab_maintain') {
-	submit_button();
+		submit_button();
 	}
 	?>
 

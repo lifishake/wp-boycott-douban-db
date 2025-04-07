@@ -275,9 +275,9 @@ function bddb_scripts() {
 */
 function bddb_admin_scripts() {
 	wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array('jquery', 'quicktags'), '20250407', true);
-	wp_localize_script( 'bddb-js-admin', 'nomouse_names', array('nothing'));
-	wp_enqueue_style( 'bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526' );
-	wp_deregister_style( 'open-sans' );
-	wp_register_style( 'open-sans', false );
+	wp_localize_script('bddb-js-admin', 'nomouse_names', array('nothing'));
+	wp_enqueue_style('bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526');
+	wp_deregister_style('open-sans');
+	wp_register_style('open-sans', false);
 }
 
