@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.0.6
- * Date:        2025-04-07
+ * Version:     1.0.7
+ * Date:        2025-04-13
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -253,7 +253,7 @@ function bddb_scripts() {
 			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('movie')/BDDB_Settings::getInstance()->get_poster_width('movie'));
 		}
 		elseif (is_page('gamesgallery')) {
-			$rate = floatval(BBDDB_Settings::getInstance()->get_poster_height('game')/BDDB_Settings::getInstance()->get_poster_width('game'));
+			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('game')/BDDB_Settings::getInstance()->get_poster_width('game'));
 		}
 		elseif (is_page('albumsgallery')) {
 			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('album')/BDDB_Settings::getInstance()->get_poster_width('album'));
