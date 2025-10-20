@@ -34,7 +34,8 @@ class BDDB_Settings{
 	 * @brief	默认设置。
 	 * @public
 	 * @since	0.1.0
-	 * @version	1.0.5
+	 * @version	1.0.8
+	 * @date	2025-10-20
 	 */
 	public function default_options(){
 		$ret = array(
@@ -42,6 +43,8 @@ class BDDB_Settings{
 			'm_omdb_key'=>'',
 			'g_giantbomb_key'=>'',
 			'primary_common_order'=>'bddb_personal_rating',
+			'user_agent'=>'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+			'cookie_keep_time'=>108000,
 			'poster_width'=>400,
 			'poster_height'=>592,
 			'thumbnail_width'=>100,
@@ -184,6 +187,36 @@ class BDDB_Settings{
 	public function get_max_serial_count(){
 		$options = $this->get_options();
 		return $options['b_max_serial_count'];
+	}
+
+	/**
+	 * @brief	【共】取得伪装浏览器UA。
+	 * @public
+	 * @param	none
+	 * @return 	string
+	 * @since	1.0.8
+	 * @version	1.0.8
+	 * @data 2025-10-20
+	 * @see BDDB_Fetcher::fetch_from_douban_page()
+	 */
+	public function get_user_agent(){
+		$options = $this->get_options();
+		return $options['user_agent'];
+	}
+
+	/**
+	 * @brief	【共】取得豆瓣cookie最大保存时间。
+	 * @public
+	 * @param	none
+	 * @return 	string
+	 * @since	1.0.8
+	 * @version	1.0.8
+	 * @data 2025-10-20
+	 * @see BDDB_Fetcher::fetch_from_douban_page()
+	 */
+	public function get_cookie_keep_time(){
+		$options = $this->get_options();
+		return $options['cookie_keep_time'];
 	}
 
 	/**

@@ -37,7 +37,8 @@ function bddb_add_admin_menu() {
 /**
  * @brief   添加渲染用的组件
  * @since	0.0.1
- * @version 0.8.6
+ * @version 1.0.8
+ * @date	2025-10-20
 */
 function bddb_settings_init(  ) {
 	$arg = array(
@@ -111,6 +112,15 @@ function bddb_settings_init(  ) {
 	'basic_order_setting',
 	'共通顺序设定',
 	'bddb_general_order_render',
+	'bddb_option_tab',
+	'bddb_pluginPage_section'
+	);
+
+	//抓取设置
+	add_settings_field(
+	'basic_fatch_setting',
+	'共通抓取设定',
+	'bddb_fetcher_render',
 	'bddb_option_tab',
 	'bddb_pluginPage_section'
 	);
@@ -317,6 +327,20 @@ function bddb_general_order_render() {
 		printf('<span>%1$s:</span><select name="bddb_settings[general_order][%1$s] size=20" id="id_general_common_order_%1$s" value="%2$s">%3$s</select></br>',
 		$key, $value, $sel_list);
 	}*/
+}
+
+/**
+ * @brief	抓取豆瓣设置画面。
+ * @since 	1.0.8
+ * @version 1.0.8
+ * @date	2025-10-20
+ */
+function bddb_fetcher_render() {
+	$options = BDDB_Settings::getInstance()->get_options();
+	?>
+	<span>伪装浏览器UA：</span><input type='text' name='bddb_settings[user_agent]' size='24' value='<?php echo $options['user_agent']; ?>'/></br>
+	<span>获取cookie保存时间：</span><input type='text' name='bddb_settings[cookie_keep_time]' size='24' value='<?php echo $options['cookie_keep_time']; ?>'/></br>
+	<?php
 }
 
 function bddb_special_function_render() {

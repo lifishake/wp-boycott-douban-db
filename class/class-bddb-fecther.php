@@ -173,19 +173,29 @@ class BDDB_Fetcher{
 	 * @param	string	$type
 	 * @return array
 	 * @since 	0.0.1
-	 * @version 0.9.9
-	 * @date	2024-11-06
+	 * @version 1.0.8
+	 * @date	2025-10-20
 	 */
 	public static function fetch_from_douban_page($url, $type) {
+		$cookie = get_transient('douban_thief');
+		$ua = BDDB_Settings::getInstance()->get_user_agent();
+		$arg = array();
+		$arg['timeout'] = 10000;
+		$arg['user-agent'] = $ua;
+		$arg['cookies'] = $cookie? $cookie:array();
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
 		$response = @wp_remote_get( 
 			htmlspecialchars_decode($url), 
-			array( 'timeout'  => 10000, ) 
+			$arg
 		);
 		if ( is_wp_error( $response ) || !is_array($response) ) {
 			$ret['reason'] = "wp_remote_get() failed.";
 			return $ret;
 		}
+		$keep_time = BDDB_Settings::getInstance()->get_cookie_keep_time();
+		$cookie_new = wp_remote_retrieve_cookies( $response );
+		set_transient( 'douban_thief', $cookie_new, $keep_time);
+
 		$body = wp_remote_retrieve_body($response);
 		$start_pos = strpos($body, "<title>", 0);
 		$end_pos = strpos($body, "</title>", $start_pos);
@@ -648,17 +658,29 @@ class BDDB_Fetcher{
 	 * @param	string	$default	默认图片地址
 	 * @return 	string
 	 * @since 	0.0.1
+	 * @version 1.0.8
+	 * @date 2025-10-20
 	*/	
 	public static function get_detail_douban_pic($pic_mass, $default){
 		sleep(11);
 		//防止被豆瓣当成恶意IP
+		$cookie = get_transient('douban_thief');
+		$ua = BDDB_Settings::getInstance()->get_user_agent();
+		$arg = array();
+		$arg['timeout'] = 10000;
+		$arg['user-agent'] = $ua;
+		$arg['cookies'] = $cookie? $cookie:array();
+		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
 		$response = @wp_remote_get( 
 			htmlspecialchars_decode($pic_mass), 
-			array( 'timeout'  => 10000, ) 
+			$arg 
 		);
 		if ( is_wp_error( $response ) || !is_array($response) ) {
 			return $default;
 		}
+		$keep_time = BDDB_Settings::getInstance()->get_cookie_keep_time();
+		$cookie_new = wp_remote_retrieve_cookies( $response );
+		set_transient( 'douban_thief', $cookie_new, $keep_time);
 		$official_name = self::get_short_name($default);
 		$array_result_imgs = array();
 
