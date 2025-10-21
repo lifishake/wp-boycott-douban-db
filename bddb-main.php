@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.0.8
- * Date:        2025-10-20
+ * Version:     1.0.9
+ * Date:        2025-10-21
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 

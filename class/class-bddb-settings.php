@@ -3,9 +3,9 @@
  * @file	class-bddb-settings.php
  * @class	BDDB_Settings
  * @brief	设定项管理类
- * @date	2025-04-03
+ * @date	2025-10-21
  * @author	大致
- * @version	1.0.5
+ * @version	1.0.9
  * @since	0.1.0
  * 
  */
@@ -492,6 +492,35 @@ class BDDB_Settings{
 		return in_array(trim($slug), $valid_slugs);
 	}
 	
+	/**
+	 * @brief	从response中获取cookies并保存到option中。
+	 * @param	array		$response			页面的返回值
+	 * @return 	none
+	 * @since	1.0.9
+	 * @date	2025-10-21
+	 * @see		download_pic()
+	 */
+	public function save_douban_cookie($response) {
+		$keep_time_original = BDDB_Settings::getInstance()->get_cookie_keep_time();
+		$keep_time = intval($keep_time_original);
+		date_default_timezone_set('Asia/Hong_Kong');
+		$weekday = intval(date('w'));
+		if (0 === $weekday) {
+			$keep_time = $keep_time / 2;
+		}
+		else if (5 === $weekday) {
+			$cur_time = new DateTime();
+			$tgt_time = new DateTime('today 19:00:00');
+			$inertval = $cur_time->diff($tgt_time);
+			$seconds = $inertval->h * 24 * 60 * 60 + $inertval->i *60 + $inertval->s;
+			if ($inertval->invert) {
+				$keep_time = $seconds;
+			}
+		}
+		$cookie_new = wp_remote_retrieve_cookies( $response );
+		set_transient( 'douban_thief', $cookie_new, $keep_time);
+	}
+
 };//class
 
 

@@ -1,10 +1,10 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2024-08-05
+ * @date	2025-10-21
  * @author	大致
  * @version	0.9.0
- * @since	0.5.5
+ * @since	1.0.9
  * 
  */
 
@@ -173,16 +173,18 @@ class BDDB_Fetcher{
 	 * @param	string	$type
 	 * @return array
 	 * @since 	0.0.1
-	 * @version 1.0.8
-	 * @date	2025-10-20
+	 * @version 1.0.9
+	 * @date	2025-10-21
 	 */
 	public static function fetch_from_douban_page($url, $type) {
-		$cookie = get_transient('douban_thief');
 		$ua = BDDB_Settings::getInstance()->get_user_agent();
 		$arg = array();
 		$arg['timeout'] = 10000;
 		$arg['user-agent'] = $ua;
-		$arg['cookies'] = $cookie? $cookie:array();
+		if (strpos($url, "douban")> 0) {
+			$cookie = get_transient('douban_thief');
+			$arg['cookies'] = $cookie? $cookie:array();
+		}
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
 		$response = @wp_remote_get( 
 			htmlspecialchars_decode($url), 
@@ -192,9 +194,9 @@ class BDDB_Fetcher{
 			$ret['reason'] = "wp_remote_get() failed.";
 			return $ret;
 		}
-		$keep_time = BDDB_Settings::getInstance()->get_cookie_keep_time();
-		$cookie_new = wp_remote_retrieve_cookies( $response );
-		set_transient( 'douban_thief', $cookie_new, $keep_time);
+		if (strpos($url, "douban")> 0) {
+			BDDB_Settings::getInstance()->save_douban_cookie($response);
+		}
 
 		$body = wp_remote_retrieve_body($response);
 		$start_pos = strpos($body, "<title>", 0);
@@ -664,12 +666,14 @@ class BDDB_Fetcher{
 	public static function get_detail_douban_pic($pic_mass, $default){
 		sleep(11);
 		//防止被豆瓣当成恶意IP
-		$cookie = get_transient('douban_thief');
 		$ua = BDDB_Settings::getInstance()->get_user_agent();
 		$arg = array();
 		$arg['timeout'] = 10000;
 		$arg['user-agent'] = $ua;
-		$arg['cookies'] = $cookie? $cookie:array();
+		if (strpos($pic_mass, "douban")> 0) {
+			$cookie = get_transient('douban_thief');
+			$arg['cookies'] = $cookie? $cookie:array();
+		}
 		$ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
 		$response = @wp_remote_get( 
 			htmlspecialchars_decode($pic_mass), 
@@ -678,9 +682,9 @@ class BDDB_Fetcher{
 		if ( is_wp_error( $response ) || !is_array($response) ) {
 			return $default;
 		}
-		$keep_time = BDDB_Settings::getInstance()->get_cookie_keep_time();
-		$cookie_new = wp_remote_retrieve_cookies( $response );
-		set_transient( 'douban_thief', $cookie_new, $keep_time);
+		if (strpos($pic_mass, "douban")> 0) {
+			BDDB_Settings::getInstance()->save_douban_cookie($response);
+		}
 		$official_name = self::get_short_name($default);
 		$array_result_imgs = array();
 

@@ -10,9 +10,9 @@ if (!class_exists('BDDB_Settings')) {
 /**
  * @class	BDDB_Editor_Factory
  * @brief	编辑类工厂，用于生成编辑类以及外部静态接口
- * @date	2024-09-03
+ * @date	2025-10-21
  * @author	大致
- * @version	0.9.1
+ * @version	1.0.9
  * @since	0.5.4
  * 
  */
@@ -89,8 +89,8 @@ class BDDB_Editor_Factory {
 	 * 获取封面的Callback。
 	 * @see		AJAX::bddb_get_pic
 	 * @since 	0.0.1
-	 * @version	1.0.8
-	 * @date	2025-10-20
+	 * @version	1.0.9
+	 * @date	2025-10-21
 	 */
 	public static function download_pic(){
 		if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['piclink']) ) {
@@ -129,15 +129,18 @@ class BDDB_Editor_Factory {
 	   if (strpos($piclink, "doubanio.com")> 0 && strpos($piclink,".webp")>0){
 		   $piclink = str_replace(".webp", ".jpg", $piclink);
 	   }
-	   $cookie = get_transient('douban_thief');
+	   	$arg = array();
 		$ua = BDDB_Settings::getInstance()->get_user_agent();
-		$arg = array();
 		$arg['timeout'] = 3000;
 		$arg['user-agent'] = $ua;
-		$arg['cookies'] = $cookie? $cookie:array();
 		$arg['stream'] = true;
 		$arg['sslverify'] = false;
 		$arg['filename'] = $poster_full_name;
+	   if (strpos($piclink, "douban")> 0) {
+		$cookie = get_transient('douban_thief');
+		$arg['cookies'] = $cookie? $cookie:array();
+	   }
+	   
 	   $response = @wp_remote_get( 
 			   $piclink, 
 			   $arg
@@ -147,9 +150,9 @@ class BDDB_Editor_Factory {
 			wp_die();
 		   return false;
 	   }
-	   $keep_time = BDDB_Settings::getInstance()->get_cookie_keep_time();
-		$cookie_new = wp_remote_retrieve_cookies( $response );
-		set_transient( 'douban_thief', $cookie_new, $keep_time);
+	   if (strpos($piclink, "douban")> 0) {
+		BDDB_Settings::getInstance()->save_douban_cookie($response);
+	   }
 	   $full_width = BDDB_Settings::getInstance()->get_poster_width($_POST['ptype']);
 	   $full_height = BDDB_Settings::getInstance()->get_poster_height($_POST['ptype']);
 	   $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($_POST['ptype']);

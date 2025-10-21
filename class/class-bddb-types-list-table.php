@@ -356,14 +356,15 @@ class BDDB_Typed_List {
 	 * @param object 	$query		WP_Query
 	 * @see		action::pre_get_posts
 	 * @since 	0.1.0
-	 * @version 0.5.4
+	 * @version 1.0.9
+	 * @date	2025-10-21
 	 */
 	public static function resort_meta_column_query($query){
 		$orderby = $query->get( 'orderby' );
 		//这个值是register_type的时候注册的，默认没改过，也就是type本身。
 		$post_type = $query->get( 'post_type' );
 		$my_columns  = self::get_columns($post_type) ;
-		if (!$my_columns || empty($my_columns) || empty($orderby)) {
+		if (!$my_columns || empty($my_columns) || empty($orderby) || !is_string($orderby)) {
 			return;
 		}
 
