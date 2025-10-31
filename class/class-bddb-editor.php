@@ -10,9 +10,9 @@ if (!class_exists('BDDB_Settings')) {
 /**
  * @class	BDDB_Editor_Factory
  * @brief	编辑类工厂，用于生成编辑类以及外部静态接口
- * @date	2025-10-21
+ * @date	2025-10-31
  * @author	大致
- * @version	1.0.9
+ * @version	1.1.0
  * @since	0.5.4
  * 
  */
@@ -20,8 +20,8 @@ class BDDB_Editor_Factory {
 	/**
 	 * 后台初始化。
 	 * @since 	0.5.4
-	 * @version 0.7.5
-	 * @date 2023-02-13
+	 * @version 1.1.0
+	 * @date 2025-10-31
 	 * @see		bddb_admin_init()
 	 */
 	public static function admin_init() {
@@ -31,7 +31,15 @@ class BDDB_Editor_Factory {
 		add_action( 'wp_ajax_bddb_get_pic', 'BDDB_Editor_Factory::download_pic');
 		add_action( 'wp_ajax_bddb_get_imdbpic', 'BDDB_Editor_Factory::download_imdbpic');
 		add_action( 'wp_ajax_bddb_get_scovers', 'BDDB_Editor_Factory::download_serial_pics');
+		add_action( 'wp_ajax_bddb_clear_douban_cookie', 'BDDB_Editor_Factory::clear_douban_cookie');
 	}
+	/**
+	 * 后台初始化。
+	 * @since 	0.5.4
+	 * @version 0.7.5
+	 * @date 2023-02-13
+	 * @see		BDDB_Statics::check_types()
+	 */
 	public static function add_meta_boxes($pt) {
 		$post_type = $pt->post_type;
 		if (!BDDB_Statics::is_valid_type($post_type)) {
@@ -230,6 +238,22 @@ class BDDB_Editor_Factory {
 	   wp_die();
 	}
 
+	 /**
+	 * 手动删除保存的doubancookie。
+	 * @see		AJAX::clear_douban_cookie
+	 * @since 	1.1.0
+	 * @data	2025-10-31
+	 */
+	public static function clear_douban_cookie() {
+		if (!isset($_POST['nonce']) ) {
+			wp_die();
+		}
+		if ( !wp_verify_nonce($_POST['nonce'],"douban_thief".$_POST['id'])) { 
+			wp_die();
+		}
+		delete_transient( 'douban_thief' );
+	}
+
 	/**
 	 * 获取系列封面的AJAX的Callback。
 	 * @see		AJAX::bddb_get_scovers
@@ -278,6 +302,7 @@ class BDDB_Editor_Factory {
 		}
 		wp_die();
 	 }
+
 /******    AJAX回调函数 结束    ******/
 }//BDDB_Editor_Factory
 
@@ -486,6 +511,8 @@ class BDDB_Editor {
 	 * @param object $post	正在编辑的wp的post
 	 * @see		add_meta_box()
 	 * @since 	0.0.1
+	 * @version 1.1.0
+	 * @date	2025-10-31
 	 */
 	public function show_status_meta_box($post) {
 		$names = bddb_get_poster_names($post->post_type, $post->ID);
@@ -497,23 +524,39 @@ class BDDB_Editor {
 		} else {
 			$thumb_src = $names->nopic_thumb_url;
 		}
-		$val_str='';
-		if ('movie' == $post->post_type) {
-			$val_str = get_post_meta($post->ID, 'm_score_imdb', true);
-		}elseif('book' == $post->post_type) {
-			$val_str = get_post_meta($post->ID, 'bddb_score_douban', true);
-		}elseif('game' == $post->post_type) {
-		}elseif('album' == $post->post_type) {
-			$val_str = get_post_meta($post->ID, 'bddb_score_douban', true);
+		$val_str = get_post_meta($post->ID, 'bddb_id_douban', true);
+		if (empty($val_str))
+		{
+			if ('movie' == $post->post_type) {
+				$val_str = get_post_meta($post->ID, 'm_score_imdb', true);
+			}elseif('book' == $post->post_type) {
+				$val_str = get_post_meta($post->ID, 'bddb_score_douban', true);
+			}elseif('game' == $post->post_type) {
+			}elseif('album' == $post->post_type) {
+				$val_str = get_post_meta($post->ID, 'bddb_score_douban', true);
+			}
 		}
+		$cookie = get_transient('douban_thief');
+		$cookie_str = '';
+		$nonce = wp_create_nonce('douban_thief' . $post->ID);
+		if ($cookie && is_array($cookie) && count($cookie) > 0 && $cookie[0] && is_object($cookie[0]) && ($cookie[0] instanceof WP_Http_Cookie) ) { //过期或不存在
+			$dt = new DateTime();
+			$dt->setTimestamp($cookie[0]->expires);
+			$dt->setTimezone(new DateTimeZone('Asia/Shanghai'));
+			$cookie_str = $dt->format('Y-m-d H:i:s');
+		} 
+		
 		//TODO：可以做成动态改。
 		$catch_status=(''==$val_str) ? '网页未抓取' : '网页已抓取';
 		$t_class=(''==$val_str) ? "pic" : "no-pic";
 		
-		$box_str="<table>";
-		$box_str.="<tr><th>缩略图:</th><td><img id='img_poster_thumbnail' src='{$thumb_src}'/></td></tr>";
-		$box_str.="<tr><th>抓取状态:</th><td><span class='{$t_class}' id='fetch-status'>{$catch_status}<span></td></tr>";
-		$box_str.="<tr><th>实时状态:</th><td><input type='text' size='16' id='pic-status' name='ajax-status' value='' readonly='readonly' /></td></tr>";
+		$box_str = "<table>";
+		$box_str .="<tr><th>缩略图:</th><td><img id='img_poster_thumbnail' src='{$thumb_src}'/></td></tr>";
+		$box_str .="<tr><th>抓取状态:</th><td><span class='{$t_class}' id='fetch-status'>{$catch_status}<span></td></tr>";
+		$box_str .="<tr><th>实时状态:</th><td><input type='text' size='16' id='pic-status' name='ajax-status' value='' readonly='readonly' /></td></tr>";
+		$box_str .="<tr><th>豆瓣Cookie:</th><td><input type='text' size='10' id='douban-cookie-status' name='ajax-douban-cookie' value='{$cookie_str}' readonly='readonly' />";
+		$box_str .= "<button class='button' id='clear_douban_cookie_btn' type='button' pid='{$post->ID}'  wpnonce='{$nonce}' >清除</button>";
+		$box_str .= "</td></tr>";
 		$box_str.='</table>';
 		echo $box_str;
 	}

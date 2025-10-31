@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2025-04-07
+ * @date	2025-10-31
  * @author	大致
- * @version	1.0.6
+ * @version	1.1.0
  * @since	0.0.1
  * 
  */
@@ -468,4 +468,29 @@ jQuery(document).ready(function($) {
 			},
 		});
 	})
+
+	//清理豆瓣cookie按钮
+	$('#clear_douban_cookie_btn').click(function(){
+		var cookie_bar = document.getElementById('douban-cookie-status');
+		var data = {
+			action: 'bddb_clear_douban_cookie',
+			nonce: this.getAttribute('wpnonce'),
+			id:this.getAttribute('pid'),
+		};
+		$.ajax({
+			url: ajaxurl,
+			type: 'POST',
+			data: data,
+			cache: false,
+			success:function(){
+				cookie_bar.value = '';
+			},
+			beforeSend: function () {
+
+			},
+			error: function(request) {
+
+			},
+		});
+		})
 })
