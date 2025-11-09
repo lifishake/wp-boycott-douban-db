@@ -10,9 +10,9 @@ if (!class_exists('BDDB_Settings')) {
 /**
  * @class	BDDB_Editor_Factory
  * @brief	编辑类工厂，用于生成编辑类以及外部静态接口
- * @date	2025-10-31
+ * @date	2025-11-09
  * @author	大致
- * @version	1.1.0
+ * @version	1.1.1
  * @since	0.5.4
  * 
  */
@@ -570,7 +570,7 @@ class BDDB_Editor {
 	public function show_meta_box($post) {
 		echo '<div  class="misc-pub-section"><table><tr><th>项目</th><th>输入</th><th>说明</th></tr>';
 		wp_nonce_field(basename( __FILE__ ), 'bddb_nonce');
-		$nomouse_names = array();
+		$nonames = array();
 		foreach ($this->total_items as $arg)
 		{
 			//$arg = array_merge( $this->default_item, $arg );
@@ -614,7 +614,7 @@ class BDDB_Editor {
 				$type_str = " type='text' ";
 				if ('number'===$arg['inputstyle']) {
 					$type_str = " type='number' min='{$arg['min']}' max='{$arg['max']}' step='{$arg['step']}'";
-					$nomouse_names[] = $arg['name'];
+					$nonames[$arg['name']]=$arg['name'];
 				} elseif ('boolean'===$arg['inputstyle']) {
 					$val_str = get_post_meta($post->ID, $arg['name'], true);
 					if ('1' == $val_str) {
@@ -635,9 +635,9 @@ class BDDB_Editor {
 				}
 			}else{
 			}
-			wp_localize_script( 'bddb-js-admin', 'nomouse_names', $nomouse_names);
 			echo("<tr><th><label> {$arg['label']}：</label></th><td><input {$type_str} size='{$arg['size']}' name='{$arg['name']}' {$val_str} {$placeholder_str}></td><td>{$comment_str}</td></tr>");
 		}
+		wp_localize_script( 'bddb-js-admin', 'nomouse_names', $nonames);
 		echo '</table></div>';
 	}
 	

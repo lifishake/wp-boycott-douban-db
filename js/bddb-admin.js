@@ -1,12 +1,14 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2025-10-31
+ * @date	2025-11-09
  * @author	大致
- * @version	1.1.0
+ * @version	1.1.1
  * @since	0.0.1
  * 
  */
+
+var nomouse_names = nomouse_names || {};
 
 //追加bddb 记录插入用button
 QTags.addButton( 'eg_bddbr', 'BDDbRd', '[bddbr id=\'', '\' /]', 'p' );
@@ -70,14 +72,12 @@ jQuery(document).ready(function($) {
 	var mythumbnail = document.getElementById('img_poster_thumbnail');
 
 	//nomouse_names被Editor本地化，如果有number类型的input，该数组非空。
-	if (nomouse_names === undefined) {
-		//nothing
-	} else {
-		nomouse_names.forEach(element => {
-			if ($('input[name="'+element+'"]').length>0)
-				$('input[name="'+element+'"]')[0].addEventListener('DOMMouseScroll', StopMouseWheel, false);
-		});
-	}
+	Object.entries(nomouse_names).forEach(([key, value]) => {
+    const $input = $(`input[name="${value}"]`); // 推荐用模板字符串
+    if ($input.length) {
+        $input[0].addEventListener('DOMMouseScroll', StopMouseWheel, false);
+    }
+	});
 
 	//抓取按钮
 	$('button[name="douban_spider_btn"]').click(function(){

@@ -88,7 +88,7 @@ jQuery( document ).ready( function( $ ) {
 			nobj: s,
 		};
 		$.ajax({
-			url: ajaxurl,
+			url: ajaxurl.url,
 			type: 'POST',
 			data: data,
 			cache: false,

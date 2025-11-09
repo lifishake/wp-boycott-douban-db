@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.1.0
- * Date:        2025-10-31
+ * Version:     1.1.1
+ * Date:        2025-11-09
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -240,8 +240,8 @@ function bddb_scripts() {
 		remove_action( 'wp_print_styles', 'print_emoji_styles');
 		wp_enqueue_script( 'bddb-fancy', BDDB_PLUGIN_URL . 'js/fancybox.umd.js', array(), '20211123', true );
 		wp_enqueue_script( 'bddb-color-thief', BDDB_PLUGIN_URL . 'js/color-thief.js', array(), '20221128', true );
-		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20230608', true );
-		wp_localize_script( 'bddb-fancy-func', 'ajaxurl', admin_url('admin-ajax.php'));
+		wp_enqueue_script( 'bddb-fancy-func', BDDB_PLUGIN_URL . 'js/fancygallery.js', array(), '20251108', true );
+		wp_localize_script( 'bddb-fancy-func', 'ajaxurl', array('url'=>admin_url('admin-ajax.php')));
 		wp_enqueue_style( 'bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css', array(), '20220829' );
 		$css = '';
 		$rate = floatval(BDDB_Settings::getInstance()->get_poster_height(false)/BDDB_Settings::getInstance()->get_poster_width(false));
@@ -274,8 +274,8 @@ function bddb_scripts() {
  * @version 1.0.4
 */
 function bddb_admin_scripts() {
-	wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array('jquery', 'quicktags'), '20251031', true);
-	wp_localize_script('bddb-js-admin', 'nomouse_names', array('nothing'));
+	wp_enqueue_script('bddb-js-admin', BDDB_PLUGIN_URL . 'js/bddb-admin.js', array('jquery', 'quicktags'), '20251108', true);
+	//wp_localize_script('bddb-js-admin', 'nomouse_names', array());
 	wp_enqueue_style('bddb-adminstyle', BDDB_PLUGIN_URL . 'css/bddb-admin.css', array(), '20220526');
 	wp_deregister_style('open-sans');
 	wp_register_style('open-sans', false);
