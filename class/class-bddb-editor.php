@@ -20,8 +20,8 @@ class BDDB_Editor_Factory {
 	/**
 	 * 后台初始化。
 	 * @since 	0.5.4
-	 * @version 1.1.0
-	 * @date 2025-10-31
+	 * @version 1.1.2
+	 * @date 2025-11-16
 	 * @see		bddb_admin_init()
 	 */
 	public static function admin_init() {
@@ -30,6 +30,7 @@ class BDDB_Editor_Factory {
 		add_filter ( 'wp_insert_post_data', 'BDDB_Editor_Factory::generate_content', 10, 2);
 		add_action( 'wp_ajax_bddb_get_pic', 'BDDB_Editor_Factory::download_pic');
 		add_action( 'wp_ajax_bddb_get_imdbpic', 'BDDB_Editor_Factory::download_imdbpic');
+		add_action( 'wp_ajax_bddb_get_theomdb', 'BDDB_Editor_Factory::get_theomdb');
 		add_action( 'wp_ajax_bddb_get_scovers', 'BDDB_Editor_Factory::download_serial_pics');
 		add_action( 'wp_ajax_bddb_clear_douban_cookie', 'BDDB_Editor_Factory::clear_douban_cookie');
 	}
@@ -238,6 +239,56 @@ class BDDB_Editor_Factory {
 	   wp_die();
 	}
 
+	/**
+	 * 获取themoviedb.org封面的Callback。
+	 * @see		AJAX::bddb_get_theomdb
+	 * @since 	1.1.2
+	 */
+	public static function get_theomdb(){
+	if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['theomdbno']) ) {
+		   wp_die();
+	   }
+	   if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-theomdbpic-".$_POST['id'])) { 
+		   wp_die();
+	   }
+	   $options = BDDB_Settings::getInstance()->get_options();
+	   $names = bddb_get_poster_names('movie', $_POST['id']);
+	   $poster_full_name = $names->poster_name;
+	   $thumbnail_full_name = $names->thumb_name;
+	   if (file_exists($poster_full_name)) {
+		   unlink($poster_full_name);
+	   }
+	   if (file_exists($thumbnail_full_name)) {
+		   unlink($thumbnail_full_name);
+	   }
+
+	   $details = array(
+			'language' => 'zh-CN',
+		);
+	   
+	   $theomdb_no = $_POST['theomdbno'];
+	   $piclink = 'https://api.themoviedb.org/3/movie/'.(string)$theomdb_no;
+	   $piclink = htmlspecialchars_decode($piclink);
+	   $response = @wp_remote_get( 
+			   $piclink, 
+			   array( 
+				   'timeout'  => 3000, 
+				   'headers'   => array(
+					'Content-Type'  => 'application/json', // Or 'application/x-www-form-urlencoded' depending on your API
+					'Authorization' => 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYjQ0YzdhOGFjN2YxZDY4YjJlMTUyYjAzYzEyZWI5YSIsIm5iZiI6MTc2MTEzOTI4MS41NDEsInN1YiI6IjY4ZjhkYTUxMDMwMjQ3OTRjMmRiYzU0YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.K1hqnPwqHiFeQzXpPBTFgOdIeSbs_Ee-_ING7C9t-MI',
+				),
+			   ) 
+		   );
+	   if ( is_wp_error( $response ) )
+	   {
+		   wp_die();
+	   }
+	   $pic_link = 'https://image.tmdb.org/t/p/original'.$response['backdrop_path'];
+	   $resp = array('backdrop_path'=>$response['backdrop_path']);
+	   wp_send_json($resp) ;
+	   wp_die();
+	}
+
 	 /**
 	 * 手动删除保存的doubancookie。
 	 * @see		AJAX::clear_douban_cookie
@@ -366,6 +417,7 @@ class BDDB_Editor {
 											),
 			'bddb_aka' 			 => array(	'name' => 'bddb_aka',
 											'label' => '别名',
+											'comment' => array($this, 'echo_theomdb_cover_button'),
 											'placeholder' => '多个别名用“,”分割',
 											),
 			'bddb_external_link' => array(	'name' => 'bddb_external_link',
@@ -420,8 +472,8 @@ class BDDB_Editor {
 											'step' => '0.1',
 											),
 		);
-		if (!empty($post_type) && BDDB_Statics::is_valid_type($post_type)) {
-			$this->set_working_mode($post_type);
+		if (!empty($post_type) && BDDB_Statics::is_valid_type((string)$post_type)) {
+			$this->set_working_mode((string)$post_type);
 		}
 	}
 	
@@ -887,6 +939,13 @@ class BDDB_Editor {
 		$nonce_str = wp_create_nonce('bddb-get-imdbpic-'.$post->ID);
 		$names = bddb_get_poster_names('movie', $post->ID);
 		$btn_get = '<button class="button" name="bddb_get_imdbpic_btn" type="button" pid="'.$post->ID.'" wpnonce="'.$nonce_str.'" dest_src="'.$names->thumb_url.'" >imdb海报</button>';
+		return $btn_get;
+	}
+
+	protected function echo_theomdb_cover_button($post) {
+		$norce_str = wp_create_nonce('bddb-get-theomdbpic-'.$post->ID);
+		$names = bddb_get_poster_names('movie', $post->ID);
+		$btn_get = '<button class="button" name="bddb_get_theomdb_btn" type="button" pid="'.$post->ID.'" wpnonce="'.$norce_str.'" dest_src="'.$names->thumb_url.'" >the_omdb</button>';
 		return $btn_get;
 	}
 

@@ -346,6 +346,39 @@ jQuery(document).ready(function($) {
 		});
 	})
 
+	//取imdb图片按钮
+	$('button[name="bddb_get_theomdb_btn"]').click(function(){
+		var pic_bar = document.getElementsByName("bddb_original_name");
+		var dest_pic = this.getAttribute('dest_src');
+		if (pic_bar.length != 1) {
+			return;
+		}
+		var pic_link = pic_bar[0].value;
+		var data = {
+			action: 'bddb_get_theomdb',
+			nonce: this.getAttribute('wpnonce'),
+			id:this.getAttribute('pid'),
+			theomdbno:pic_link,
+		};
+		$.ajax({
+			url: ajaxurl,
+			type: 'POST',
+			data: data,
+			cache: false,
+			success:function(response){
+				mythumbnail.setAttribute('src',dest_pic+"?tl="+Math.random());
+				mypicbar.value="图片取得成功.";
+			},
+			beforeSend: function () {
+				mythumbnail.setAttribute('src','');
+				mypicbar.value="图片获得中...";
+			},
+			error: function(request) {
+				mypicbar.value="取图片异常.";
+			},
+		});
+	})
+
 	//批量取封面按钮
 	$('button[name="bddb_get_scovers_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("b_series_covers");
