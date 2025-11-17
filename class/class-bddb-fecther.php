@@ -1,10 +1,10 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2025-10-21
+ * @date	2025-11-17
  * @author	大致
- * @version	0.9.0
- * @since	1.0.9
+ * @version	1.1.3
+ * @since	0.5.5
  * 
  */
 
@@ -245,8 +245,8 @@ class BDDB_Fetcher{
 	 * @param	string	$type
 	 * @return 	array
 	 * @since 	0.0.1
-	 * @version 0.9.9
-	 * @date	2024-11-06
+	 * @version 1.1.3
+	 * @date	2025-11-17
 	 */
 	public static function parse_douban_movie_body($body) {
 		$fetch = array(
@@ -326,7 +326,7 @@ class BDDB_Fetcher{
 			if (strpos($fetch['pic'], 'type=R')>0) {
 				preg_match('/http.*?(.jpg|.png|.webp)/', $mainpic_div_str, $match_imgs);
 				$ref = $match_imgs[0];
-				$fetch['pic'] = self::get_detail_douban_pic($fetch['pic'], $ref);
+				//$fetch['pic'] = self::get_detail_douban_pic($fetch['pic'], $ref);
 			}
 			if (strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("大陆",'utf-8'))===0 ||
 				strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("香港",'utf-8'))===0 || 
