@@ -346,7 +346,7 @@ jQuery(document).ready(function($) {
 		});
 	})
 
-	//取imdb图片按钮
+	//取theomdb图片按钮
 	$('button[name="bddb_get_theomdb_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("bddb_original_name");
 		var dest_pic = this.getAttribute('dest_src');
