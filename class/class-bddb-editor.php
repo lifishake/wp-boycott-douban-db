@@ -360,11 +360,11 @@ class BDDB_Editor_Factory {
 /**
  * @class	BDDB_Editor
  * @brief	编辑类，后台post用
- * @date	2021-12-21
+ * @date	2025-11-29
  * @author	大致
  * @version	0.5.1
  * @since	0.0.1
- * 
+ * @note	1.1.6 将原来的size的对应值变成class：input-short，input-mid，input-long
  */
 class BDDB_Editor {
 
@@ -380,13 +380,15 @@ class BDDB_Editor {
 	 * @protected
 	 * @param	array	$post_type 不设置时大部分功能不能使用。
 	 * @since 0.0.1
+	 * @version 1.1.6
+	 * @date 2025-11-30
 	 */
 	public function __construct($post_type = false){
 		$this->options = false;
 		$this->default_item = array(
 			'name' => '',
 			'label' => '',
-			'size' => 64,
+			'size' => 'input-long',
 			'type' => 'meta',
 			'comment' => '',
 			'placeholder' => '',
@@ -434,21 +436,21 @@ class BDDB_Editor {
 											),
 			'bddb_publish_time' => array(	'name' => 'bddb_publish_time',
 											'label' => '出版时间',
-											'size' => 16,
+											'size' => 'input-short',
 											//'sanitize_callback' => array($this, 'sanitize_publish_time'),
 											'sanitize_callback' => 'BDDB_Tools::sanitize_year_month',
 											'placeholder' => 'YYYY-MM',
 											),
 			'bddb_view_time' => array(		'name' => 'bddb_view_time',
 											'label' => '邂逅年月',
-											'size' => 16,
+											'size' => 'input-short',
 											'comment'=>'<strong>*必填</strong>，不填默认为保存年月。',
 											'sanitize_callback' => array($this, 'sanitize_view_time'),
 											'placeholder' => 'YYYY-MM',
 											),
 			'bddb_personal_rating' => array( 'name' => 'bddb_personal_rating',
 											'label' => '评分',
-											'size' => 16,
+											'size' => 'input-short',
 											'comment'=>'百分制，首页按去一法显示成10分制。',
 											'sanitize_callback' => array($this,'sanitize_personal_rating'),
 											'inputstyle' => 'number',
@@ -458,12 +460,12 @@ class BDDB_Editor {
 											),
 			'bddb_id_douban'		=>	array(	'name' => 'bddb_id_douban',
 											'label' => '豆瓣ID',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'meta',
 											),
 			'bddb_score_douban'	=>	array(	'name' => 'bddb_score_douban',
 											'label' => '豆瓣评分',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'meta',
 											'comment'=>'',
 											'inputstyle' => 'number',
@@ -563,8 +565,8 @@ class BDDB_Editor {
 	 * @param object $post	正在编辑的wp的post
 	 * @see		add_meta_box()
 	 * @since 	0.0.1
-	 * @version 1.1.0
-	 * @date	2025-10-31
+	 * @version 1.1.6
+	 * @date	2025-11-30
 	 */
 	public function show_status_meta_box($post) {
 		$names = bddb_get_poster_names($post->post_type, $post->ID);
@@ -605,8 +607,8 @@ class BDDB_Editor {
 		$box_str = "<table>";
 		$box_str .="<tr><th>缩略图:</th><td><img id='img_poster_thumbnail' src='{$thumb_src}'/></td></tr>";
 		$box_str .="<tr><th>抓取状态:</th><td><span class='{$t_class}' id='fetch-status'>{$catch_status}<span></td></tr>";
-		$box_str .="<tr><th>实时状态:</th><td><input type='text' size='16' id='pic-status' name='ajax-status' value='' readonly='readonly' /></td></tr>";
-		$box_str .="<tr><th>豆瓣Cookie:</th><td><input type='text' size='10' id='douban-cookie-status' name='ajax-douban-cookie' value='{$cookie_str}' readonly='readonly' />";
+		$box_str .="<tr><th>实时状态:</th><td><input type='text' class='input-long' id='pic-status' name='ajax-status' value='' readonly='readonly' /></td></tr>";
+		$box_str .="<tr><th>豆瓣Cookie:</th><td><input type='text' class='input-long' id='douban-cookie-status' name='ajax-douban-cookie' value='{$cookie_str}' readonly='readonly' />";
 		$box_str .= "<button class='button' id='clear_douban_cookie_btn' type='button' pid='{$post->ID}'  wpnonce='{$nonce}' >清除</button>";
 		$box_str .= "</td></tr>";
 		$box_str.='</table>';
@@ -620,7 +622,7 @@ class BDDB_Editor {
 	 * @version 0.8.6
 	 */
 	public function show_meta_box($post) {
-		echo '<div  class="misc-pub-section"><table><tr><th>项目</th><th>输入</th><th>说明</th></tr>';
+		echo '<div  class="misc-pub-section"><table><tr><th style="width:10%;">项目</th><th style="width:60%;">输入</th><th style="width:auto;">说明</th></tr>';
 		wp_nonce_field(basename( __FILE__ ), 'bddb_nonce');
 		$nonames = array();
 		foreach ($this->total_items as $arg)
@@ -687,7 +689,7 @@ class BDDB_Editor {
 				}
 			}else{
 			}
-			echo("<tr><th><label> {$arg['label']}：</label></th><td><input {$type_str} size='{$arg['size']}' name='{$arg['name']}' {$val_str} {$placeholder_str}></td><td>{$comment_str}</td></tr>");
+			echo("<tr><th><label> {$arg['label']}：</label></th><td><input {$type_str} class='{$arg['size']}' name='{$arg['name']}' {$val_str} {$placeholder_str}></td><td>{$comment_str}</td></tr>");
 		}
 		wp_localize_script( 'bddb-js-admin', 'nomouse_names', $nonames);
 		echo '</table></div>';
@@ -1099,6 +1101,8 @@ class BDDB_Editor {
 	 * 设置电影的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
+	 * @version 1.1.6
+	 * @date 2025-11-30
 	 */
 	private function set_additional_items_movie() {
 		$this->common_items['bddb_display_name']['label'] = '电影名';
@@ -1107,62 +1111,62 @@ class BDDB_Editor {
 		$additional_items = array(
 			'm_region' 			=> array(	'name' => 'm_region',
 											'label' => '地区',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'comment' => '',
 											),
 			'm_p_director'		=>	array(	'name' => 'm_p_director',
 											'label' => '导演',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'm_p_actor'			=>	array(	'name' => 'm_p_actor',
 											'label' => '主要演员',
-											'size' => 32,
+											'size' => 'input-long',
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'm_genre'			=>	array(	'name' => 'm_genre',
 											'label' => '类型',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_m_genre'),
 											'placeholder' => '剧情,动作,喜剧,恐怖,历史,战争,犯罪...',
 											),
 			'm_publisher'		=>	array(	'name' => 'm_publisher',
 											'label' => '制作或发行方',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'placeholder' => '建议使用简称',
 											),
 			'm_p_screenwriter'	=>	array(	'name' => 'm_p_screenwriter',
 											'label' => '编剧',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'm_p_musician'		=>	array(	'name' => 'm_p_musician',
 											'label' => '配乐',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'm_misc_brand'		=>	array(	'name' => 'm_misc_brand',
 											'label' => '特殊头衔',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'placeholder'=>'豆瓣250,IMDB250,露点,三级,R级',
 											),
 			'm_id_imdb'			=>	array(	'name' => 'm_id_imdb',
 											'label' => 'IMDB编号',
 											'comment' => array($this, 'echo_imdbpic_button'),
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'meta',
 											),
 			'm_score_imdb'		=>	array(	'name' => 'm_score_imdb',
 											'label' => 'IMDB评分',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'meta',
 											'inputstyle' => 'number',
 											'min' => '0.0',
@@ -1171,7 +1175,7 @@ class BDDB_Editor {
 											),
 			'm_length'			=>	array(	'name' => 'm_length',
 											'label' => '片长',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'meta',
 											'inputstyle' => 'number',
 											'min' => '1',
@@ -1185,6 +1189,8 @@ class BDDB_Editor {
 	 * 设置电影的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
+	 * @version 1.1.6
+	 * @date 2025-11-30
 	 */
 	private function set_additional_items_book() {
 		$this->common_items['bddb_display_name']['label'] = '书名';
@@ -1193,41 +1199,41 @@ class BDDB_Editor {
 		$additional_items = array(
 			'b_region' 			=> 	array(	'name' => 'b_region',
 											'label' => '地区',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'b_p_writer'		=>	array(	'name' => 'b_p_writer',
 											'label' => '作者',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'comment'=>'<strong>*作者和编者至少填一项</strong>',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'b_p_translator'	=>	array(	'name' => 'b_p_translator',
 											'label' => '译者',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'b_p_editor'		=>	array(	'name' => 'b_p_editor',
 											'label' => '编者',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'b_genre'			=>	array(	'name' => 'b_genre',
 											'label' => '类别',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'b_publisher'		=>	array(	'name' => 'b_publisher',
 											'label' => '出版社',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'b_series_total'	=>	array(	'name' => 'b_series_total',
 											'label' => '全套册数',
-											'size' => 16,
+											'size' => 'input-short',
 											'inputstyle' => 'number',
 											'min' => '1',
 											'max' => '999',
@@ -1238,19 +1244,19 @@ class BDDB_Editor {
 											//删？
 			'b_misc_brand'		=>	array(	'name' => 'b_misc_brand',
 											'label' => '特殊头衔',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'b_bl_series'	=>	array(	'name' => 'b_bl_series',
 											'label' => '丛书',
-											'size' => 8,
+											'size' => 'input-short',
 											'type' => 'meta',
 											'inputstyle' => 'boolean',
 											'comment'=>'默认不选',
 											),
 			'b_pub_time_end' => array(	'name' => 'b_pub_time_end',
 											'label' => '最终出版时间',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'meta',
 											'placeholder' => '年年年年-月月',
 											),
@@ -1268,7 +1274,8 @@ class BDDB_Editor {
 	 * 设置游戏的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 	0.1.0
-	 * @version 0.6.7
+	 * @version 1.1.6
+	 * @date 2025-11-30
 	 */
 	private function set_additional_items_game() {
 		$this->common_items['bddb_display_name']['label'] = '游戏名';
@@ -1277,7 +1284,7 @@ class BDDB_Editor {
 		$additional_items = array(
 			'g_language' 			=> 	array(	'name' => 'g_language',
 											'label' => '语言版本',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'placeholder' => '美版,欧版,日版,简中,繁中,盗中,汉化...',
 											'inputstyle' => 'list',
@@ -1287,24 +1294,24 @@ class BDDB_Editor {
 											),
 			'g_genre'		=>		array(	'name' => 'g_genre',
 											'label' => '类别',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'g_platform'	=>		array(	'name' => 'g_platform',
 											'label' => '机种',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'placeholder' => 'FC,MD,GB,GBC,GBA,SFC,ARC,PC,PS...',
 											),
 			'g_publisher'	=>		array(	'name' => 'g_publisher',
 											'label' => '制作方',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 
 			'g_cost_time'	=>		array(	'name' => 'g_cost_time',
 											'label' => '耗时',
-											'size' => 16,
+											'size' => 'input-short',
 											'comment'=>'单位小时',
 											'inputstyle' => 'number',
 											'min' => '0.5',
@@ -1314,17 +1321,18 @@ class BDDB_Editor {
 											),
 			'g_misc_brand'		=>	array(	'name' => 'g_misc_brand',
 											'label' => '特殊头衔',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 		);
 		$this->total_items = array_merge($this->common_items, $additional_items);
 	}
 	/**
-	 * 设置电影的表示条目。
+	 * 设置专辑的表示条目。
 	 * @see	$this->set_working_mode()->set_additional_items_{$post_type}
 	 * @since 0.1.0
-	 * @version 1.0.5
+	* @version 1.1.6
+	 * @date 2025-11-30
 	 */
 	private function set_additional_items_album() {
 		$this->common_items['bddb_display_name']['label'] = '专辑名';
@@ -1333,12 +1341,12 @@ class BDDB_Editor {
 		$additional_items = array(
 			'a_region' 			=> 	array(	'name' => 'a_region',
 											'label' => '地区',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'a_language' 		=> 	array(	'name' => 'a_language',
 											'label' => '语言',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'meta',
 											'inputstyle' => 'list',
 											'clist' => array(
@@ -1347,37 +1355,37 @@ class BDDB_Editor {
 											),								
 			'a_genre'		=>		array(	'name' => 'a_genre',
 											'label' => '风格',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'a_p_musician'	=>		array(	'name' => 'a_p_musician',
 											'label' => '音乐家',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'placeholder'=>'演唱者/乐队/演奏家',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'a_p_asstants'	=>		array(	'name' => 'a_p_asstants',
 											'label' => '合作音乐家',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'placeholder'=>'伴唱，对唱等',
 											'sanitize_callback' => array($this, 'sanitize_name'),
 											),
 			'a_quantities'	=>		array(	'name' => 'a_quantity',
 											'label' => '专辑规格',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											'placeholder'=>'单曲/EP/正常专辑/长专辑',
 											),
 			'a_publisher'	=>		array(	'name' => 'a_publisher',
 											'label' => '厂牌',
-											'size' => 16,
+											'size' => 'input-short',
 											'type' => 'tax',
 											),
 			'a_bl_multicreator'	=>	array(	'name' => 'a_bl_multicreator',
 											'label' => '多人创作',
-											'size' => 8,
+											'size' => 'input-short',
 											'type' => 'meta',
 											'inputstyle' => 'boolean',
 											),

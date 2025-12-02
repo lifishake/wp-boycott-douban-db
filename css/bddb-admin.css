@@ -21,3 +21,20 @@ input.check-r90 {
 	min-width: 150px;
 	color: #72777c;
 }
+
+.misc-pub-section table {
+  width: 100%;
+}
+
+.input-short {
+	width: 35%;
+	min-width: 10rem;
+}
+.input-mid {
+	width: 70%;
+	min-width: 15rem;
+}
+.input-long {
+	width: 95%;
+	min-width: 20rem;
+}

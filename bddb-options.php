@@ -3,7 +3,7 @@
 /**
  * BDDB后台配置页面
  * @since   0.0.1
- * @version 1.0.6
+ * @version 1.1.6
  * @file	bddb-options.php
  * @date	2025-04-07
  * 工具URL: http://wpsettingsapi.jeroensormani.com/
@@ -245,26 +245,34 @@ function bddb_settings_init(  ) {
 
 }
 
+/**
+ * @brief   描绘通用项--配置项版本号
+ * @since	0.6.0
+ * @version 1.1.6
+ * @date	2025-11-30
+*/
 function bddb_basic_setting_render(	 ) {
 	//03
 	$options = BDDB_Settings::getInstance()->get_options();
 	?>
 	<span>当前TAX版本号：</span>
-	<input type='text' name='bddb_settings[tax_version]' readonly='readonly' size='24' value='<?php echo $options['tax_version']; ?>'/><br />
+	<input type='text' name='bddb_settings[tax_version]' readonly='readonly' class='input-short' value='<?php echo $options['tax_version']; ?>'/><br />
 	<span>当前TYPE版本号：</span>
-	<input type='text' name='bddb_settings[type_version]' readonly='readonly' size='24' value='<?php echo $options['type_version']; ?>'/><br />
+	<input type='text' name='bddb_settings[type_version]' readonly='readonly' class='input-short' value='<?php echo $options['type_version']; ?>'/><br />
 	<?php
 }
 
-
+/**
+ * @brief   废弃或实验项
+*/
 function bddb_basic_setting_render1(  ) {
 	//03
 	$options = BDDB_Settings::getInstance()->get_options();
 	?>
 	<span>	图片缓存路径：</span>
-	<input type='text' name='bddb_settings[default_folder]' size='24' value='<?php echo $options['default_folder']; ?>'/><br />
+	<input type='text' name='bddb_settings[default_folder]' class='input-short' value='<?php echo $options['default_folder']; ?>'/><br />
 	<span>	默认排序：</span>
-	<select name="bddb_settings[primary_common_order] size=20" id="id_primary_common_order">
+	<select name="bddb_settings[primary_common_order] " class="input-short" id="id_primary_common_order">
 	<?php
 	$strs = array("1111","2222","3333","4444");
 	foreach ($strs as $str) {
@@ -298,17 +306,29 @@ function bddb_all_misc_map_render($args) {
 <?php
 }
 
+/**
+ * @brief   描绘通用项--图片相关
+ * @since	0.6.0
+ * @version 1.1.6
+ * @date	2025-11-30
+*/
 function bddb_poster_render() {
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
-	<span>每页缓存海报数：</span><input type='text' name='bddb_settings[thumbnails_per_page]' size='24' value='<?php echo $options['thumbnails_per_page']; ?>'/></br>
-	<span>图像宽度：</span><input type='text' name='bddb_settings[poster_width]' size='24' value='<?php echo $options['poster_width']; ?>'/><br />
-	<span>图像高度：</span><input type='text' name='bddb_settings[poster_height]' size='24' value='<?php echo $options['poster_height']; ?>'/><br />
-	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' size='24' value='<?php echo $options['thumbnail_width']; ?>'/></br>
-	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height]' size='24' value='<?php echo $options['thumbnail_height']; ?>'/></br>
+	<span>每页缓存海报数：</span><input type='text' name='bddb_settings[thumbnails_per_page]' class='input-short' value='<?php echo $options['thumbnails_per_page']; ?>'/></br>
+	<span>图像宽度：</span><input type='text' name='bddb_settings[poster_width]' class='input-short' value='<?php echo $options['poster_width']; ?>'/><br />
+	<span>图像高度：</span><input type='text' name='bddb_settings[poster_height]' class='input-short' value='<?php echo $options['poster_height']; ?>'/><br />
+	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' class='input-short' value='<?php echo $options['thumbnail_width']; ?>'/></br>
+	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height]' class='input-short' value='<?php echo $options['thumbnail_height']; ?>'/></br>
 <?php
 }
 
+/**
+ * @brief   描绘通用项--通用顺序 TBD
+ * @since	0.6.0
+ * @version 1.1.6
+ * @date	2025-11-30
+*/
 function bddb_general_order_render() {
 	$options = BDDB_Settings::getInstance()->get_options();
 	$t = new BDDB_Common_Template();
@@ -332,17 +352,20 @@ function bddb_general_order_render() {
 /**
  * @brief	抓取豆瓣设置画面。
  * @since 	1.0.8
- * @version 1.0.8
- * @date	2025-10-20
+ * @version 1.1.6
+ * @date	2025-11-30
  */
 function bddb_fetcher_render() {
 	$options = BDDB_Settings::getInstance()->get_options();
 	?>
-	<span>伪装浏览器UA：</span><input type='text' name='bddb_settings[user_agent]' size='24' value='<?php echo $options['user_agent']; ?>'/></br>
-	<span>获取cookie保存时间：</span><input type='text' name='bddb_settings[cookie_keep_time]' size='24' value='<?php echo $options['cookie_keep_time']; ?>'/></br>
+	<span>伪装浏览器UA：</span><input type='text' name='bddb_settings[user_agent]' class='input-short' value='<?php echo $options['user_agent']; ?>'/></br>
+	<span>获取cookie保存时间：</span><input type='text' name='bddb_settings[cookie_keep_time]' class='input-short' value='<?php echo $options['cookie_keep_time']; ?>'/></br>
 	<?php
 }
 
+/**
+ * @brief   测试用表格
+*/
 function bddb_special_function_render() {
 	$type = 'game';
 	//$all_bddbs = get_post()
@@ -351,38 +374,51 @@ function bddb_special_function_render() {
 	<?php
 }
 
-
+/**
+ * @brief   描绘通用项-omdb api key
+ * @since	1.0.1
+ * @version 1.1.6
+ * @date	2025-11-30
+*/
 function bddb_m_omdb_key_render()
 {
 	//08
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
-	<input type='text' name='bddb_settings[m_omdb_key]' size='64' value='<?php echo $options['m_omdb_key']; ?>'/>
+	<input type='text' name='bddb_settings[m_omdb_key]' class='input-long' value='<?php echo $options['m_omdb_key']; ?>'/>
 <?php
 }
 
 /**
  * @brief	渲染书籍封面和缩略图规格输入项。
  * @since	  0.6.2
+ * @version	  1.1.6
+ * @data      2025-11-30
 */
 function bddb_b_poster_render()
 {
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
 	<span>设定书籍封面宽度和高度，false为与总体设定一致，建议比例1：1.40：</span><br />
-	<span>封面宽度：</span><input type='text' name='bddb_settings[poster_width_book]' size='24' value='<?php echo $options['poster_width_book']; ?>'/></br>
-	<span>封面高度：</span><input type='text' name='bddb_settings[poster_height_book]' size='24' value='<?php echo $options['poster_height_book']; ?>'/></br>
-	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_book]' size='24' value='<?php echo $options['thumbnail_width_book']; ?>'/></br>
-	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_book]' size='24' value='<?php echo $options['thumbnail_height_book']; ?>'/></br>
+	<span>封面宽度：</span><input type='text' name='bddb_settings[poster_width_book]' class='input-short' value='<?php echo $options['poster_width_book']; ?>'/></br>
+	<span>封面高度：</span><input type='text' name='bddb_settings[poster_height_book]' class='input-short' value='<?php echo $options['poster_height_book']; ?>'/></br>
+	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_book]' class='input-short' value='<?php echo $options['thumbnail_width_book']; ?>'/></br>
+	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_book]' class='input-short' value='<?php echo $options['thumbnail_height_book']; ?>'/></br>
 <?php
 }
 
+/**
+ * @brief	渲染书籍系列最大本数。
+ * @since	  0.6.2
+ * @version	  1.1.6
+ * @data      2025-11-30
+*/
 function bddb_b_max_serial_count_render()
 {
 	//08
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
-	<input type='text' name='bddb_settings[b_max_serial_count]' size='64' value='<?php echo $options['b_max_serial_count']; ?>'/>
+	<input type='text' name='bddb_settings[b_max_serial_count]' class='input-long' value='<?php echo $options['b_max_serial_count']; ?>'/>
 <?php
 }
 
@@ -401,42 +437,51 @@ function bddb_b_countries_map_render() {
 /**
  * @brief	渲染游戏海报和缩略图规格输入项。
  * @since	  0.6.2
+ * @version	  1.1.6
+ * @data      2025-11-30
 */
 function bddb_g_poster_render()
 {
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
 	<span>设定游戏海报宽度和高度，false为与总体设定一致，建议比例1：1.42：</span><br />
-	<span>海报宽度：</span><input type='text' name='bddb_settings[poster_width_game]' size='24' value='<?php echo $options['poster_width_game']; ?>'/></br>
-	<span>海报高度：</span><input type='text' name='bddb_settings[poster_height_game]' size='24' value='<?php echo $options['poster_height_game']; ?>'/></br>
-	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_game]' size='24' value='<?php echo $options['thumbnail_width_game']; ?>'/></br>
-	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_game]' size='24' value='<?php echo $options['thumbnail_height_game']; ?>'/></br>
+	<span>海报宽度：</span><input type='text' name='bddb_settings[poster_width_game]' class='input-short' value='<?php echo $options['poster_width_game']; ?>'/></br>
+	<span>海报高度：</span><input type='text' name='bddb_settings[poster_height_game]' class='input-short' value='<?php echo $options['poster_height_game']; ?>'/></br>
+	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_game]' class='input-short' value='<?php echo $options['thumbnail_width_game']; ?>'/></br>
+	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_game]' class='input-short' value='<?php echo $options['thumbnail_height_game']; ?>'/></br>
 <?php
 }
 
-
+/**
+ * @brief	渲染游戏giantbomb api key。
+ * @since	  0.6.7
+ * @version	  1.1.6
+ * @data      2025-11-30
+*/
 function bddb_g_giantbomb_key_render()
 {
 	//08
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
-	<input type='text' name='bddb_settings[g_giantbomb_key]' size='64' value='<?php echo $options['g_giantbomb_key']; ?>'/>
+	<input type='text' name='bddb_settings[g_giantbomb_key]' class='input-long' value='<?php echo $options['g_giantbomb_key']; ?>'/>
 <?php
 }
 
 /**
  * @brief	渲染专辑封面和缩略图规格输入项。
  * @since	  0.6.2
+ * @version	  1.1.6
+ * @data      2025-11-30
 */
 function bddb_a_poster_render()
 {
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
 	<span>设定专辑图片宽度和高度，false为与总体设定一致，建议比例1：1：</span><br />
-	<span>海报宽度：</span><input type='text' name='bddb_settings[poster_width_album]' size='24' value='<?php echo $options['poster_width_album']; ?>'/></br>
-	<span>海报高度：</span><input type='text' name='bddb_settings[poster_height_album]' size='24' value='<?php echo $options['poster_height_album']; ?>'/></br>
-	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_album]' size='24' value='<?php echo $options['thumbnail_width_album']; ?>'/></br>
-	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_album]' size='24' value='<?php echo $options['thumbnail_height_album']; ?>'/></br>
+	<span>海报宽度：</span><input type='text' name='bddb_settings[poster_width_album]' class='input-short' value='<?php echo $options['poster_width_album']; ?>'/></br>
+	<span>海报高度：</span><input type='text' name='bddb_settings[poster_height_album]' class='input-short' value='<?php echo $options['poster_height_album']; ?>'/></br>
+	<span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_album]' class='input-short' value='<?php echo $options['thumbnail_width_album']; ?>'/></br>
+	<span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_album]' class='input-short' value='<?php echo $options['thumbnail_height_album']; ?>'/></br>
 <?php
 }
 
@@ -632,6 +677,12 @@ function bddb_settings_section_callback( $section ) {
 	}
 }
 
+/**
+ * @brief	后台配置页面入口。
+ * @since	0.3.1
+ * @version	1.1.2
+ * @date	2025-10-20
+*/
 function bddb_options_page(	 ) {
 	if( isset( $_GET[ 'tab' ] ) ) {
 		$active_tab = $_GET[ 'tab' ];
