@@ -607,8 +607,8 @@ class BDDB_Editor {
 		$box_str = "<table>";
 		$box_str .="<tr><th>缩略图:</th><td><img id='img_poster_thumbnail' src='{$thumb_src}'/></td></tr>";
 		$box_str .="<tr><th>抓取状态:</th><td><span class='{$t_class}' id='fetch-status'>{$catch_status}<span></td></tr>";
-		$box_str .="<tr><th>实时状态:</th><td><input type='text' class='input-long' id='pic-status' name='ajax-status' value='' readonly='readonly' /></td></tr>";
-		$box_str .="<tr><th>豆瓣Cookie:</th><td><input type='text' class='input-long' id='douban-cookie-status' name='ajax-douban-cookie' value='{$cookie_str}' readonly='readonly' />";
+		$box_str .="<tr><th>实时状态:</th><td><input type='text' class='input-short' id='pic-status' name='ajax-status' value='' readonly='readonly' /></td></tr>";
+		$box_str .="<tr><th>豆瓣Cookie:</th><td><input type='text' class='input-short' id='douban-cookie-status' name='ajax-douban-cookie' value='{$cookie_str}' readonly='readonly' />";
 		$box_str .= "<button class='button' id='clear_douban_cookie_btn' type='button' pid='{$post->ID}'  wpnonce='{$nonce}' >清除</button>";
 		$box_str .= "</td></tr>";
 		$box_str.='</table>';
