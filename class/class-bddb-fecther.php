@@ -1,9 +1,9 @@
 <?php
 /**
  * @file	class-bddb-fetcher.php
- * @date	2025-11-17
+ * @date	2025-12-26
  * @author	大致
- * @version	1.1.3
+ * @version	1.1.8
  * @since	0.5.5
  * 
  */
@@ -929,6 +929,7 @@ class BDDB_Fetcher{
 	 * @param	string	$e		结束字符
 	 * @return 	string
 	 * @since 	0.5.6
+	 * @version 1.1.8
 	*/
 	public static function remove_words_in_sig($str, $b, $e) {
 		$posa = mb_strpos($str, $b);
@@ -936,7 +937,10 @@ class BDDB_Fetcher{
 		if ($posa !== false && $pose !== false && $pose > $posa) {
 			$stra = mb_substr($str, 0, $posa);
 			$strb = mb_substr($str, $pose + 1);
-			$str = $stra + $strb;
+			$str = $stra;
+			if (!empty($strb)) {
+				$str .= $strb;
+			}
 		}
 		return $str;
 	}
