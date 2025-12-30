@@ -4,9 +4,9 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2024-09-04
+ * @date	2025-12-30
  * @author	大致
- * @version	0.9.2
+ * @version	1.2.0
  * @since	0.0.1
  * 
  */
@@ -767,7 +767,7 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.0.1
-	 * @version	1.1.9
+	 * @version	1.2.0
 	 * @date 2025-12-30
 	 * @see		the_gallery()
 	 */
@@ -809,7 +809,7 @@ class BDDB_Common_Template {
 		
 		//20251230 改为直接加loading='lazy'
 		//$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
-		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span></a>";
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
 
 		return $ret;
 	
