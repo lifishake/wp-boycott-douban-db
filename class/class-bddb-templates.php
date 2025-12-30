@@ -767,8 +767,8 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.0.1
-	 * @version	0.7.8
-	 * @date 2023-03-13
+	 * @version	1.1.9
+	 * @date 2025-12-30
 	 * @see		the_gallery()
 	 */
 	private function get_poster_for_gallery($id) {
@@ -807,8 +807,9 @@ class BDDB_Common_Template {
 		//$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
 		//恢复让海报一直刷新的功能 20220607
 		
-		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
-		//$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' lazy='false' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span></a>";
+		//20251230 改为直接加loading='lazy'
+		//$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span></a>";
 
 		return $ret;
 	

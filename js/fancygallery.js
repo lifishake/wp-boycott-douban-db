@@ -8,28 +8,6 @@ jQuery( document ).ready( function( $ ) {
 	var finished = 'unknown';
 	var load_flag = false;
 
-	var elems = $('.bddb-poster-thumb');
-	thumb_lazy_load(elems);
-	//lazy load images
-	function thumb_lazy_load(e){
-		e.each(function (i, v) {
-			var el;
-			var ig = $(v).find('img');
-			//ig.fadeIn(200);
-			if (
-				ig.attr('lazy') !== undefined &&
-				ig.attr('data-src') !== undefined
-			) {
-				var src = ig.attr('data-src');
-				ig.attr('src', src)
-				ig.removeAttr('lazy')
-				ig.removeAttr('data-src');
-				ig.fadeIn(200);
-			}
-		});
-	};//thumb_lazy_load
-	
-
 	//search last element of current page on scrolling
 	$(window).on('scroll', TreateLast);
 	function TreateLast() {
