@@ -75,7 +75,6 @@ jQuery( document ).ready( function( $ ) {
 				hide_loader();
 				var obj = $(results);
 				var elems = obj.find('.bddb-poster-thumb');
-				thumb_lazy_load(elems);
 				elems.each(function (i, v) {
 					$('.bddb-poster-thumb').last().after($(this));
 				});
