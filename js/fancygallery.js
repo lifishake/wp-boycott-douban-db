@@ -8,19 +8,19 @@ jQuery( document ).ready( function( $ ) {
 	var finished = 'unknown';
 	var load_flag = false;
 
-	function thumb_lazy_load(e){
+	function thumb_lazy_load(e) {
 		e.each(function (i, v) {
-			var ig = $(v).find('img');
-			if (ig.complete) {
-				ig.classList.add('loaded');
+			var $img = $(v).find('img');  // 用 $img 表示 jQuery 对象，更清晰
+
+			if ($img[0].complete) {  // 检查原生 complete 属性（已加载或缓存）
+				$img.addClass('loaded').fadeIn(200);
 			} else {
-				ig.addEventListener('load',()=>{
-					ig.classList.add('loaded');
-					ig.fadeIn(200);
+				$img.on('load', function () {
+					$(this).addClass('loaded').fadeIn(200);
 				});
 			}
 		});
-	};//thumb_lazy_load
+	}
 
 	//search last element of current page on scrolling
 	$(window).on('scroll', TreateLast);
