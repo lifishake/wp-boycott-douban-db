@@ -8,6 +8,20 @@ jQuery( document ).ready( function( $ ) {
 	var finished = 'unknown';
 	var load_flag = false;
 
+	function thumb_lazy_load(e){
+		e.each(function (i, v) {
+			var ig = $(v).find('img');
+			if (ig.complete) {
+				ig.classList.add('loaded');
+			} else {
+				ig.addEventListener('load',()=>{
+					ig.classList.add('loaded');
+					ig.fadeIn(200);
+				});
+			}
+		});
+	};//thumb_lazy_load
+
 	//search last element of current page on scrolling
 	$(window).on('scroll', TreateLast);
 	function TreateLast() {
@@ -75,6 +89,7 @@ jQuery( document ).ready( function( $ ) {
 				hide_loader();
 				var obj = $(results);
 				var elems = obj.find('.bddb-poster-thumb');
+				thumb_lazy_load(elems);
 				elems.each(function (i, v) {
 					$('.bddb-poster-thumb').last().after($(this));
 				});
