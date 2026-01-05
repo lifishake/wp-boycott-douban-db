@@ -8,17 +8,42 @@ jQuery( document ).ready( function( $ ) {
 	var finished = 'unknown';
 	var load_flag = false;
 
-	function thumb_lazy_load(v){
-		var ig = $(v).find('img');
-		if (ig[0].complete) {
-			ig[0].classList.add('loaded');
-		} else {
-			ig[0].addEventListener('load',()=>{
-				ig[0].classList.add('loaded');
-				ig[0].fadeIn(200);
-			});
-		}
+	var elems = $('.bddb-poster-thumb');
+	thumb_lazy_load(elems);
+	function img_lazy_load_inmp(v) {
+		var $ig = $(v).find('img');
+			//ig.fadeIn(200);
+			if (
+				$ig.attr('lazy') !== undefined &&
+				$ig.attr('data-src') !== undefined
+			) {
+				var src = ig.attr('data-src');
+				$ig.attr('src', src)
+				$ig.removeAttr('lazy')
+				$ig.removeAttr('data-src');
+				$ig.fadeIn(200);
+			}
+	}
+
+	function thumb_lazy_load(e){
+		e.each(function (i, v) {
+			//img_lazy_load_inmp(v);
+			var el;
+			var ig = $(v).find('img');
+			//ig.fadeIn(200);
+			if (
+				ig.attr('lazy') !== undefined &&
+				ig.attr('data-src') !== undefined
+			) {
+				var src = ig.attr('data-src');
+				ig.attr('src', src)
+				ig.removeAttr('lazy')
+				ig.removeAttr('data-src');
+				ig.fadeIn(200);
+			}
+		});
 	};//thumb_lazy_load
+	
 
 	//search last element of current page on scrolling
 	$(window).on('scroll', TreateLast);
@@ -87,9 +112,10 @@ jQuery( document ).ready( function( $ ) {
 				hide_loader();
 				var obj = $(results);
 				var elems = obj.find('.bddb-poster-thumb');
+				thumb_lazy_load(elems);
 				elems.each(function (i, v) {
 					$('.bddb-poster-thumb').last().after($(this));
-					thumb_lazy_load(v);
+					//img_lazy_load_inmp(v);
 				});
 			},
 			error: function () {
@@ -193,7 +219,7 @@ Fancybox.bind('[data-fancybox="gallery"]', {
 			const $rightCol = document.createElement("div");
 			$rightCol.classList.add("fancybox__rightCol");
 
-			$rightCol.innerHTML = '<p class="screen-reader-text">榤掤��/p>';
+			$rightCol.innerHTML = '<p class="screen-reader-text">nothing</p>';
 
 			// Create info-box
 			const $info = document.createElement("div");

@@ -4,9 +4,9 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2025-12-30
+ * @date	2025-01-05
  * @author	大致
- * @version	1.2.0
+ * @version	1.2.4
  * @since	0.0.1
  * 
  */
@@ -767,8 +767,8 @@ class BDDB_Common_Template {
 	 * @return string
 	 * @private
 	 * @since	0.0.1
-	 * @version	1.2.0
-	 * @date 2025-12-30
+	 * @version	1.2.4
+	 * @date 2026-01-05
 	 * @see		the_gallery()
 	 */
 	private function get_poster_for_gallery($id) {
@@ -808,8 +808,9 @@ class BDDB_Common_Template {
 		//恢复让海报一直刷新的功能 20220607
 		
 		//20251230 改为直接加loading='lazy'
-		//$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
-		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
+		//20260105，改回data-src模式
+		$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
+		//$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
 
 		return $ret;
 	

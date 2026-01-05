@@ -1,6 +1,7 @@
 
 a[data-fancybox] img {
   cursor: zoom-in;
+  display:none;
   width: 15vw;
   max-width: 100px;
 }
