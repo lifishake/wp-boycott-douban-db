@@ -8,19 +8,17 @@ jQuery( document ).ready( function( $ ) {
 	var finished = 'unknown';
 	var load_flag = false;
 
-	function thumb_lazy_load(e) {
-		e.each(function (i, v) {
-			var $img = $(v).find('img');  // 用 $img 表示 jQuery 对象，更清晰
-
-			if ($img[0].complete) {  // 检查原生 complete 属性（已加载或缓存）
-				$img.addClass('loaded').fadeIn(200);
-			} else {
-				$img.on('load', function () {
-					$(this).addClass('loaded').fadeIn(200);
-				});
-			}
-		});
-	}
+	function thumb_lazy_load(v){
+		var ig = $(v).find('img');
+		if (ig[0].complete) {
+			ig[0].classList.add('loaded');
+		} else {
+			ig[0].addEventListener('load',()=>{
+				ig[0].classList.add('loaded');
+				ig[0].fadeIn(200);
+			});
+		}
+	};//thumb_lazy_load
 
 	//search last element of current page on scrolling
 	$(window).on('scroll', TreateLast);
@@ -89,9 +87,9 @@ jQuery( document ).ready( function( $ ) {
 				hide_loader();
 				var obj = $(results);
 				var elems = obj.find('.bddb-poster-thumb');
-				thumb_lazy_load(elems);
 				elems.each(function (i, v) {
 					$('.bddb-poster-thumb').last().after($(this));
+					thumb_lazy_load(v);
 				});
 			},
 			error: function () {
