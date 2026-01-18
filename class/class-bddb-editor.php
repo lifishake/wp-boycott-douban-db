@@ -10,9 +10,9 @@ if (!class_exists('BDDB_Settings')) {
 /**
  * @class	BDDB_Editor_Factory
  * @brief	编辑类工厂，用于生成编辑类以及外部静态接口
- * @date	2025-11-09
+ * @date	2026-01-18
  * @author	大致
- * @version	1.1.1
+ * @version	1.2.5
  * @since	0.5.4
  * 
  */
@@ -30,7 +30,7 @@ class BDDB_Editor_Factory {
 		add_filter ( 'wp_insert_post_data', 'BDDB_Editor_Factory::generate_content', 10, 2);
 		add_action( 'wp_ajax_bddb_get_pic', 'BDDB_Editor_Factory::download_pic');
 		add_action( 'wp_ajax_bddb_get_imdbpic', 'BDDB_Editor_Factory::download_imdbpic');
-		add_action( 'wp_ajax_bddb_get_theomdb', 'BDDB_Editor_Factory::get_theomdb');
+		add_action( 'wp_ajax_bddb_get_tmdb', 'BDDB_Editor_Factory::get_tmdb');
 		add_action( 'wp_ajax_bddb_get_scovers', 'BDDB_Editor_Factory::download_serial_pics');
 		add_action( 'wp_ajax_bddb_clear_douban_cookie', 'BDDB_Editor_Factory::clear_douban_cookie');
 	}
@@ -241,14 +241,16 @@ class BDDB_Editor_Factory {
 
 	/**
 	 * 获取themoviedb.org封面的Callback。
-	 * @see		AJAX::bddb_get_theomdb
+	 * @see		AJAX::bddb_get_tmdb
 	 * @since 	1.1.2
+	 * @version	1.2.5
+	 * @data 	2026-01-18
 	 */
-	public static function get_theomdb(){
-	if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['theomdbno']) ) {
+	public static function get_tmdb(){
+	if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['tmdbno']) ) {
 		   wp_die();
 	   }
-	   if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-theomdbpic-".$_POST['id'])) { 
+	   if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-tmdbpic-".$_POST['id'])) { 
 		   wp_die();
 	   }
 	   $options = BDDB_Settings::getInstance()->get_options();
@@ -261,21 +263,18 @@ class BDDB_Editor_Factory {
 	   if (file_exists($thumbnail_full_name)) {
 		   unlink($thumbnail_full_name);
 	   }
-
-	   $details = array(
-			'language' => 'zh-CN',
-		);
 	   
-	   $theomdb_no = $_POST['theomdbno'];
-	   $piclink = 'https://api.themoviedb.org/3/movie/'.(string)$theomdb_no;
+	   $tmdbno = $_POST['tmdbno'];
+	   $auth_key = BDDB_Settings::getInstance()->get_tmdb_key();
+	   $piclink = 'https://api.tmdb.org/3/movie/'.(string)$tmdbno.'?append_to_response=credits%2Crelease_dates&language=zh-CN';
 	   $piclink = htmlspecialchars_decode($piclink);
 	   $response = @wp_remote_get( 
 			   $piclink, 
 			   array( 
-				   'timeout'  => 3000, 
+				   'timeout'  => 30000, 
 				   'headers'   => array(
 					'Content-Type'  => 'application/json', // Or 'application/x-www-form-urlencoded' depending on your API
-					'Authorization' => 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYjQ0YzdhOGFjN2YxZDY4YjJlMTUyYjAzYzEyZWI5YSIsIm5iZiI6MTc2MTEzOTI4MS41NDEsInN1YiI6IjY4ZjhkYTUxMDMwMjQ3OTRjMmRiYzU0YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.K1hqnPwqHiFeQzXpPBTFgOdIeSbs_Ee-_ING7C9t-MI',
+					'Authorization' => 'Bearer '.$auth_key,
 				),
 			   ) 
 		   );
@@ -283,8 +282,9 @@ class BDDB_Editor_Factory {
 	   {
 		   wp_die();
 	   }
-	   $pic_link = 'https://image.tmdb.org/t/p/original'.$response['backdrop_path'];
-	   $resp = array('backdrop_path'=>$response['backdrop_path']);
+	   $jjj = json_decode($response['body']);
+	   $pic_link = 'https://image.tmdb.org/t/p/original'.$response['body']['backdrop_path'];
+	   $resp = array('backdrop_path'=>$pic_link);
 	   wp_send_json($resp) ;
 	   wp_die();
 	}
@@ -945,9 +945,9 @@ class BDDB_Editor {
 	}
 
 	protected function echo_theomdb_cover_button($post) {
-		$norce_str = wp_create_nonce('bddb-get-theomdbpic-'.$post->ID);
+		$norce_str = wp_create_nonce('bddb-get-tmdbpic-'.$post->ID);
 		$names = bddb_get_poster_names('movie', $post->ID);
-		$btn_get = '<button class="button" name="bddb_get_theomdb_btn" type="button" pid="'.$post->ID.'" wpnonce="'.$norce_str.'" dest_src="'.$names->thumb_url.'" >the_omdb</button>';
+		$btn_get = '<button class="button" name="bddb_get_tmdb_btn" type="button" pid="'.$post->ID.'" wpnonce="'.$norce_str.'" dest_src="'.$names->thumb_url.'" >the_omdb</button>';
 		return $btn_get;
 	}
 

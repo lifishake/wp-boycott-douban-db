@@ -34,13 +34,14 @@ class BDDB_Settings{
 	 * @brief	默认设置。
 	 * @public
 	 * @since	0.1.0
-	 * @version	1.0.8
-	 * @date	2025-10-20
+	 * @version	1.2.5
+	 * @date	2026-01-18
 	 */
 	public function default_options(){
 		$ret = array(
 			'default_folder'=>'wp-content/poster_gallery/',
 			'm_omdb_key'=>'',
+			'm_tmdb_key'=>'',
 			'g_giantbomb_key'=>'',
 			'primary_common_order'=>'bddb_personal_rating',
 			'user_agent'=>'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
@@ -174,6 +175,20 @@ class BDDB_Settings{
 		$options = $this->get_options();
 		return $options['m_omdb_key'];
 	}
+
+	/**
+	 * @brief	取得tmdb 的API KEY。
+	 * @public
+	 * @param	none
+	 * @return 	string
+	 * @version	1.2.5
+	 * @see gBDDB_Editor_Factory::et_theomdb
+	 */
+	public function get_tmdb_key(){
+		$options = $this->get_options();
+		return $options['m_tmdb_key'];
+	}
+
 
 	/**
 	 * @brief	【共】取得系列最大数。

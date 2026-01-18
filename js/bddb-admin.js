@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2025-11-09
+ * @date	2026-01-18
  * @author	大致
- * @version	1.1.1
+ * @version	1.2.5
  * @since	0.0.1
  * 
  */
@@ -347,7 +347,7 @@ jQuery(document).ready(function($) {
 	})
 
 	//取theomdb图片按钮
-	$('button[name="bddb_get_theomdb_btn"]').click(function(){
+	$('button[name="bddb_get_tmdb_btn"]').click(function(){
 		var pic_bar = document.getElementsByName("bddb_original_name");
 		var dest_pic = this.getAttribute('dest_src');
 		if (pic_bar.length != 1) {
@@ -355,10 +355,10 @@ jQuery(document).ready(function($) {
 		}
 		var pic_link = pic_bar[0].value;
 		var data = {
-			action: 'bddb_get_theomdb',
+			action: 'bddb_get_tmdb',
 			nonce: this.getAttribute('wpnonce'),
 			id:this.getAttribute('pid'),
-			theomdbno:pic_link,
+			tmdbno:pic_link,
 		};
 		$.ajax({
 			url: ajaxurl,

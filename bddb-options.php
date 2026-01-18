@@ -3,9 +3,9 @@
 /**
  * BDDB后台配置页面
  * @since   0.0.1
- * @version 1.1.6
+ * @version 1.2.5
  * @file	bddb-options.php
- * @date	2025-04-07
+ * @date	2026-01-18
  * 工具URL: http://wpsettingsapi.jeroensormani.com/
 */
 
@@ -37,8 +37,8 @@ function bddb_add_admin_menu() {
 /**
  * @brief   添加渲染用的组件
  * @since	0.0.1
- * @version 1.0.8
- * @date	2025-10-20
+ * @version 1.2.5
+ * @date	2026-01-18
 */
 function bddb_settings_init(  ) {
 	$arg = array(
@@ -140,6 +140,14 @@ function bddb_settings_init(  ) {
 	'bddb_m_omdb_key',
 	'OMDB Auth KEY',
 	'bddb_m_omdb_key_render',
+	'bddb_movie_tab',
+	'bddb_movie_section'
+	);
+
+	add_settings_field(
+	'bddb_m_tmdb_key',
+	'themoviedb Auth KEY',
+	'bddb_m_tmdb_key_render',
 	'bddb_movie_tab',
 	'bddb_movie_section'
 	);
@@ -386,6 +394,21 @@ function bddb_m_omdb_key_render()
 	$options = BDDB_Settings::getInstance()->get_options();
 ?>
 	<input type='text' name='bddb_settings[m_omdb_key]' class='input-long' value='<?php echo $options['m_omdb_key']; ?>'/>
+<?php
+}
+
+/**
+ * @brief   描绘通用项-omdb api key
+ * @since	1.2.5
+ * @version 1.2.5
+ * @date	2026-01-18
+*/
+function bddb_m_tmdb_key_render()
+{
+	//08
+	$options = BDDB_Settings::getInstance()->get_options();
+?>
+	<input type='text' name='bddb_settings[m_tmdb_key]' class='input-long' value='<?php echo $options['m_tmdb_key']; ?>'/>
 <?php
 }
 
