@@ -244,7 +244,7 @@ class BDDB_Editor_Factory {
 	 * @see		AJAX::bddb_get_tmdb
 	 * @since 	1.1.2
 	 * @version	1.2.5
-	 * @data 	2026-01-18
+	 * @date 	2026-01-18
 	 */
 	public static function get_tmdb(){
 	if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['tmdbno']) ) {

@@ -65,6 +65,10 @@ class BDDB_Fetcher{
 				$url = rtrim($url, "/");
 				//直接走imdb
 				return self::fetch_from_qidian_page($url);
+			} elseif (strpos($url, "themoviedb.org/movie/") || strpos($url, "tmdb.org/movie/")) {
+				$type = "movie";
+				$url = rtrim($url, "/");
+				return self::fetch_from_tmdb($url);
 			} else {
 				if (strpos($url, "tt") !== false) {
 					$type = "movie";
@@ -107,6 +111,145 @@ class BDDB_Fetcher{
 		$ret['content']['dou_id'] = '';
 		$ret['content']['title'] = '';
 		$ret['result'] = 'OK';
+		return $ret;
+	}
+
+	/**
+	 * @brief	从tmdb获取。
+	 * @param	string	$url
+	 * @return 	array
+	 * @since 	1.2.6
+	 * @date	2026-01-19
+	 */
+	public static function fetch_from_tmdb($url) {
+		$ret = array('result'=>'ERROR','reason'=>'invalid parameter');
+		$search = basename($url);
+		preg_match('/^[0-9][0-9]*/',$search, $ids);
+		$auth_key = BDDB_Settings::getInstance()->get_tmdb_key();
+		$api_link = 'https://api.tmdb.org/3/movie/'.(string)$ids[0].'?append_to_response=credits%2Crelease_dates%2Cimages%2Calternative_titles&language=zh-CN';
+	    $api_link = htmlspecialchars_decode($api_link);
+		$response = @wp_remote_get( 
+			   $api_link, 
+			   array( 
+				   'timeout'  => 30000, 
+				   'headers'   => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer '.$auth_key,
+				),
+			   ) 
+		   );
+		if ( is_wp_error( $response ) || !is_array($response) ) {
+			$ret['reason'] = "wp_remote_get() failed.";
+			return $ret;
+		}
+		$ret['result'] = 'OK';
+		$default = array(
+			'pic' => '',
+			'average_score' => '',
+			'director' => '',
+			'actor' => '',
+			'screenwriter' => '',
+			'genre' => '',
+			'pubdate' => '',
+			'original_name' => '',
+			'imdbid' => '',
+			'country' => '',
+			'm_length' => '',
+			'dou_id' => '',
+			'title' => '',
+			'url' => $url,
+			'akas' => '',
+		);
+		$output = $default;
+		$content = json_decode(wp_remote_retrieve_body($response), true);
+
+		//国家地区
+		$region_names = array();
+		$chief_3166 = '';
+		foreach($content['production_countries'] as $region_info) {
+			if (empty($chief_3166)) {
+				$chief_3166 = $region_info['iso_3166_1'];
+			}
+			$region_names[] = self::get_3166_region_name($region_info);
+		}
+		$output['country'] = self::items_implode($region_names);
+
+		//电影名
+		$output['title'] = $content['title'];
+
+		//原名
+		$output['original_name'] = $content['original_title'];
+		//中文地区不设原名
+		$chinese_regions = array('CN', 'HK', 'TW', 'MY', 'SG');
+		if (in_array($chief_3166, $chinese_regions)) {
+			$output['original_name'] = '';
+		}
+
+		//海报
+		$output['pic'] = 'https://image.tmdb.org/t/p/original'.$content['poster_path'];
+		if ('CN' != $chief_3166) {
+			$poster = self::get_loaction_poster($ids[0], $chief_3166);
+			if (!empty($poster)) {
+				$output['pic'] = 'https://image.tmdb.org/t/p/original'.$poster;
+			}
+		}
+
+		//上映时间
+		$output['pubdate'] = self::get_latest_tmdb_release_date($content['release_dates']['results'], $chief_3166);
+
+		//评分当豆瓣评分
+		$output['average_score'] = sprintf("%.1f", $content['vote_average']);
+
+
+		//导演、演员、编剧、配乐
+		$all_actors = array();
+		$all_directors = array();
+		$all_writers = array();
+		$all_musicians = array();
+		foreach($content['credits']['cast'] as $cast) {
+			if ("Acting" == $cast['known_for_department']) {
+				$all_actors[] = $cast['name'];
+			}
+		}
+
+		foreach($content['credits']['crew'] as $crew) {
+			if ("Director" == $crew['job']) {
+				$all_directors[] = $crew['name'];
+			}
+			if ("Music" ==  $crew['job'] ||
+			"Original Music Composer" ==  $crew['job'] ||
+			"Songs" ==  $crew['job']) {
+				$all_musicians[] = $crew['name'];
+			}
+			if ("Writer" ==  $crew['job'] ||
+			"Novel" ==  $crew['job'] ||
+			"Screenplay" ==  $crew['job']) {
+				$all_writers[] = $crew['name'];
+			}
+		}
+		$actors_str = self::items_implode($all_actors);
+		$output['actor'] = self::translate_actors($actors_str);
+		$directors_str = self::items_implode($all_directors);
+		$output['director'] = self::translate_directors($directors_str);
+		$output['screenwriter'] = self::items_implode($all_writers);
+		$output['musician'] = self::items_implode($all_musicians);
+
+		//类型
+		$output['genre'] = self::items_implode_by_key($content['genres'], 'name');
+
+		//出品公司
+		$output['company']  = self::items_implode_by_key($content['production_companies'], 'name');
+
+		//imdb编号
+		$output['imdbid'] = $content['imdb_id'];
+
+		//片长
+		$output['m_length'] = $content['runtime'];
+
+		//分级
+		//$output['misc'] = self::get_latest_tmdb_release_date($content['release_dates']['results'], $chief_3166);
+
+		$ret['content'] = $output;
 		return $ret;
 	}
 
@@ -923,6 +1066,35 @@ class BDDB_Fetcher{
 	}//items_implode
 
 	/**
+	 * @brief	内容转字符串。
+	 * @param	array	$items	要排列的array
+	 * @param	string	$key	要排列的key
+	 * @return string
+	 * @since 1.2.6
+	 * @date 2026-01-20
+	*/
+	public static function items_implode_by_key($items, $key) {
+		if (!is_array($items)) {
+			return $items;
+		}
+		$count = count($items);
+		if (0 == $count) {
+			return "";
+		}
+		if ($count > 8) {
+			$items = array_slice($items, 0, 16);
+		}
+		$new_items = array_column($items, $key);
+
+		$new_items = array_map('trim', $new_items);
+		if (1 == $count) {
+			return $new_items[0];
+		} else {
+			return implode(",",$new_items);
+		}
+	}//items_implode
+
+	/**
 	 * @brief	删除两个符号之间的内容，包括符号本身。
 	 * @param	string	$str	字符串
 	 * @param	string	$b		开始字符
@@ -965,6 +1137,345 @@ class BDDB_Fetcher{
 		}
 		$name = substr($url, $posa+1, $pose - $posa -1);
 		return $name;
+	}
+
+	/**
+	 * @brief	把imdb国家地区情报中的iso-3166-1的2字符国家码转成中文国家名。
+	 * @param	array	$region_info	地区情报 {"iso_3166_1": "IT", "name": "Italy"}
+	 * @return 	string
+	 * @since 	1.2.6
+	 * @date	2026-01-20
+	*/
+	public static function get_3166_region_name($region_info) {
+		$region_names_all = array(
+			'AF' => '阿富汗',
+			'AL' => '阿尔巴尼亚',
+			'DZ' => '阿尔及利亚',
+			'AD' => '安道尔',
+			'AO' => '安哥拉',
+			'AR' => '阿根廷',
+			'AM' => '亚美尼亚',
+			'AU' => '澳大利亚',
+			'AT' => '奥地利',
+			'AZ' => '阿塞拜疆',
+			'BS' => '巴哈马',
+			'BH' => '巴林',
+			'BD' => '孟加拉',
+			'BB' => '巴巴多斯',
+			'BY' => '白俄罗斯',
+			'BE' => '比利时',
+			'BJ' => '贝宁',
+			'BT' => '不丹',
+			'BO' => '玻利维亚',
+			'BA' => '波黑',
+			'BW' => '博茨瓦纳',
+			'BR' => '巴西',
+			'BN' => '文莱',
+			'BG' => '保加利亚',
+			'BF' => '布基纳法索',
+			'BI' => '布隆迪',
+			'CV' => '佛得角',
+			'KH' => '柬埔寨',
+			'CM' => '喀麦隆',
+			'CA' => '加拿大',
+			'CF' => '中非',
+			'TD' => '乍得',
+			'CL' => '智利',
+			'CN' => '大陆',
+			'CO' => '哥伦比亚',
+			'CD' => '刚果（金）',
+			'CG' => '刚果（布）',
+			'CR' => '哥斯达黎加',
+			'CI' => '科特迪瓦',
+			'HR' => '克罗地亚',
+			'CU' => '古巴',
+			'CY' => '塞浦路斯',
+			'CZ' => '捷克',
+			'DK' => '丹麦',
+			'DJ' => '吉布提',
+			'DM' => '多米尼克',
+			'DO' => '多米尼加',
+			'EC' => '厄瓜多尔',
+			'EG' => '埃及',
+			'SV' => '萨尔瓦多',
+			'GQ' => '赤道几内亚',
+			'ER' => '厄立特里亚',
+			'EE' => '爱沙尼亚',
+			'SZ' => '斯威士兰',
+			'ET' => '埃塞俄比亚',
+			'FJ' => '斐济',
+			'FI' => '芬兰',
+			'FR' => '法国',
+			'GA' => '加蓬',
+			'GM' => '冈比亚',
+			'GE' => '格鲁吉亚',
+			'DE' => '德国',
+			'GH' => '加纳',
+			'GR' => '希腊',
+			'GU' => '关岛',
+			'GT' => '危地马拉',
+			'GN' => '几内亚',
+			'GW' => '几内亚比绍',
+			'GY' => '圭亚那',
+			'HT' => '海地',
+			'VA' => '梵蒂冈',
+			'HN' => '洪都拉斯',
+			'HK' => '香港',
+			'HU' => '匈牙利',
+			'IS' => '冰岛',
+			'IN' => '印度',
+			'ID' => '印尼',
+			'IR' => '伊朗',
+			'IQ' => '伊拉克',
+			'IE' => '爱尔兰',
+			'IL' => '以色列',
+			'IT' => '意大利',
+			'JM' => '牙买加',
+			'JP' => '日本',
+			'JO' => '约旦',
+			'KZ' => '哈萨克斯坦',
+			'KE' => '肯尼亚',
+			'KI' => '基里巴斯',
+			'KP' => '朝鲜',
+			'KR' => '韩国',
+			'KW' => '科威特',
+			'KG' => '吉尔吉斯斯坦',
+			'LA' => '老挝',
+			'LV' => '拉脱维亚',
+			'LB' => '黎巴嫩',
+			'LS' => '莱索托',
+			'LR' => '利比里亚',
+			'LY' => '利比亚',
+			'LI' => '列支敦士登',
+			'LT' => '立陶宛',
+			'LU' => '卢森堡',
+			'MO' => '澳门',
+			'MK' => '北马其顿',
+			'MG' => '马达加斯加',
+			'MW' => '马拉维',
+			'MY' => '马来西亚',
+			'MV' => '马尔代夫',
+			'ML' => '马里',
+			'MT' => '马耳他',
+			'MH' => '马绍尔群岛',
+			'MR' => '毛里塔尼亚',
+			'MU' => '毛里求斯',
+			'MX' => '墨西哥',
+			'MD' => '摩尔多瓦',
+			'MC' => '摩纳哥',
+			'MN' => '蒙古',
+			'ME' => '黑山',
+			'MA' => '摩洛哥',
+			'MZ' => '莫桑比克',
+			'MM' => '缅甸',
+			'NA' => '纳米比亚',
+			'NR' => '瑙鲁',
+			'NP' => '尼泊尔',
+			'NL' => '荷兰',
+			'NZ' => '新西兰',
+			'NI' => '尼加拉瓜',
+			'NE' => '尼日尔',
+			'NG' => '尼日利亚',
+			'NO' => '挪威',
+			'OM' => '阿曼',
+			'PK' => '巴基斯坦',
+			'PS' => '巴勒斯坦',
+			'PA' => '巴拿马',
+			'PG' => '巴布亚新几内亚',
+			'PY' => '巴拉圭',
+			'PE' => '秘鲁',
+			'PH' => '菲律宾',
+			'PL' => '波兰',
+			'PT' => '葡萄牙',
+			'PR' => '波多黎各',
+			'QA' => '卡塔尔',
+			'RO' => '罗马尼亚',
+			'RU' => '俄罗斯',
+			'RW' => '卢旺达',
+			'SM' => '圣马力诺',
+			'SA' => '沙特',
+			'SN' => '塞内加尔',
+			'RS' => '塞尔维亚',
+			'SL' => '塞拉利昂',
+			'SG' => '新加坡',
+			'SK' => '斯洛伐克',
+			'SI' => '斯洛文尼亚',
+			'SO' => '索马里',
+			'ZA' => '南非',
+			'SS' => '南苏丹',
+			'ES' => '西班牙',
+			'LK' => '斯里兰卡',
+			'SD' => '苏丹',
+			'SR' => '苏里南',
+			'SE' => '瑞典',
+			'CH' => '瑞士',
+			'SY' => '叙利亚',
+			'TW' => '台湾',
+			'TJ' => '塔吉克斯坦',
+			'TZ' => '坦桑尼亚',
+			'TH' => '泰国',
+			'TL' => '东帝汶',
+			'TG' => '多哥',
+			'TO' => '汤加',
+			'TT' => '特立尼达和多巴哥',
+			'TN' => '突尼斯',
+			'TR' => '土耳其',
+			'TM' => '土库曼斯特',
+			'UG' => '乌干达',
+			'UA' => '乌克兰',
+			'AE' => '阿联酋',
+			'GB' => '英国',
+			'US' => '美国',
+			'UY' => '乌拉圭',
+			'UZ' => '乌兹别克斯坦',
+			'VU' => '瓦努阿图',
+			'VE' => '委内瑞拉',
+			'VN' => '越南',
+			'YE' => '也门',
+			'ZM' => '赞比亚',
+			'ZW' => '津巴布韦',
+		);
+		if (array_key_exists($region_info['iso_3166_1'], $region_names_all)) {
+			return $region_names_all[$region_info['iso_3166_1']];
+		} else {
+			return $region_info['name'];
+		}
+	}
+
+	public static function get_loaction_poster($id, $location = '') {
+		$auth_key = BDDB_Settings::getInstance()->get_tmdb_key();
+		$api_link = 'https://api.tmdb.org/3/movie/'.(string)$id.'/images';
+	    $api_link = htmlspecialchars_decode($api_link);
+		$response = @wp_remote_get( 
+			   $api_link, 
+			   array( 
+				   'timeout'  => 30000, 
+				   'headers'   => array(
+					'Content-Type'  => 'application/json',
+					'Authorization' => 'Bearer '.$auth_key,
+				),
+			   ) 
+		   );
+		if ( is_wp_error( $response ) || !is_array($response) ) {
+			return '';
+		}
+		$content = json_decode(wp_remote_retrieve_body($response), true);
+		$posters = $content['posters'];
+		if (!is_array($posters)|| 0 == count($posters)) {
+			return '';
+		}
+		$regions = array_column($posters, 'iso_3166_1');
+		$index_key = array_search($location, $regions);
+		if ($index_key !== false) {
+			return $posters[$index_key]['file_path'];
+		} else {
+			//西语国家，第二选择西班牙
+			$spanish_regions = array('ES', 'AR', 'MX', 'CL', 'CO', 'PE', 'VE', 'EC', 'GT', 'CU',
+			'BO', 'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'GQ');
+			if (in_array($location, $spanish_regions)) {
+				$index_key = array_search('ES', $regions);
+				if ($index_key !== false) {
+					return $posters[$index_key]['file_path'];
+				}
+			}
+			//葡语国家，第二选择葡萄牙
+			$portuguese_regions = array('PT', 'BR', 'AO', 'CV', 'MZ', 'GW', 'TL');
+			if (in_array($location, $portuguese_regions)) {
+				$index_key = array_search('PT', $regions);
+				if ($index_key !== false) {
+					return $posters[$index_key]['file_path'];
+				}
+			}
+			//第三选择，美国
+			$index_key = array_search('US', $regions);
+			if ($index_key !== false) {
+				return $posters[$index_key]['file_path'];
+			}
+			//最后选择，第一个
+			return $posters[0]['file_path'];
+		}
+	}
+
+	/**
+	 * @brief	按照第一出品地区--语言宗主地--美国--顺序，取出imdb情报中的原始海报。
+	 * @param	array	$poster_infos	所有海报
+	 * @param	string	$key_3166	第一出品地区
+	 * @return 	string
+	 * @since 	1.2.6
+	 * @date	2026-01-20
+	*/
+	public static function get_3166_regiond_poster($poster_infos, $key_3166) {
+		if (!is_array($poster_infos)|| 0 == count($poster_infos)) {
+			return '';
+		}
+		$regions = array_column($poster_infos, 'iso_3166_1');
+		if (!is_array($regions) || 0 == count($regions)) {
+			return '';
+		}
+		$index_key = array_search($key_3166, $regions);
+		if ($index_key !== false) {
+			return $poster_infos[$index_key]['file_path'];
+		} else {
+			//西语国家，第二选择西班牙
+			$spanish_regions = array('ES', 'AR', 'MX', 'CL', 'CO', 'PE', 'VE', 'EC', 'GT', 'CU',
+			'BO', 'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'GQ');
+			if (in_array($key_3166, $spanish_regions)) {
+				$index_key = array_search('ES', $regions);
+				if ($index_key !== false) {
+					return $poster_infos[$index_key]['file_path'];
+				}
+			}
+			//葡语国家，第二选择葡萄牙
+			$portuguese_regions = array('PT', 'BR', 'AO', 'CV', 'MZ', 'GW', 'TL');
+			if (in_array($key_3166, $portuguese_regions)) {
+				$index_key = array_search('PT', $regions);
+				if ($index_key !== false) {
+					return $poster_infos[$index_key]['file_path'];
+				}
+			}
+			//第三选择，美国
+			$index_key = array_search('US', $regions);
+			if ($index_key !== false) {
+				return $poster_infos[$index_key]['file_path'];
+			}
+			//最后选择，第一个
+			return $poster_infos[0]['file_path'];
+		}
+	}
+
+	/**
+	 * @brief	如果地区存在，找到该地区最早放映时间，否则找到所有时间里最早的放映时间。
+	 * @param	array	$all_release_info	所有上映时间
+	 * @param	string	$key_3166	第一出品地区
+	 * @return 	string
+	 * @since 	1.2.6
+	 * @date	2026-01-20
+	*/
+	public static function get_latest_tmdb_release_date($all_release_info, $key_3166) {
+		if (!is_array($all_release_info)|| 0 == count($all_release_info)) {
+			return '';
+		}
+		$regions = array_column($all_release_info, 'iso_3166_1');
+		if (!is_array($regions) || 0 == count($regions)) {
+			return '';
+		}
+		$release_dates = array();
+		$key_index = array_search($key_3166, $regions, true);
+		if (false !== $key_index) {
+			$releases = $all_release_info[$key_index]['release_dates'];
+			$release_dates = array_column($releases, 'release_date');
+		}
+		else {
+			foreach ($all_release_info as $region_release) {
+				foreach ($region_release['release_dates'] as $release_date_info) {
+					if (array_key_exists('release_date', $release_date_info) && !empty($release_date_info['release_date'])) {
+						$release_dates[] = $release_date_info['release_date'];
+					}
+				}
+			}
+		}
+		$release_date = min($release_dates);
+		return (substr($release_date, 0, 7));
 	}
 
 }//class

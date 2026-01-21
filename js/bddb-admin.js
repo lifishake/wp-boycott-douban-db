@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2026-01-18
+ * @date	2026-01-20
  * @author	大致
- * @version	1.2.5
+ * @version	1.2.6
  * @since	0.0.1
  * 
  */
@@ -193,7 +193,10 @@ jQuery(document).ready(function($) {
 				if (the_input.length == 1 && response.result.genre !== undefined){
 					the_input[0].value = response.result.genre;
 				}
-
+				the_input = document.getElementsByName("m_publisher");
+				if (the_input.length == 1 && response.result.company !== undefined){
+					the_input[0].value = response.result.company;
+				}
 				the_input = document.getElementsByName("m_p_director");
 				if (the_input.length == 1 && response.result.director !== undefined){
 					the_input[0].value = response.result.director;
@@ -205,6 +208,10 @@ jQuery(document).ready(function($) {
 				the_input = document.getElementsByName("m_p_screenwriter");
 				if (the_input.length == 1 && response.result.screenwriter !== undefined){
 					the_input[0].value = response.result.screenwriter;
+				}
+				the_input = document.getElementsByName("m_p_musician");
+				if (the_input.length == 1 && response.result.musician !== undefined){
+					the_input[0].value = response.result.musician;
 				}
 				the_input = document.getElementsByName("m_id_imdb");
 				if (the_input.length == 1 && response.result.imdbid !== undefined){
