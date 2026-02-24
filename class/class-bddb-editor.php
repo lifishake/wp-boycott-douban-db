@@ -285,7 +285,7 @@ class BDDB_Editor_Factory {
         }
        $pic_link = 'https://image.tmdb.org/t/p/original'.$content['poster_path'];
        if (!in_array($chief3166, array('CN','TW','HK','SG','MY'))) {
-            $pic_link = BDDB_Fetcher::get_loaction_poster($tmdbno, $chief3166);
+            $pic_link = 'https://image.tmdb.org/t/p/original'.BDDB_Fetcher::get_loaction_poster($tmdbno, $chief3166);
        }
        $resp = array('backdrop_path'=>$pic_link);
        wp_send_json($resp) ;
