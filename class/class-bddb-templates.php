@@ -692,7 +692,6 @@ class BDDB_Common_Template {
                                             'type' => 'tax',
                                             'panel'	=> '10',
                                             'summary' => false,
-                                            'panel' => true,
                                             'panel_callback' => array($this, 'panel_album_quantity'),
                                             'portrait_ok' => true,
                                             ),
@@ -733,7 +732,7 @@ class BDDB_Common_Template {
 
     /**
      * 生成相册检索用的的排序参数。
-     * @return string
+     * @return array
      * @private
      * @since	0.0.1
      * @version	0.0.1

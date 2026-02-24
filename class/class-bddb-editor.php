@@ -30,7 +30,7 @@ class BDDB_Editor_Factory {
         add_filter ( 'wp_insert_post_data', 'BDDB_Editor_Factory::generate_content', 10, 2);
         add_action( 'wp_ajax_bddb_get_pic', 'BDDB_Editor_Factory::download_pic');
         add_action( 'wp_ajax_bddb_get_imdbpic', 'BDDB_Editor_Factory::download_imdbpic');
-        add_action( 'wp_ajax_bddb_get_tmdb', 'BDDB_Editor_Factory::get_tmdb');
+        add_action( 'wp_ajax_bddb_get_tmdb_poster', 'BDDB_Editor_Factory::get_tmdb_poster');
         add_action( 'wp_ajax_bddb_get_scovers', 'BDDB_Editor_Factory::download_serial_pics');
         add_action( 'wp_ajax_bddb_clear_douban_cookie', 'BDDB_Editor_Factory::clear_douban_cookie');
     }
@@ -241,32 +241,26 @@ class BDDB_Editor_Factory {
 
     /**
      * 获取themoviedb.org封面的Callback。
-     * @see     AJAX::bddb_get_tmdb
+     * @see     AJAX::bddb_get_tmdb_poster
      * @since   1.1.2
-     * @version 1.2.5
-     * @date    2026-01-18
+     * @version 1.2.8
+     * @date    2026-02-24
      */
-    public static function get_tmdb(){
+    public static function get_tmdb_poster(){
     if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['tmdbno']) ) {
            wp_die();
        }
-       if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-tmdbpic-".$_POST['id'])) { 
+       if ( !wp_verify_nonce($_POST['nonce'],"bddb-get-tmdb-poster-".$_POST['id'])) { 
            wp_die();
        }
-       $options = BDDB_Settings::getInstance()->get_options();
-       $names = bddb_get_poster_names('movie', $_POST['id']);
-       $poster_full_name = $names->poster_name;
-       $thumbnail_full_name = $names->thumb_name;
-       if (file_exists($poster_full_name)) {
-           unlink($poster_full_name);
+
+       preg_match('/^[0-9][0-9]*/',$_POST['tmdbno'], $ids);
+       if (!is_array($ids)) {
+        wp_die();
        }
-       if (file_exists($thumbnail_full_name)) {
-           unlink($thumbnail_full_name);
-       }
-       
-       $tmdbno = $_POST['tmdbno'];
+       $tmdbno = $ids[0];
        $auth_key = BDDB_Settings::getInstance()->get_tmdb_key();
-       $piclink = 'https://api.tmdb.org/3/movie/'.(string)$tmdbno.'?append_to_response=credits%2Crelease_dates&language=zh-CN';
+       $piclink = 'https://api.tmdb.org/3/movie/'.(string)$tmdbno.'?append_to_response=images&language=zh-CN';
        $piclink = htmlspecialchars_decode($piclink);
        $response = @wp_remote_get( 
                $piclink, 
@@ -282,8 +276,17 @@ class BDDB_Editor_Factory {
        {
            wp_die();
        }
-       $jjj = json_decode($response['body']);
-       $pic_link = 'https://image.tmdb.org/t/p/original'.$response['body']['backdrop_path'];
+        $content = json_decode(wp_remote_retrieve_body($response), true);
+        $chief3166 = 'CN';
+        if (is_array($content) && key_exists('production_countries', $content) ) {
+            if ( is_array($content['production_countries']) && sizeof($content['production_countries']) >0) {
+                $chief3166 = $content['production_countries'][0]['iso_3166_1'];
+            }
+        }
+       $pic_link = 'https://image.tmdb.org/t/p/original'.$content['poster_path'];
+       if (!in_array($chief3166, array('CN','TW','HK','SG','MY'))) {
+            $pic_link = BDDB_Fetcher::get_loaction_poster($tmdbno, $chief3166);
+       }
        $resp = array('backdrop_path'=>$pic_link);
        wp_send_json($resp) ;
        wp_die();
@@ -380,8 +383,8 @@ class BDDB_Editor {
      * @protected
      * @param   array   $post_type 不设置时大部分功能不能使用。
      * @since 0.0.1
-     * @version 1.1.6
-     * @date 2025-11-30
+     * @version 1.2.8
+     * @date 2026-02-24
      */
     public function __construct($post_type = false){
         $this->options = false;
@@ -419,7 +422,7 @@ class BDDB_Editor {
                                             ),
             'bddb_aka'           => array(  'name' => 'bddb_aka',
                                             'label' => '别名',
-                                            'comment' => array($this, 'echo_theomdb_cover_button'),
+                                            'comment' => '另外的通称',
                                             'placeholder' => '多个别名用“,”分割',
                                             ),
             'bddb_external_link' => array(  'name' => 'bddb_external_link',
@@ -980,10 +983,17 @@ class BDDB_Editor {
         return $btn_get;
     }
 
-    protected function echo_theomdb_cover_button($post) {
-        $norce_str = wp_create_nonce('bddb-get-tmdbpic-'.$post->ID);
-        $names = bddb_get_poster_names('movie', $post->ID);
-        $btn_get = '<button class="button" name="bddb_get_tmdb_btn" type="button" pid="'.$post->ID.'" wpnonce="'.$norce_str.'" dest_src="'.$names->thumb_url.'" >the_omdb</button>';
+    /**
+     * 取tmdb所有情报按钮。
+     * @param object $post
+     * @return  string  显示用字符串
+     * @see     $this->show_meta_box()->iscallable('comment')
+     * @since   1.2.5
+     * @version 1.2.8
+     */
+    protected function echo_theomdb_poster_button($post) {
+        $norce_str = wp_create_nonce('bddb-get-tmdb-poster-'.$post->ID);
+        $btn_get = '<button class="button" name="bddb_get_tmdb_poster_btn" type="button" pid="'.$post->ID.'" wpnonce="'.$norce_str.'" >tmdb_poster</button>';
         return $btn_get;
     }
 
@@ -1137,13 +1147,14 @@ class BDDB_Editor {
      * 设置电影的表示条目。
      * @see $this->set_working_mode()->set_additional_items_{$post_type}
      * @since 0.1.0
-     * @version 1.1.6
-     * @date 2025-11-30
+     * @version 1.2.8
+     * @date 2026-02-24
      */
     private function set_additional_items_movie() {
         $this->common_items['bddb_display_name']['label'] = '电影名';
         $this->common_items['bddb_publish_time']['label'] = '首映年月';
         $this->common_items['bddb_view_time']['label'] = '观看年月';
+        $this->common_items['bddb_personal_review']['comment'] = array($this, 'echo_theomdb_poster_button');
         $additional_items = array(
             'm_region'          => array(   'name' => 'm_region',
                                             'label' => '地区',

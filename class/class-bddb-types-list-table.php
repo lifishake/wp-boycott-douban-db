@@ -236,7 +236,7 @@ class BDDB_Typed_List {
      * @public
      * @param string 	$column_name	列标题
      * @param int 		$id				post_ID
-     * @return string
+     * @return none
      * @see		action::manage_posts_custom_column
      * @since 	0.2.0
      * @version 0.8.2
@@ -245,7 +245,7 @@ class BDDB_Typed_List {
         if ( 0 === strpos( $column_name, 'meta-' ) ) {
             $meta = substr( $column_name, 5 );
         } else {
-            return '';
+            return;
         }
         /*
         if ('pic' == $meta) {
@@ -464,7 +464,7 @@ class BDDB_Typed_List {
      * 快速编辑页面显示追加的meta框。
      * @param	int		$column_name	列名（包括自己追加的前缀）		
      * @param	string	$post_type		类型
-     * @return  int
+     * @return  none
      * @see		filter::quick_edit_custom_box
      * @since 	0.2.1
      * @version 0.5.4

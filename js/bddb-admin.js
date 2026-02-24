@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2026-01-20
+ * @date	2026-02-24
  * @author	大致
- * @version	1.2.6
+ * @version	1.2.8
  * @since	0.0.1
  * 
  */
@@ -354,18 +354,18 @@ jQuery(document).ready(function($) {
   })
 
   //取theomdb图片按钮
-  $('button[name="bddb_get_tmdb_btn"]').click(function(){
-    var pic_bar = document.getElementsByName("bddb_original_name");
+  $('button[name="bddb_get_tmdb_poster_btn"]').click(function(){
+    var id_bar = document.getElementsByName("bddb_personal_review");
     var dest_pic = this.getAttribute('dest_src');
-    if (pic_bar.length != 1) {
+    if (id_bar.length != 1) {
       return;
     }
-    var pic_link = pic_bar[0].value;
+    var tmdbid = id_bar[0].value;
     var data = {
-      action: 'bddb_get_tmdb',
+      action: 'bddb_get_tmdb_poster',
       nonce: this.getAttribute('wpnonce'),
       id:this.getAttribute('pid'),
-      tmdbno:pic_link,
+      tmdbno:tmdbid,
     };
     $.ajax({
       url: ajaxurl,
@@ -375,6 +375,10 @@ jQuery(document).ready(function($) {
       success:function(response){
         mythumbnail.setAttribute('src',dest_pic+"?tl="+Math.random());
         mypicbar.value="图片取得成功.";
+        var the_input = document.getElementsByName('bddb_poster_link');
+        if (the_input.length == 1 && response.backdrop_path !== 'undefined') {
+          the_input[0].value = response.backdrop_path;
+        }
       },
       beforeSend: function () {
         mythumbnail.setAttribute('src','');
