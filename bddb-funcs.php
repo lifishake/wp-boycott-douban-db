@@ -236,7 +236,7 @@ function bddb_array_child_value_to_str($data, $key, $name_key="name", $unknown_s
 }
 
 /**
- * @brief   取得apip类型的最大post_id
+ * @brief   取得bddb类型的最大post_id
  * @since	1.0.4
  * @version 1.0.4
 */
@@ -255,4 +255,22 @@ function bddb_get_the_max_id() {
         return false;
     }
     return $result_ids[0];
+}
+
+/**
+ * @brief   判断字符串最后一个字符是否是中文和日文
+ * @since	1.2.9
+ * @version 1.2.9
+*/
+function isLastCharCJK(string $str): bool {
+    if ($str === '') return false;
+    
+    $last = mb_substr($str, -1, 1, 'UTF-8');
+    $code = mb_ord($last, 'UTF-8');
+    
+    return 
+        ($code >= 0x4E00 && $code <= 0x9FFF) ||     // 常用汉字
+        ($code >= 0x3040 && $code <= 0x30FF) ||     // 平/片假名
+        ($code >= 0x3400 && $code <= 0x4DBF) ||     // 扩展A
+        ($code >= 0x20000 && $code <= 0x2EBEF) ;    // 扩展BCDEF
 }

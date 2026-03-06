@@ -81,7 +81,6 @@ jQuery(document).ready(function($) {
 
   //抓取按钮
   $('button[name="douban_spider_btn"]').click(function(){
-    
     var link_bar = document.getElementsByName('bddb_external_link');
     var ddllkk=this.getAttribute('doulink');
     if (link_bar.length == 1) {

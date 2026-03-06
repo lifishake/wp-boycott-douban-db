@@ -293,7 +293,7 @@ class BDDB_Editor_Factory {
     }
 
      /**
-     * 手动删除保存的doubancookie。
+     * 手动删除保存的doubancookie
      * @see     AJAX::clear_douban_cookie
      * @since   1.1.0
      * @data    2025-10-31
@@ -309,7 +309,7 @@ class BDDB_Editor_Factory {
     }
 
     /**
-     * 获取系列封面的AJAX的Callback。
+     * 获取系列封面的AJAX的Callback
      * @see     AJAX::bddb_get_scovers
      * @since   0.0.8
      * @version 1.0.5
@@ -379,9 +379,9 @@ class BDDB_Editor {
     private $options;               /*配置选项，在set_working_mode时被设置*/
 
     /**
-     * 构造函数。
+     * 构造函数
      * @protected
-     * @param   array   $post_type 不设置时大部分功能不能使用。
+     * @param   array   $post_type 不设置时大部分功能不能使用
      * @since 0.0.1
      * @version 1.2.8
      * @date 2026-02-24
@@ -737,12 +737,13 @@ class BDDB_Editor {
     }
     
     /**
-     * 优化评价。如果输入参数为空，则显示“没有评价”。如果结尾没输入结束标点，则用句号补足。
+     * @brief 优化评价。如果输入参数为空，则显示“没有评价”。如果结尾没输入结束标点，则用句号补足。
      * @param string $str   编辑框中的原名
      * @return string   原名
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
-     * @version 0.8.5
+     * @version 1.2.9
+     * @n 1.2.9增加判断最后一个字符是否是中文的函数。中文和日文时加全角句号，其余情况加半角句号。
      */
     protected function sanitize_personal_review($str) {
         if (empty($str) && isset($_POST['bddb_display_name'])) {
@@ -751,7 +752,11 @@ class BDDB_Editor {
         $punctuation = mb_substr($str, -1);
         $good_punct = array("！","。","？","…",".","?","!");
         if (!in_array($punctuation, $good_punct)) {
-            $str .= "。";
+            if (isLastCharCJK($str)) {
+                $str .= "。";
+            } else {
+                $str .= ".";
+            }
         }
         return $str;
     }
