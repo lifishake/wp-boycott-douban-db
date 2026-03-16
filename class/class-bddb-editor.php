@@ -783,6 +783,43 @@ class BDDB_Editor {
     protected function sanitize_link($str) {
         return htmlspecialchars_decode($str);
     }
+
+    /**
+     * @brief 优化人名输入①去掉中日文人名后面的英文②如果全是英文，判断分成两部分后是否内容一样，一样的话只留一半。
+     * @param   string $str 人名
+     * @return  string  优化后的人名
+     * @see     sanitize_name()
+     * @since   1.3.0
+     * @version 1.3.0
+     * @data    2026-03-12
+     */
+    protected function sanitize_english_name(string $str):string {
+        $name = trim($str);
+
+        // 1. 如果包含中/日文字符
+        if (preg_match('/[\p{Han}\p{Hiragana}\p{Katakana}]/u', $name)) {
+            if (preg_match('/^(.+[\p{Han}\p{Hiragana}\p{Katakana}])\s+[A-Za-z].*$/u', $name, $m)) {
+                return trim($m[1]);
+            }
+            return $name;
+        }
+
+        // 2. 如果是纯英文
+        if (preg_match('/^[A-Za-z.\s]+$/', $name)) {
+            $len = strlen($name);
+            $half = intdiv($len, 2);
+
+            $part1 = trim(substr($name, 0, $half));
+            $part2 = trim(substr($name, $half));
+
+            if ($part1 === $part2) {
+                return $part1;
+            }
+        }
+
+        return $name;
+    }
+
     /**
      * 优化人名输入。
      * @param   string $str 编辑框中的人名
@@ -794,6 +831,7 @@ class BDDB_Editor {
         if (strpos($str, ',')) {
             //TODO:10改为可以设置的limit，进而通过option定义
             $arr_person = explode(",", $str);
+            $arr_person = array_map('sanitize_english_name', $arr_person);
             if (count($arr_person) > 10) {
                 $arr_person = array_slice($arr_person, 0, 10);
                 $str = implode(', ',$arr_person);
