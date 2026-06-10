@@ -215,6 +215,20 @@ class BDDB_Common_Template {
 
     }
     
+    /**
+     * @brief	输出简易链接。
+     * @param	array	$atts	短代码属性，该函数中只包括一个$id。
+     * @public
+     * @since	1.3.1
+     * @version	1.3.1
+     * @see		qt_show_record()
+     */
+    public function get_record_outer_link($id) {
+        $src_title = $this->get_meta_str('bddb_display_name',$id);
+        $src_link = $this->get_meta_str('bddb_external_link',$id);
+        $title_str=sprintf('<p><a href="%1$s" class="cute" target="_blank" rel="external nofollow">%2$s</a></p>', $src_link, $src_title);
+        return $title_str;
+    }
     
     /**
      * @brief	转换插入文章中的shortcode，被回调调用。
@@ -1898,7 +1912,7 @@ class BDDB_Common_Template {
 
 class BDDB_Book {
     public static $class_self = false;
-    public static function getInstance() {
+    public static function getInstance(): BDDB_Common_Template {
         if (!self::$class_self) {
             self::$class_self = new BDDB_Common_Template('book');
         }

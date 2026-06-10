@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.3.0
- * Date:        2026-03-12
+ * Version:     1.3.1
+ * Date:        2026-06-10
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -170,6 +170,11 @@ function qt_show_record($atts, $content = null) {
 	extract( $atts );
 	$post_type = get_post_type($id);
 	$ret = '';
+	if (is_feed())	{
+		$temp =new BDDB_Common_Template;
+		$ret = $temp->get_record_outer_link($id);
+		return $ret;
+	}
 	if ('book' == $post_type) {
 		$ret = BDDB_Book::getInstance()->show_record($atts, $content);
 	} elseif('movie' == $post_type) {
