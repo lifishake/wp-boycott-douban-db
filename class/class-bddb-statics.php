@@ -305,8 +305,7 @@ class BDDB_Statics {
         if (self::$is_inited) {
             return;
         }
-        $callable = self::class.'::generte_type_taxonomies';
-        array_map($callable, self::$taxonomies);
+        array_map([static::class, 'generte_type_taxonomies'], self::$taxonomies);
         foreach( self::$post_types as $bddb_type) {
             $labels = array(
                 'singular_name'			=> ucfirst($bddb_type['slug']),

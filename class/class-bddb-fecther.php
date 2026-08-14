@@ -8,10 +8,11 @@
  * 
  */
 
-require_once( BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
+require_once(BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 
 if (!function_exists('TrimArray')) {
-    function TrimArray($Input){
+    function TrimArray($Input)
+    {
         if (!is_array($Input)) {
             $tmp = trim(strtolower($Input));
             return $tmp;
@@ -29,7 +30,8 @@ if (!function_exists('TrimArray')) {
  * @since	0.5.5
  * 
  */
-class BDDB_Fetcher{
+class BDDB_Fetcher
+{
     /**
      * @brief	从豆瓣获取，根据url获得要获取的种类。
      * @param	string	$url
@@ -37,14 +39,15 @@ class BDDB_Fetcher{
      * @since 	0.0.1
      * @version	0.5.5
      */
-    public static function fetch($url = '', $type = false) {
-        $ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
-        if ('' === $url ) {
+    public static function fetch($url = '', $type = false)
+    {
+        $ret = array('result' => 'ERROR', 'reason' => 'invalid parameter.');
+        if ('' === $url) {
             return $ret;
-        }else{
+        } else {
             $pos = mb_strrpos($url, "?");
             //去掉问号
-            if ($pos > 0){
+            if ($pos > 0) {
                 $url = mb_strcut($url, 0, $pos);
             }
             if (strpos($url, "movie.douban.com")) {
@@ -55,7 +58,7 @@ class BDDB_Fetcher{
                 $type = "game";
             } elseif (strpos($url, "music.douban.com")) {
                 $type = "album";
-            } elseif (strpos($url, "imdb.com")){
+            } elseif (strpos($url, "imdb.com")) {
                 $type = "movie";
                 $url = rtrim($url, "/");
                 //直接走imdb
@@ -73,17 +76,17 @@ class BDDB_Fetcher{
                 if (strpos($url, "tt") !== false) {
                     $type = "movie";
                     //直接走imdb
-                    $url = "https://www.imdb.com/title/".$url;
+                    $url = "https://www.imdb.com/title/" . $url;
                     return self::fetch_from_omdb($url);
                 } elseif (is_numeric($url)) {
                     if ("movie" === $type) {
-                        $url = "https://movie.douban.com/subject/".$url;
+                        $url = "https://movie.douban.com/subject/" . $url;
                     } elseif ("book" === $type) {
-                        $url = "https://book.douban.com/subject/".$url;
+                        $url = "https://book.douban.com/subject/" . $url;
                     } elseif ("game" === $type) {
-                        $url = "https://www.douban.com/game/".$url;
+                        $url = "https://www.douban.com/game/" . $url;
                     } elseif ("album" === $type) {
-                        $url = "https://music.douban.com/subject/".$url;
+                        $url = "https://music.douban.com/subject/" . $url;
                     }
                 } else {
                     return $ret;
@@ -92,16 +95,17 @@ class BDDB_Fetcher{
         }
         return self::fetch_from_douban_page($url, $type);
     }
-    
+
     /**
      * @brief	从omdb获取。
      * @param	string	$url	可以为空
      * @return 	array
      * @since 	0.0.1
      */
-    public static function fetch_from_omdb($url) {
-        $ret = array('result'=>'ERROR','reason'=>'invalid parameter');
-        preg_match('/tt[0-9][0-9]*/',$url, $ids);
+    public static function fetch_from_omdb($url)
+    {
+        $ret = array('result' => 'ERROR', 'reason' => 'invalid parameter');
+        preg_match('/tt[0-9][0-9]*/', $url, $ids);
         if (!is_array($ids)) {
             return $ret;
         }
@@ -121,24 +125,25 @@ class BDDB_Fetcher{
      * @since 	1.2.6
      * @date	2026-01-19
      */
-    public static function fetch_from_tmdb($url) {
-        $ret = array('result'=>'ERROR','reason'=>'invalid parameter');
+    public static function fetch_from_tmdb($url)
+    {
+        $ret = array('result' => 'ERROR', 'reason' => 'invalid parameter');
         $search = basename($url);
-        preg_match('/^[0-9][0-9]*/',$search, $ids);
+        preg_match('/^[0-9][0-9]*/', $search, $ids);
         $auth_key = BDDB_Settings::getInstance()->get_tmdb_key();
-        $api_link = 'https://api.tmdb.org/3/movie/'.(string)$ids[0].'?append_to_response=credits%2Crelease_dates%2Cimages%2Calternative_titles&language=zh-CN';
+        $api_link = 'https://api.tmdb.org/3/movie/' . (string) $ids[0] . '?append_to_response=credits%2Crelease_dates%2Cimages%2Calternative_titles&language=zh-CN';
         $api_link = htmlspecialchars_decode($api_link);
-        $response = @wp_remote_get( 
-               $api_link, 
-               array( 
-                   'timeout'  => 30000, 
-                   'headers'   => array(
-                    'Content-Type'  => 'application/json',
-                    'Authorization' => 'Bearer '.$auth_key,
+        $response = @wp_remote_get(
+            $api_link,
+            array(
+                'timeout' => 30000,
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $auth_key,
                 ),
-               ) 
-           );
-        if ( is_wp_error( $response ) || !is_array($response) ) {
+            )
+        );
+        if (is_wp_error($response) || !is_array($response)) {
             $ret['reason'] = "wp_remote_get() failed.";
             return $ret;
         }
@@ -166,7 +171,7 @@ class BDDB_Fetcher{
         //国家地区
         $region_names = array();
         $chief_3166 = '';
-        foreach($content['production_countries'] as $region_info) {
+        foreach ($content['production_countries'] as $region_info) {
             if (empty($chief_3166)) {
                 $chief_3166 = $region_info['iso_3166_1'];
             }
@@ -186,11 +191,11 @@ class BDDB_Fetcher{
         }
 
         //海报
-        $output['pic'] = 'https://image.tmdb.org/t/p/original'.$content['poster_path'];
+        $output['pic'] = 'https://image.tmdb.org/t/p/original' . $content['poster_path'];
         if ('CN' != $chief_3166) {
             $poster = self::get_loaction_poster($ids[0], $chief_3166);
             if (!empty($poster)) {
-                $output['pic'] = 'https://image.tmdb.org/t/p/original'.$poster;
+                $output['pic'] = 'https://image.tmdb.org/t/p/original' . $poster;
             }
         }
 
@@ -206,24 +211,28 @@ class BDDB_Fetcher{
         $all_directors = array();
         $all_writers = array();
         $all_musicians = array();
-        foreach($content['credits']['cast'] as $cast) {
+        foreach ($content['credits']['cast'] as $cast) {
             if ("Acting" == $cast['known_for_department']) {
                 $all_actors[] = $cast['name'];
             }
         }
 
-        foreach($content['credits']['crew'] as $crew) {
+        foreach ($content['credits']['crew'] as $crew) {
             if ("Director" == $crew['job']) {
                 $all_directors[] = $crew['name'];
             }
-            if ("Music" ==  $crew['job'] ||
-            "Original Music Composer" ==  $crew['job'] ||
-            "Songs" ==  $crew['job']) {
+            if (
+                "Music" == $crew['job'] ||
+                "Original Music Composer" == $crew['job'] ||
+                "Songs" == $crew['job']
+            ) {
                 $all_musicians[] = $crew['name'];
             }
-            if ("Writer" ==  $crew['job'] ||
-            "Novel" ==  $crew['job'] ||
-            "Screenplay" ==  $crew['job']) {
+            if (
+                "Writer" == $crew['job'] ||
+                "Novel" == $crew['job'] ||
+                "Screenplay" == $crew['job']
+            ) {
                 $all_writers[] = $crew['name'];
             }
         }
@@ -238,7 +247,7 @@ class BDDB_Fetcher{
         $output['genre'] = self::items_implode_by_key($content['genres'], 'name');
 
         //出品公司
-        $output['company']  = self::items_implode_by_key($content['production_companies'], 'name');
+        $output['company'] = self::items_implode_by_key($content['production_companies'], 'name');
 
         //imdb编号
         $output['imdbid'] = $content['imdb_id'];
@@ -260,15 +269,17 @@ class BDDB_Fetcher{
      * @since 	0.8.1
      * @version 0.8.2
      */
-    public static function fetch_from_qidian_page($url) {
-        $ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
-        $response = @wp_remote_get( 
-            htmlspecialchars_decode($url), 
-            array( 'timeout'  => 10000, 
-                    'limit_response_size ' => 20480,
-            ) 
+    public static function fetch_from_qidian_page($url)
+    {
+        $ret = array('result' => 'ERROR', 'reason' => 'invalid parameter.');
+        $response = @wp_remote_get(
+            htmlspecialchars_decode($url),
+            array(
+                'timeout' => 100,
+                'limit_response_size ' => 20480,
+            )
         );
-        if ( is_wp_error( $response ) || !is_array($response) ) {
+        if (is_wp_error($response) || !is_array($response)) {
             $ret['reason'] = "wp_remote_get() failed.";
             return $ret;
         }
@@ -290,21 +301,21 @@ class BDDB_Fetcher{
         );
         $ret['result'] = 'OK';
         preg_match_all('/(<meta property=("og:title"|"og:image"|"og:novel:author").+?\/>)|(<li data-rid="1">.+?<\/li>)/', $body, $matches);
-        if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
+        if (is_array($matches) && is_array($matches[0]) && count($matches[0]) >= 3) {
             $title_str = $matches[0][0];
             $img_str = $matches[0][1];
             $author_str = $matches[0][2];
             $content['title'] = bddbt_get_in_qouta($title_str, 'content');
             $content['author'] = bddbt_get_in_qouta($author_str, 'content');
-            $content['pic'] = "https:".preg_replace('/\/180$/','', trim(bddbt_get_in_qouta($img_str, 'content')));
-            if (count($matches[0])==4) {
+            $content['pic'] = "https:" . preg_replace('/\/180$/', '', trim(bddbt_get_in_qouta($img_str, 'content')));
+            if (count($matches[0]) == 4) {
                 $pubdate_str = $matches[0][3];
                 preg_match('/[0-9]{4}-[0-9]{2}/', $pubdate_str, $mt);
                 if (is_array($mt)) {
                     $content['pubdate'] = $mt[0];
                 }
             }
-            
+
         }
         $ret['content'] = $content;
         return $ret;
@@ -319,25 +330,27 @@ class BDDB_Fetcher{
      * @version 1.0.9
      * @date	2025-10-21
      */
-    public static function fetch_from_douban_page($url, $type) {
+    public static function fetch_from_douban_page($url, $type)
+    {
         $ua = BDDB_Settings::getInstance()->get_user_agent();
         $arg = array();
-        $arg['timeout'] = 10000;
+        $arg['timeout'] = 180;
         $arg['user-agent'] = $ua;
-        if (strpos($url, "douban")> 0) {
+        $arg['headers'] = ['Referers' => 'https://douban.com'];
+        if (strpos($url, "douban") > 0) {
             $cookie = get_transient('douban_thief');
-            $arg['cookies'] = $cookie? $cookie:array();
+            $arg['cookies'] = $cookie ? $cookie : array();
         }
-        $ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
-        $response = @wp_remote_get( 
-            htmlspecialchars_decode($url), 
+        $ret = array('result' => 'ERROR', 'reason' => 'invalid parameter.');
+        $response = @wp_remote_get(
+            htmlspecialchars_decode($url),
             $arg
         );
-        if ( is_wp_error( $response ) || !is_array($response) ) {
+        if (is_wp_error($response) || !is_array($response)) {
             $ret['reason'] = "wp_remote_get() failed.";
             return $ret;
         }
-        if (strpos($url, "douban")> 0) {
+        if (strpos($url, "douban") > 0) {
             BDDB_Settings::getInstance()->save_douban_cookie($response);
         }
 
@@ -345,19 +358,17 @@ class BDDB_Fetcher{
         $start_pos = strpos($body, "<title>", 0);
         $end_pos = strpos($body, "</title>", $start_pos);
         $title_str = "";
-        if ( $start_pos>0 && $end_pos > $start_pos) {
-            $title_str = substr($body, $start_pos, ($end_pos - $start_pos)+strlen("</title>") );
+        if ($start_pos > 0 && $end_pos > $start_pos) {
+            $title_str = substr($body, $start_pos, ($end_pos - $start_pos) + strlen("</title>"));
         }
-        $title = str_replace(array("(豆瓣)","<title>","</title>"), "", $title_str);
+        $title = str_replace(array("(豆瓣)", "<title>", "</title>"), "", $title_str);
         $title = htmlspecialchars_decode($title, ENT_QUOTES);
         $ret['result'] = 'OK';
         if ('movie' === $type) {
             $ret['content'] = self::parse_douban_movie_body($body);
-        }
-        elseif ('book' === $type) {
+        } elseif ('book' === $type) {
             $ret['content'] = self::parse_douban_book_body($body);
-        }
-        elseif ('game' === $type) {
+        } elseif ('game' === $type) {
             $ret['content'] = self::parse_douban_game_body($body);
             $title = trim($title);
             $end_pos = strpos($title, " ", 0);
@@ -368,16 +379,14 @@ class BDDB_Fetcher{
                     $ret['content']['original_name'] = $original_name;
                 }
             }
-        } 
-        elseif ('album' === $type) {
+        } elseif ('album' === $type) {
             $ret['content'] = self::parse_douban_album_body($body);
-        }
-        else {
+        } else {
             return $ret;
         }
         $ret['content']['title'] = trim($title);
-        $url = rtrim($url,"/");
-        $ret['content']['dou_id'] = substr($url, strrpos($url, "/")+1);
+        $url = rtrim($url, "/");
+        $ret['content']['dou_id'] = substr($url, strrpos($url, "/") + 1);
         $ret['content']['url'] = $url;
         return $ret;
     }
@@ -391,7 +400,8 @@ class BDDB_Fetcher{
      * @version 1.1.3
      * @date	2025-11-17
      */
-    public static function parse_douban_movie_body($body) {
+    public static function parse_douban_movie_body($body)
+    {
         $fetch = array(
             'pic' => '',
             'average_score' => '',
@@ -405,20 +415,20 @@ class BDDB_Fetcher{
             'screenwriter' => '',
             'akas' => '',
         );
-        preg_match_all('/(<div id="mainpic"[\s\S]+?<\/div>)|(<div id="info"[\s\S]+?<\/div>)|(<strong .+? property="v:average">.+?(<\/strong>|>))/',$body, $matches);
-        if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
+        preg_match_all('/(<div id="mainpic"[\s\S]+?<\/div>)|(<div id="info"[\s\S]+?<\/div>)|(<strong .+? property="v:average">.+?(<\/strong>|>))/', $body, $matches);
+        if (is_array($matches) && is_array($matches[0]) && count($matches[0]) >= 3) {
             $mainpic_div_str = $matches[0][0];
             $info_div_str = $matches[0][1];
             $score_str = $matches[0][2];
 
             //图
-            preg_match('/(?<=href=").*?(?=")/',$mainpic_div_str,$match_imgs);
+            preg_match('/(?<=href=").*?(?=")/', $mainpic_div_str, $match_imgs);
             if (is_array($match_imgs)) {
                 $fetch['pic'] = trim($match_imgs[0]);
             }
 
             //分
-            preg_match('/(?<= property="v:average"\>).*?(?=\<)/',$score_str, $match_score);
+            preg_match('/(?<= property="v:average"\>).*?(?=\<)/', $score_str, $match_score);
             if (is_array($match_score)) {
                 $fetch['average_score'] = trim($match_score[0]);
             }
@@ -430,62 +440,56 @@ class BDDB_Fetcher{
                 $obj['content'] = htmlspecialchars_decode($obj['content'], ENT_QUOTES);
                 if ("导演" == $label) {
                     $fetch['director'] = $obj['content'];
-                }
-                else if ("编剧" == $label) {
+                } else if ("编剧" == $label) {
                     $fetch['screenwriter'] = $obj['content'];
-                }
-                else if ("主演" == $label) {
+                } else if ("主演" == $label) {
                     $fetch['actor'] = $obj['content'];
-                }
-                else if ("类型" == $label) {
+                } else if ("类型" == $label) {
                     $fetch['genre'] = $obj['content'];
-                }
-                else if ("上映日期" == $label) {
-                    $fetch['pubdate'] = self::trim_year_month($obj['content']);					
-                }
-                else if ("制片国家/地区" == $label) {
+                } else if ("上映日期" == $label) {
+                    $fetch['pubdate'] = self::trim_year_month($obj['content']);
+                } else if ("制片国家/地区" == $label) {
                     $fetch['country'] = self::trim_contry_title($obj['content']);
-                }
-                else if ("又名" == $label) {
+                } else if ("又名" == $label) {
                     $fetch['original_name'] = $obj['content'];
                     $aka_arr = $obj['arr'];
                     //$fetch['akas'] = $obj['content'];
-                }
-                else if ("IMDb" == $label) {
+                } else if ("IMDb" == $label) {
                     $fetch['imdbid'] = $obj['content'];
-                }
-                else if ("片长" == $label) {
+                } else if ("片长" == $label) {
                     //时间有可能有多个，只取第一个
                     $value = $obj['arr'][0];
-                    $value = str_replace(array("（","）"),array("(",")"),$value);
+                    $value = str_replace(array("（", "）"), array("(", ")"), $value);
                     $value = self::remove_words_in_sig($value, "(", ")");
-                    $fetch['m_length'] = trim(str_replace(array('分钟','分','minutes','minute','min'),'', $value));
-                }			
+                    $fetch['m_length'] = trim(str_replace(array('分钟', '分', 'minutes', 'minute', 'min'), '', $value));
+                }
             }//for
 
             if (isset($fetch['imdbid']) && '' != $fetch['imdbid']) {
                 $fetch = self::get_from_omdb($fetch['imdbid'], $fetch);
             }
-            if (strpos($fetch['pic'], 'type=R')>0) {
+            if (strpos($fetch['pic'], 'type=R') > 0) {
                 preg_match('/http.*?(.jpg|.png|.webp)/', $mainpic_div_str, $match_imgs);
                 $ref = $match_imgs[0];
                 //$fetch['pic'] = self::get_detail_douban_pic($fetch['pic'], $ref);
             }
-            if (strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("大陆",'utf-8'))===0 ||
-                strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("香港",'utf-8'))===0 || 
-                strpos(mb_convert_encoding(trim($fetch['country']),'utf-8'), mb_convert_encoding("台湾",'utf-8'))===0) {
+            if (
+                strpos(mb_convert_encoding(trim($fetch['country']), 'utf-8'), mb_convert_encoding("大陆", 'utf-8')) === 0 ||
+                strpos(mb_convert_encoding(trim($fetch['country']), 'utf-8'), mb_convert_encoding("香港", 'utf-8')) === 0 ||
+                strpos(mb_convert_encoding(trim($fetch['country']), 'utf-8'), mb_convert_encoding("台湾", 'utf-8')) === 0
+            ) {
                 $fetch['original_name'] = '';
-                if (count($aka_arr)>0) {
-                    foreach($aka_arr as $aka_str) {
+                if (count($aka_arr) > 0) {
+                    foreach ($aka_arr as $aka_str) {
                         //中文地区不需要英文别名
                         if (!preg_match('/^[A-Za-z0-9\'_ ]/', $aka_str)) {
                             if (!empty($fetch['akas'])) {
-                                $fetch['akas'].= " ,";
+                                $fetch['akas'] .= " ,";
                             }
                             $fetch['akas'] .= $aka_str;
                         }
                     }
-                }				
+                }
             }
         }
         return $fetch;
@@ -499,7 +503,8 @@ class BDDB_Fetcher{
      * @version 0.9.9
      * @date	2024-11-06
      */
-    public static function parse_douban_game_body($body) {
+    public static function parse_douban_game_body($body)
+    {
         $fetch = array(
             'pic' => '',
             'average_score' => '',
@@ -511,30 +516,30 @@ class BDDB_Fetcher{
             'platform' => '',
         );
         $matches = array();
-        preg_match_all('/(<div class="item-subject-info"[\s\S]+?<\/div>)|(<dl class="game-attr">[\s\S]+?<\/dl>)|(<div .+? typeof="v:Rating"[\s\S]+?<\/div>)/',$body, $matches);
-        if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
+        preg_match_all('/(<div class="item-subject-info"[\s\S]+?<\/div>)|(<dl class="game-attr">[\s\S]+?<\/dl>)|(<div .+? typeof="v:Rating"[\s\S]+?<\/div>)/', $body, $matches);
+        if (is_array($matches) && is_array($matches[0]) && count($matches[0]) >= 3) {
             $mainpic_div_str = $matches[0][0];
             $info_div_str = $matches[0][1];
             $score_str = $matches[0][2];
 
             //图
-            preg_match('/(?<=href=").*?(?=")/',$mainpic_div_str,$match_imgs);
+            preg_match('/(?<=href=").*?(?=")/', $mainpic_div_str, $match_imgs);
             if (is_array($match_imgs)) {
                 $fetch['pic'] = trim($match_imgs[0]);
             }
 
             //分
-            preg_match('/(?<= property="v:average"\>).*?(?=\<)/',$score_str, $match_score);
+            preg_match('/(?<= property="v:average"\>).*?(?=\<)/', $score_str, $match_score);
             if (is_array($match_score)) {
                 $fetch['average_score'] = trim($match_score[0]);
             }
             unset($matches);
-            preg_match_all( '/(<dt>[\s\S]+?<\/dt>)|(<dd>[\s\S]+?<\/dd>)/', $info_div_str, $matches);
+            preg_match_all('/(<dt>[\s\S]+?<\/dt>)|(<dd>[\s\S]+?<\/dd>)/', $info_div_str, $matches);
             $label = "";
-            for ($i=0;$i<count($matches[0]);++$i) {
+            for ($i = 0; $i < count($matches[0]); ++$i) {
                 $temp = trim(strip_tags($matches[0][$i]));
                 $temp = htmlspecialchars_decode($temp, ENT_QUOTES);
-                if (0 == $i%2) {
+                if (0 == $i % 2) {
                     $label = $temp;
                     continue;
                 } else {
@@ -550,7 +555,7 @@ class BDDB_Fetcher{
                             break;
                         case "别名:":
                             $temp = str_replace("/", ",", $temp);
-                            $arr_temp = explode(',' , $temp);
+                            $arr_temp = explode(',', $temp);
                             $arr_temp = array_map("trim", $arr_temp);
                             $fetch['akas'] = implode(" / ", $arr_temp);
                             break;
@@ -579,7 +584,8 @@ class BDDB_Fetcher{
      * @version	1.0.5
      * @date	2024-04-03
      */
-    public static function parse_douban_book_body($body) {
+    public static function parse_douban_book_body($body)
+    {
         $fetch = array(
             'pic' => '',
             'average_score' => '',
@@ -593,20 +599,20 @@ class BDDB_Fetcher{
             'translator' => '',
             'editor' => '',
         );
-        preg_match_all('/(<div id="mainpic"[\s\S]+?<\/div>)|(<div id="info"[\s\S]+?<\/div>)|(<strong .+? property="v:average">.+?(<\/strong>|>))/',$body, $matches);
-        if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
+        preg_match_all('/(<div id="mainpic"[\s\S]+?<\/div>)|(<div id="info"[\s\S]+?<\/div>)|(<strong .+? property="v:average">.+?(<\/strong>|>))/', $body, $matches);
+        if (is_array($matches) && is_array($matches[0]) && count($matches[0]) >= 3) {
             $mainpic_div_str = $matches[0][0];
             $info_div_str = $matches[0][1];
             $score_str = $matches[0][2];
 
             //图
-            preg_match('/(?<=href=").*?(?=")/',$mainpic_div_str,$match_imgs);
+            preg_match('/(?<=href=").*?(?=")/', $mainpic_div_str, $match_imgs);
             if (is_array($match_imgs)) {
                 $fetch['pic'] = trim($match_imgs[0]);
             }
 
             //分
-            preg_match('/(?<= property="v:average"\>).*?(?=\<)/',$score_str, $match_score);
+            preg_match('/(?<= property="v:average"\>).*?(?=\<)/', $score_str, $match_score);
             if (is_array($match_score)) {
                 $fetch['average_score'] = trim($match_score[0]);
             }
@@ -617,51 +623,45 @@ class BDDB_Fetcher{
                 $obj['content'] = htmlspecialchars_decode($obj['content'], ENT_QUOTES);
                 if ("出版社" == $label) {
                     $fetch['publisher'] = $obj['content'];
-                }
-                elseif ("又名" == $label) {
+                } elseif ("又名" == $label) {
                     $fetch['akas'] = $obj['content'];
-                }
-                elseif("出版年" == $label) {
+                } elseif ("出版年" == $label) {
                     $fetch['pubdate'] = $obj['content'];
-                }
-                elseif("原作名" == $label) {
+                } elseif ("原作名" == $label) {
                     $fetch['original_name'] = $obj['content'];
-                }
-                elseif("作者" == $label) {
-                    $value = str_replace(array("【","】"), array("[","]") , $obj['content']);
-                    $pos = strpos($value,']');	
-                    if ($pos>0) {
+                } elseif ("作者" == $label) {
+                    $value = str_replace(array("【", "】"), array("[", "]"), $obj['content']);
+                    $pos = strpos($value, ']');
+                    if ($pos > 0) {
                         $capital = substr($value, 0, $pos);
-                        $tail = substr($value, $pos+1);
-                        $capital = trim(str_replace(array("[","]"),"",$capital));
+                        $tail = substr($value, $pos + 1);
+                        $capital = trim(str_replace(array("[", "]"), "", $capital));
                         $country = BDDB_Settings::getInstance()->get_book_country_full_name($capital);
                         $fetch['country'] = $country;
                         $value = trim($tail);
 
                     }
                     $fetch['author'] = $value;
-                }
-                elseif("译者" == $label) {
+                } elseif ("译者" == $label) {
                     $fetch['translator'] = $obj['content'];
                 }
             }//for
-        }
-        else{
-            $data = bddbt_get_inlabel($body,"</h1>","<h2>");
-            if (!empty($data)){
+        } else {
+            $data = bddbt_get_inlabel($body, "</h1>", "<h2>");
+            if (!empty($data)) {
                 $data = trim($data);
-                $publisher_str = bddbt_get_inlabel($data, '<div class="ll publishers">','</div>');
-                if (!empty($publisher_str)){
+                $publisher_str = bddbt_get_inlabel($data, '<div class="ll publishers">', '</div>');
+                if (!empty($publisher_str)) {
                     $fetch['publisher'] = trim($publisher_str);
                 }
-                $count_str = bddbt_get_inlabel($data, '<div class="clear-both">','</div>');
+                $count_str = bddbt_get_inlabel($data, '<div class="clear-both">', '</div>');
                 $count_str = htmlspecialchars_decode($count_str);
-                if (!empty($count_str)){
+                if (!empty($count_str)) {
                     $count_str = strip_tags($count_str);
-                    $count_str = str_replace('&nbsp;','',$count_str);
-                    $pos = strpos($count_str,':');
-                    if ($pos > 0){
-                        $count_str = trim(substr($count_str,$pos+1));
+                    $count_str = str_replace('&nbsp;', '', $count_str);
+                    $pos = strpos($count_str, ':');
+                    if ($pos > 0) {
+                        $count_str = trim(substr($count_str, $pos + 1));
                         $fetch['series_total'] = $count_str;
                     }
                 }
@@ -678,7 +678,8 @@ class BDDB_Fetcher{
      * @version	1.0.3
      * @date	2025-03-24
      */
-    public static function parse_douban_album_body($body) {
+    public static function parse_douban_album_body($body)
+    {
         $fetch = array(
             'pic' => '',
             'average_score' => '',
@@ -691,62 +692,57 @@ class BDDB_Fetcher{
             'aka' => '',
             'quantity' => '',
         );
-        preg_match_all('/(<div id="mainpic"[\s\S]+?<\/div>)|(<div id="info"[\s\S]+?<\/div>)|(<strong .+? property="v:average">.+?(<\/strong>|>))/',$body, $matches);
-        if (is_array($matches) && is_array($matches[0]) && count($matches[0])>=3) {
+        preg_match_all('/(<div id="mainpic"[\s\S]+?<\/div>)|(<div id="info"[\s\S]+?<\/div>)|(<strong .+? property="v:average">.+?(<\/strong>|>))/', $body, $matches);
+        if (is_array($matches) && is_array($matches[0]) && count($matches[0]) >= 3) {
             $mainpic_div_str = $matches[0][0];
             $info_div_str = $matches[0][1];
             $score_str = $matches[0][2];
 
             //图
-            preg_match('/(?<=href=").*?(?=")/',$mainpic_div_str,$match_imgs);
+            preg_match('/(?<=href=").*?(?=")/', $mainpic_div_str, $match_imgs);
             if (is_array($match_imgs)) {
                 $fetch['pic'] = trim($match_imgs[0]);
             }
 
             //分
-            preg_match('/(?<= property="v:average"\>).*?(?=\<)/',$score_str, $match_score);
+            preg_match('/(?<= property="v:average"\>).*?(?=\<)/', $score_str, $match_score);
             if (is_array($match_score)) {
                 $fetch['average_score'] = trim($match_score[0]);
             }
 
             unset($matches);
-            preg_match_all( '/<span class=\"pl\">[\s\S]+?(<br[\s\S]\/>|<br\/>)/', $info_div_str, $matches);
-            for ($i=0;$i<count($matches[0]);++$i) {
+            preg_match_all('/<span class=\"pl\">[\s\S]+?(<br[\s\S]\/>|<br\/>)/', $info_div_str, $matches);
+            for ($i = 0; $i < count($matches[0]); ++$i) {
                 $temp = trim(strip_tags($matches[0][$i]));
                 $temp = preg_replace("/(\s|\&nbsp\;|　|\xc2\xa0)/", " ", strip_tags($temp));
-                $temp = str_replace("：",":",$temp);
-                $pos = strpos($temp,':');	
-                if ($pos <= 0){
-                    continue;				
+                $temp = str_replace("：", ":", $temp);
+                $pos = strpos($temp, ':');
+                if ($pos <= 0) {
+                    continue;
                 }
                 $label = trim(substr($temp, 0, $pos));
-                $value = trim(substr($temp,$pos+1));
+                $value = trim(substr($temp, $pos + 1));
                 $value = str_replace("/", ",", $value);
                 if (strpos($value, ',') > 0) {
-                    $temp_array = explode(',' , $value);
+                    $temp_array = explode(',', $value);
                     $value = self::items_implode($temp_array);
                 }
-                $value= htmlspecialchars_decode($value, ENT_QUOTES);
+                $value = htmlspecialchars_decode($value, ENT_QUOTES);
                 if ("出版者" == $label) {
-                    if ("唱片"=== mb_substr($value, -2)) {
+                    if ("唱片" === mb_substr($value, -2)) {
                         $value = str_replace("唱片", "", $value);
                     }
                     $value = str_replace(array("滾石"), array("滚石"), $value);
                     $fetch['publisher'] = $value;
-                }
-                elseif ("又名" == $label) {
+                } elseif ("又名" == $label) {
                     $fetch['akas'] = $value;
-                }
-                elseif("发行时间" == $label) {
+                } elseif ("发行时间" == $label) {
                     $fetch['pubdate'] = $value;
-                }
-                elseif("流派" == $label) {
+                } elseif ("流派" == $label) {
                     $fetch['genre'] = $value;
-                }
-                elseif("表演者" == $label) {
+                } elseif ("表演者" == $label) {
                     $fetch['artist'] = $value;
-                }
-                elseif("专辑类型" == $label) {
+                } elseif ("专辑类型" == $label) {
                     $fetch['quantity'] = $value;
                 }
             }//for
@@ -760,39 +756,41 @@ class BDDB_Fetcher{
      * @return 	array
      * @since 	0.5.5
      * @version 0.5.7
-    */	
-    public static function douban_info_to_array($info) {
-        $total = str_replace(array('<br>','<br />','<br/>'),'^_^',$info);
-        $total = strip_tags($total);			
+     */
+    public static function douban_info_to_array($info)
+    {
+        $total = str_replace(array('<br>', '<br />', '<br/>'), '^_^', $info);
+        $total = strip_tags($total);
         $total_arr = explode('^_^', $total);
         $got_arr = array();
         $temp_array = array();
-        foreach($total_arr as $line) {
+        foreach ($total_arr as $line) {
             $temp = preg_replace("/(\s|\&nbsp\;|　|\xc2\xa0)/", " ", $line);//去掉空格和换行等字符
             //查找冒号，根据冒号划分前半和后半部分。如果没找到半角冒号，就替换第一个全角冒号再找一次。
-            $pos = strpos($temp,':');
+            $pos = strpos($temp, ':');
             if (false === $pos) {
                 $count = 1;
-                $temp = str_replace("：",":", $temp, $count);
+                $temp = str_replace("：", ":", $temp, $count);
             }
-            $pos = strpos($temp,':');	
-            if (false === $pos){
-                continue;				
+            $pos = strpos($temp, ':');
+            if (false === $pos) {
+                continue;
             }
             $label = trim(substr($temp, 0, $pos));
-            $value = trim(substr($temp, $pos+1));
+            $value = trim(substr($temp, $pos + 1));
             $value = str_replace("/", ",", $value);
             if (strpos($value, ',') > 0) {
-                $temp_array = explode(',' , $value);
+                $temp_array = explode(',', $value);
                 $temp_array = array_map('trim', $temp_array);
                 $value = self::items_implode($temp_array);
-            }
-            else {
-                $temp_array=array();
+            } else {
+                $temp_array = array();
                 $temp_array[] = $value;
             }
-            $got_arr[$label] = array( 'content' => $value, 
-                                      'arr' => $temp_array );
+            $got_arr[$label] = array(
+                'content' => $value,
+                'arr' => $temp_array
+            );
         }
         return $got_arr;
     }
@@ -805,27 +803,29 @@ class BDDB_Fetcher{
      * @since 	0.0.1
      * @version 1.0.8
      * @date 2025-10-20
-    */	
-    public static function get_detail_douban_pic($pic_mass, $default){
+     */
+    public static function get_detail_douban_pic($pic_mass, $default)
+    {
         sleep(11);
         //防止被豆瓣当成恶意IP
         $ua = BDDB_Settings::getInstance()->get_user_agent();
         $arg = array();
-        $arg['timeout'] = 10000;
+        $arg['timeout'] = 180;
         $arg['user-agent'] = $ua;
-        if (strpos($pic_mass, "douban")> 0) {
+        $arg['headers'] = ['Referers' => 'https://douban.com'];
+        if (strpos($pic_mass, "douban") > 0) {
             $cookie = get_transient('douban_thief');
-            $arg['cookies'] = $cookie? $cookie:array();
+            $arg['cookies'] = $cookie ? $cookie : array();
         }
-        $ret = array('result'=>'ERROR','reason'=>'invalid parameter.');
-        $response = @wp_remote_get( 
-            htmlspecialchars_decode($pic_mass), 
-            $arg 
+        $ret = array('result' => 'ERROR', 'reason' => 'invalid parameter.');
+        $response = @wp_remote_get(
+            htmlspecialchars_decode($pic_mass),
+            $arg
         );
-        if ( is_wp_error( $response ) || !is_array($response) ) {
+        if (is_wp_error($response) || !is_array($response)) {
             return $default;
         }
-        if (strpos($pic_mass, "douban")> 0) {
+        if (strpos($pic_mass, "douban") > 0) {
             BDDB_Settings::getInstance()->save_douban_cookie($response);
         }
         $official_name = self::get_short_name($default);
@@ -833,15 +833,13 @@ class BDDB_Fetcher{
 
         $body = wp_remote_retrieve_body($response);
         preg_match_all('/<div class="cover"[\s\S]+?<\/div>/', $body, $matches);
-        if (is_array($matches)&& is_array($matches[0])) {
+        if (is_array($matches) && is_array($matches[0])) {
             foreach ($matches[0] as $m_str) {
                 preg_match('/(?<=src=").*?(?=")/', $m_str, $match_imgs);
                 if (is_array($match_imgs)) {
-                    if (strpos($match_imgs[0], $official_name)!==false) {
+                    if (strpos($match_imgs[0], $official_name) !== false) {
                         return trim($match_imgs[0]);
-                    }
-                    else
-                    {
+                    } else {
                         $array_result_imgs[] = trim($match_imgs[0]);
                     }
                 }
@@ -856,8 +854,9 @@ class BDDB_Fetcher{
      * @param	string	$y	日期字符串
      * @return 	string
      * @since 	0.0.1
-    */
-    public static function trim_year_month($y) {
+     */
+    public static function trim_year_month($y)
+    {
         //去掉（中国香港）等括号内容
         $pos = strpos($y, "(");
         if (false !== $pos) {
@@ -871,21 +870,22 @@ class BDDB_Fetcher{
         $pos = strpos($y, "-");
         if (false === $pos) {
             //只有年
-            return $y.'-01';
+            return $y . '-01';
         }
         $parts = explode("-", $y);
-        return $parts[0]."-".$parts[1];
+        return $parts[0] . "-" . $parts[1];
     }
-    
+
     /**
      * @brief	修改地区格式。
      * @private
      * @param	string	$c	地区字符串
      * @return string
      * @since 0.0.1
-    */
-    public static function trim_contry_title($c){
-        return str_replace(array("中国","/"),array("",","),$c);
+     */
+    public static function trim_contry_title($c)
+    {
+        return str_replace(array("中国", "/"), array("", ","), $c);
     }
 
     /**
@@ -896,8 +896,9 @@ class BDDB_Fetcher{
      * @since 	0.0.1
      * @version	1.0.5
      * @date	2025-04-03
-    */
-    public static function get_from_omdb($id, $input=false){
+     */
+    public static function get_from_omdb($id, $input = false)
+    {
         $default = array(
             'pic' => '',
             'average_score' => '',
@@ -913,56 +914,64 @@ class BDDB_Fetcher{
         );
         if (!$input) {
             $output = $default;
-        }else{
+        } else {
             $output = wp_parse_args($input, $default);
         }
-        if (''==$id || strpos($id, "tt")!=0) {
+        if ('' == $id || strpos($id, "tt") != 0) {
             return $output;
         }
         $api_key = BDDB_Settings::getInstance()->get_omdb_key();
-        if(empty($api_key)) {
+        if (empty($api_key)) {
             return $output;
         }
-        $url = "http://www.omdbapi.com/?i=".$id."&apikey=".$api_key;
+        $url = "http://www.omdbapi.com/?i=" . $id . "&apikey=" . $api_key;
         $response = @wp_remote_get($url);
-        if (is_wp_error($response))
-        {
+        if (is_wp_error($response)) {
             return $output;
         }
-        $content = json_decode(wp_remote_retrieve_body($response),true);
+        $content = json_decode(wp_remote_retrieve_body($response), true);
         $output['original_name'] = $content['Title'];
         $output['imdb_score'] = $content['imdbRating'];
-        if ('' == $output['pic']) $output['pic'] = $content['Poster'];
-        if ('' == $output['director']) $output['director'] = self::translate_directors($content['Director']);
-        if ('' == $output['actor']) $output['actor'] = self::translate_actors($content['Actors']);
-        if ('' == $output['screenwriter']) $output['screenwriter'] = self::trim_year_month($content['Writer']);
-        if ('' == $output['genre']) $output['genre'] = self::translate_m_genres($content['Genre']);
-        if ('' == $output['country']) $output['country'] = self::translate_m_region($content['Country']);
-        if ('' == $output['pubdate']) $output['pubdate'] = self::trim_year_month($content['Year']);
+        if ('' == $output['pic'])
+            $output['pic'] = $content['Poster'];
+        if ('' == $output['director'])
+            $output['director'] = self::translate_directors($content['Director']);
+        if ('' == $output['actor'])
+            $output['actor'] = self::translate_actors($content['Actors']);
+        if ('' == $output['screenwriter'])
+            $output['screenwriter'] = self::trim_year_month($content['Writer']);
+        if ('' == $output['genre'])
+            $output['genre'] = self::translate_m_genres($content['Genre']);
+        if ('' == $output['country'])
+            $output['country'] = self::translate_m_region($content['Country']);
+        if ('' == $output['pubdate'])
+            $output['pubdate'] = self::trim_year_month($content['Year']);
         if ('' == $output['m_length']) {
-            $output['m_length'] = trim(str_replace('min','', $content['Runtime']));
+            $output['m_length'] = trim(str_replace('min', '', $content['Runtime']));
         }
-        if (strpos($output['country'],'中国') === 0||
-            strpos($output['country'],'香港') === 0||
-            strpos($output['country'],'台湾') === 0||
-            strpos($output['country'],'china') === 0||
-            strpos($output['country'],'hong kong')=== 0||
-            strpos($output['country'],'taiwan') === 0
-        ){
+        if (
+            strpos($output['country'], '中国') === 0 ||
+            strpos($output['country'], '香港') === 0 ||
+            strpos($output['country'], '台湾') === 0 ||
+            strpos($output['country'], 'china') === 0 ||
+            strpos($output['country'], 'hong kong') === 0 ||
+            strpos($output['country'], 'taiwan') === 0
+        ) {
             $output['original_name'] = '';
         }
-        $output['url'] = "https://www.imdb.com/title/".$id;
+        $output['url'] = "https://www.imdb.com/title/" . $id;
         return $output;
     }
-    
+
     /**
      * @brief	字符串替换。
      * @param	string	$pic_mass	页面html内容
      * @return 	string
      * @since 	0.2.1
-    */
-    public static function my_space_replace($in_str) {
-        $in_str = str_replace(" ","-",trim($in_str));
+     */
+    public static function my_space_replace($in_str)
+    {
+        $in_str = str_replace(" ", "-", trim($in_str));
         return $in_str;
     }
 
@@ -973,40 +982,45 @@ class BDDB_Fetcher{
      * @return	string
      * @since	0.0.1
      * @version	0.3.3
-    */
-    public static function tax_slugs_to_names($tax, $imaged_slugs){
+     */
+    public static function tax_slugs_to_names($tax, $imaged_slugs)
+    {
         $ret = strtolower($imaged_slugs);
         $srcs = TrimArray(explode(',', $imaged_slugs));
         $old = $srcs;
-        $os = array_map('self::my_space_replace', $srcs);
+        //$os = array_map('self::my_space_replace', $srcs);
+        $os = array_map([static::class, 'my_space_replace'], $srcs);
         $got = array();
         $i = 0;
         $limit = 10;
         foreach ($os as $slug) {
-            $got_items = get_terms(array(	'taxonomy'=>$tax,
-                                            'hide_empty'=>false,
-                                            'slug'=>$slug));
+            $got_items = get_terms(array(
+                'taxonomy' => $tax,
+                'hide_empty' => false,
+                'slug' => $slug
+            ));
             if (is_wp_error($got_items) || empty($got_items)) {
                 $got[] = $old[$i];
             } else {
                 $got[] = $got_items[0]->name;
             }
             $i++;
-            if ($i == $limit){
+            if ($i == $limit) {
                 break;
             }
         }
         $ret = implode(", ", $got);
         return $ret;
     }
-    
+
     /**
      * @brief	翻译导演名字。
      * @param	string	$in_str			原始导演名
      * @return	string
      * @since	0.0.1
-    */
-    public static function translate_directors($in_str){
+     */
+    public static function translate_directors($in_str)
+    {
         return self::tax_slugs_to_names('m_p_director', $in_str);
     }
 
@@ -1015,8 +1029,9 @@ class BDDB_Fetcher{
      * @param	string	$in_str			原始导演名
      * @return	string
      * @since	0.0.1
-    */
-    public static function translate_actors($in_str){
+     */
+    public static function translate_actors($in_str)
+    {
         return self::tax_slugs_to_names('m_p_actor', $in_str);
     }
 
@@ -1025,8 +1040,9 @@ class BDDB_Fetcher{
      * @param	string	$in_str	转换前内容（英）
      * @return string
      * @since 0.0.1
-    */
-    public static function translate_m_region($in_str){
+     */
+    public static function translate_m_region($in_str)
+    {
         return self::tax_slugs_to_names('m_region', $in_str);
     }
 
@@ -1035,8 +1051,9 @@ class BDDB_Fetcher{
      * @param	string	$in_str	转换前内容（英）
      * @return string
      * @since 0.0.1
-    */
-    public static function translate_m_genres($in_str){
+     */
+    public static function translate_m_genres($in_str)
+    {
         return self::tax_slugs_to_names('m_genre', $in_str);
     }
 
@@ -1045,8 +1062,9 @@ class BDDB_Fetcher{
      * @param	array	$items	要排列的内容
      * @return string
      * @since 0.0.1
-    */
-    public static function items_implode($items) {
+     */
+    public static function items_implode($items)
+    {
         if (!is_array($items)) {
             return $items;
         }
@@ -1061,7 +1079,7 @@ class BDDB_Fetcher{
         if (1 == $count) {
             return $items[0];
         } else {
-            return implode(",",$items);
+            return implode(",", $items);
         }
     }//items_implode
 
@@ -1072,8 +1090,9 @@ class BDDB_Fetcher{
      * @return string
      * @since 1.2.6
      * @date 2026-01-20
-    */
-    public static function items_implode_by_key($items, $key) {
+     */
+    public static function items_implode_by_key($items, $key)
+    {
         if (!is_array($items)) {
             return $items;
         }
@@ -1090,7 +1109,7 @@ class BDDB_Fetcher{
         if (1 == $count) {
             return $new_items[0];
         } else {
-            return implode(",",$new_items);
+            return implode(",", $new_items);
         }
     }//items_implode
 
@@ -1102,8 +1121,9 @@ class BDDB_Fetcher{
      * @return 	string
      * @since 	0.5.6
      * @version 1.1.8
-    */
-    public static function remove_words_in_sig($str, $b, $e) {
+     */
+    public static function remove_words_in_sig($str, $b, $e)
+    {
         $posa = mb_strpos($str, $b);
         $pose = mb_strpos($str, $e);
         if ($posa !== false && $pose !== false && $pose > $posa) {
@@ -1122,8 +1142,9 @@ class BDDB_Fetcher{
      * @param	string	$str	字符串
      * @return 	string
      * @since 	0.5.6
-    */
-    public static function get_short_name($url) {
+     */
+    public static function get_short_name($url)
+    {
         $posa = strrpos($url, '/');
         if (false === $posa) {
             return false;
@@ -1135,7 +1156,7 @@ class BDDB_Fetcher{
         if ($pose <= $posa) {
             return false;
         }
-        $name = substr($url, $posa+1, $pose - $posa -1);
+        $name = substr($url, $posa + 1, $pose - $posa - 1);
         return $name;
     }
 
@@ -1145,8 +1166,9 @@ class BDDB_Fetcher{
      * @return 	string
      * @since 	1.2.6
      * @date	2026-01-20
-    */
-    public static function get_3166_region_name($region_info) {
+     */
+    public static function get_3166_region_name($region_info)
+    {
         $region_names_all = array(
             'AF' => '阿富汗',
             'AL' => '阿尔巴尼亚',
@@ -1342,26 +1364,27 @@ class BDDB_Fetcher{
         }
     }
 
-    public static function get_loaction_poster($id, $location = '') {
+    public static function get_loaction_poster($id, $location = '')
+    {
         $auth_key = BDDB_Settings::getInstance()->get_tmdb_key();
-        $api_link = 'https://api.tmdb.org/3/movie/'.(string)$id.'/images';
+        $api_link = 'https://api.tmdb.org/3/movie/' . (string) $id . '/images';
         $api_link = htmlspecialchars_decode($api_link);
-        $response = @wp_remote_get( 
-               $api_link, 
-               array( 
-                   'timeout'  => 30000, 
-                   'headers'   => array(
-                    'Content-Type'  => 'application/json',
-                    'Authorization' => 'Bearer '.$auth_key,
+        $response = @wp_remote_get(
+            $api_link,
+            array(
+                'timeout' => 180,
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $auth_key,
                 ),
-               ) 
-           );
-        if ( is_wp_error( $response ) || !is_array($response) ) {
+            )
+        );
+        if (is_wp_error($response) || !is_array($response)) {
             return '';
         }
         $content = json_decode(wp_remote_retrieve_body($response), true);
         $posters = $content['posters'];
-        if (!is_array($posters)|| 0 == count($posters)) {
+        if (!is_array($posters) || 0 == count($posters)) {
             return '';
         }
         $regions = array_column($posters, 'iso_3166_1');
@@ -1370,8 +1393,28 @@ class BDDB_Fetcher{
             return $posters[$index_key]['file_path'];
         } else {
             //西语国家，第二选择西班牙
-            $spanish_regions = array('ES', 'AR', 'MX', 'CL', 'CO', 'PE', 'VE', 'EC', 'GT', 'CU',
-            'BO', 'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'GQ');
+            $spanish_regions = array(
+                'ES',
+                'AR',
+                'MX',
+                'CL',
+                'CO',
+                'PE',
+                'VE',
+                'EC',
+                'GT',
+                'CU',
+                'BO',
+                'DO',
+                'HN',
+                'PY',
+                'SV',
+                'NI',
+                'CR',
+                'PA',
+                'UY',
+                'GQ'
+            );
             if (in_array($location, $spanish_regions)) {
                 $index_key = array_search('ES', $regions);
                 if ($index_key !== false) {
@@ -1403,9 +1446,10 @@ class BDDB_Fetcher{
      * @return 	string
      * @since 	1.2.6
      * @date	2026-01-20
-    */
-    public static function get_3166_regiond_poster($poster_infos, $key_3166) {
-        if (!is_array($poster_infos)|| 0 == count($poster_infos)) {
+     */
+    public static function get_3166_regiond_poster($poster_infos, $key_3166)
+    {
+        if (!is_array($poster_infos) || 0 == count($poster_infos)) {
             return '';
         }
         $regions = array_column($poster_infos, 'iso_3166_1');
@@ -1417,8 +1461,28 @@ class BDDB_Fetcher{
             return $poster_infos[$index_key]['file_path'];
         } else {
             //西语国家，第二选择西班牙
-            $spanish_regions = array('ES', 'AR', 'MX', 'CL', 'CO', 'PE', 'VE', 'EC', 'GT', 'CU',
-            'BO', 'DO', 'HN', 'PY', 'SV', 'NI', 'CR', 'PA', 'UY', 'GQ');
+            $spanish_regions = array(
+                'ES',
+                'AR',
+                'MX',
+                'CL',
+                'CO',
+                'PE',
+                'VE',
+                'EC',
+                'GT',
+                'CU',
+                'BO',
+                'DO',
+                'HN',
+                'PY',
+                'SV',
+                'NI',
+                'CR',
+                'PA',
+                'UY',
+                'GQ'
+            );
             if (in_array($key_3166, $spanish_regions)) {
                 $index_key = array_search('ES', $regions);
                 if ($index_key !== false) {
@@ -1450,9 +1514,10 @@ class BDDB_Fetcher{
      * @return 	string
      * @since 	1.2.6
      * @date	2026-01-20
-    */
-    public static function get_latest_tmdb_release_date($all_release_info, $key_3166) {
-        if (!is_array($all_release_info)|| 0 == count($all_release_info)) {
+     */
+    public static function get_latest_tmdb_release_date($all_release_info, $key_3166)
+    {
+        if (!is_array($all_release_info) || 0 == count($all_release_info)) {
             return '';
         }
         $regions = array_column($all_release_info, 'iso_3166_1');
@@ -1464,8 +1529,7 @@ class BDDB_Fetcher{
         if (false !== $key_index) {
             $releases = $all_release_info[$key_index]['release_dates'];
             $release_dates = array_column($releases, 'release_date');
-        }
-        else {
+        } else {
             foreach ($all_release_info as $region_release) {
                 foreach ($region_release['release_dates'] as $release_date_info) {
                     if (array_key_exists('release_date', $release_date_info) && !empty($release_date_info['release_date'])) {
