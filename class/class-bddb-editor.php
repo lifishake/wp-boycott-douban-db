@@ -275,7 +275,7 @@ class BDDB_Editor_Factory
         $response = @wp_remote_get(
             $piclink,
             array(
-                'timeout' => 30000,
+                'timeout' => 180,
                 'headers' => array(
                     'Content-Type' => 'application/json', // Or 'application/x-www-form-urlencoded' depending on your API
                     'Authorization' => 'Bearer ' . $auth_key,
@@ -292,11 +292,39 @@ class BDDB_Editor_Factory
                 $chief3166 = $content['production_countries'][0]['iso_3166_1'];
             }
         }
-        $pic_link = 'https://image.tmdb.org/t/p/original' . $content['poster_path'];
+        $poster_link = 'https://image.tmdb.org/t/p/original' . $content['poster_path'];
         if (!in_array($chief3166, array('CN', 'TW', 'HK', 'SG', 'MY'))) {
-            $pic_link = 'https://image.tmdb.org/t/p/original' . BDDB_Fetcher::get_loaction_poster($tmdbno, $chief3166);
+            $poster_link = 'https://image.tmdb.org/t/p/original' . BDDB_Fetcher::get_loaction_poster($tmdbno, $chief3166);
         }
-        $resp = array('backdrop_path' => $pic_link);
+        /*
+        $names = bddb_get_poster_names('movie', $_POST['id']);
+        $poster_full_name = $names->poster_name;
+        $thumbnail_full_name = $names->thumb_name;
+        $domain = parse_url($piclink, PHP_URL_SCHEME) . '://tmdb.org';
+        $response = @wp_remote_get(
+            $poster_link,
+            array(
+                'timeout' => 180,
+                'stream' => true,
+                'filename' => $poster_full_name,
+                'headers' => array('Referer' => $domain),
+            )
+        );
+        if (!is_wp_error($response)) {
+            $full_width = BDDB_Settings::getInstance()->get_poster_width('movie');
+            $full_height = BDDB_Settings::getInstance()->get_poster_height('movie');
+            $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width('movie');
+            $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height('movie');
+            $image = new Bddb_SimpleImage();
+            $image->load($poster_full_name);
+            $image->resize($full_width, $full_height);
+            $image->save($poster_full_name);
+            $image->resize($thumb_width, $thumb_height);
+            $image->save($thumbnail_full_name);
+        }
+        */
+
+        $resp = array('backdrop_path' => $poster_link);
         wp_send_json($resp);
         wp_die();
     }
