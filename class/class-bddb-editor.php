@@ -4,7 +4,7 @@
  * @file    class-bddb-editor.php
  * @brief   bddb后台编辑页面
  * @since   0.0.1
- * @version 1.3.5
+ * @version 1.3.8
  * @date    2026-09-18
  */
 
@@ -1094,12 +1094,14 @@ class BDDB_Editor
      * @return  string  显示用字符串
      * @see     $this->show_meta_box()->iscallable('comment')
      * @since   0.3.5
+     * @version 1.3.8   2026-09-18 dest_src中更新的内容，从thumbnail更新为图片本身
+     * @date    2026-09-18
      */
     protected function echo_imdbpic_button($post)
     {
         $nonce_str = wp_create_nonce('bddb-get-imdbpic-' . $post->ID);
         $names = bddb_get_poster_names('movie', $post->ID);
-        $btn_get = '<button class="button" name="bddb_get_imdbpic_btn" type="button" pid="' . $post->ID . '" wpnonce="' . $nonce_str . '" dest_src="' . $names->thumb_url . '" >imdb海报</button>';
+        $btn_get = '<button class="button" name="bddb_get_imdbpic_btn" type="button" pid="' . $post->ID . '" wpnonce="' . $nonce_str . '" dest_src="' . $names->poster_url . '" >imdb海报</button>';
         return $btn_get;
     }
 
