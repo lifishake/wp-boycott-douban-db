@@ -1,9 +1,9 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2026-02-24
+ * @date	2026-09-18
  * @author	大致
- * @version	1.2.8
+ * @version	1.3.7   适配webp
  * @since	0.0.1
  *
  */
@@ -67,9 +67,10 @@ function StopMouseWheel(event) {
 
 jQuery(document).ready(function ($) {
   //$stsbox = document.getElementsByName('ajax-status');
-  var mypicbar = document.getElementById("pic-status");
-  var myfetchstsbar = document.getElementById("fetch-status");
-  var mythumbnail = document.getElementById("img_poster_thumbnail");
+  //TODO:改成queryselector
+  const mypicbar = document.getElementById("pic-status");
+  const myfetchstsbar = document.getElementById("fetch-status");
+  const mythumbnail = document.getElementById("img_poster_thumbnail");
 
   //nomouse_names被Editor本地化，如果有number类型的input，该数组非空。
   Object.entries(nomouse_names).forEach(([key, value]) => {
@@ -80,6 +81,7 @@ jQuery(document).ready(function ($) {
   });
 
   //抓取按钮
+  //TODO：准备删除
   $('button[name="douban_spider_btn"]').click(function () {
     var link_bar = document.getElementsByName("bddb_external_link");
     var ddllkk = this.getAttribute("doulink");
@@ -286,26 +288,14 @@ jQuery(document).ready(function ($) {
 
   //取图片按钮
   $('button[name="bddb_get_pic_btn"]').click(function () {
-    const pic_link = $("[name='bddb_poster_link']")?.[0]?.value ?? "";
-    //const check_rotate_90 = document.getElementsByName("bddb_pic_rrotate");
-    //const check_cover = document.getElementsByName("bddb_pic_cover");
-    //const check_adapt = document.getElementsByName("bddb_pic_adape");
+    const pic_link = $("[name='bddb_poster_link']")[0]?.value ?? "";
     const dest_pic = this.getAttribute("dest_src");
-    const need_rrotate = $("[name='bddb_pic_rrotate']")?.[0]?.value ?? "0";
-    const need_cover = $("[name='bddb_pic_cover']")?.[0]?.value ?? "0";
-    const need_adapt = $("[name='bddb_pic_adape']")?.[0]?.value ?? "0";
+    const need_rrotate = $("[name='bddb_pic_rrotate']")[0]?.value ?? "0";
+    const need_cover = $("[name='bddb_pic_cover']")[0]?.value ?? "0";
+    const need_adapt = $("[name='bddb_pic_adape']")[0]?.value ?? "0";
     if (!pic_link) {
       return;
     }
-    //if (check_rotate_90.length == 1) {
-    //  need_rrotate = check_rotate_90[0].checked ? "1" : "0";
-    //}
-    //if (check_cover.length == 1) {
-    //  need_cover = check_cover[0].checked ? "1" : "0";
-   // }
-    //if (check_adapt.length == 1) {
-    //  need_adapt = check_adapt[0].checked ? "1" : "0";
-    //}
     const data = {
       action: "bddb_get_pic",
       nonce: this.getAttribute("wpnonce"),
@@ -337,17 +327,16 @@ jQuery(document).ready(function ($) {
 
   //取imdb图片按钮
   $('button[name="bddb_get_imdbpic_btn"]').click(function () {
-    var pic_bar = document.getElementsByName("m_id_imdb");
-    var dest_pic = this.getAttribute("dest_src");
-    if (pic_bar.length != 1) {
+    const imdb_id = $("[name='m_id_imdb']")[0]?.value ?? "";
+    const dest_pic = this.getAttribute("dest_src");
+    if (!imdb_id) {
       return;
     }
-    var pic_link = pic_bar[0].value;
-    var data = {
+    const data = {
       action: "bddb_get_imdbpic",
       nonce: this.getAttribute("wpnonce"),
       id: this.getAttribute("pid"),
-      imdbno: pic_link,
+      imdbno: imdb_id,
     };
     $.ajax({
       url: ajaxurl,
@@ -446,27 +435,30 @@ jQuery(document).ready(function ($) {
 
   //追加标签
   $(".box-tag").click(function () {
-    var input_bar = document.getElementsByName(this.getAttribute("data"));
-    var myself = this.innerText;
-    var original_value = input_bar[0].value;
-    var new_value = "";
-    if (original_value.length > 0) {
-      new_value = original_value + ", " + myself;
-    } else {
-      new_value = myself;
-    }
-    input_bar[0].value = new_value;
+    const input_bar = document.querySelector(
+      `input[name="${this.getAttribute("data")}"]`,
+    );
+
+    if (!input_bar) return;
+
+    input_bar.value = input_bar.value
+      ? `${input_bar.value}, ${this.innerText}`
+      : this.innerText;
   });
 
   //取图片按钮
   $("#bddb_poster_scan").click(function () {
-    var tableOuter = document.getElementsByClassName("form-table");
-    if (tableOuter.length == 0) {
+    const tableOuter = document.querySelector('[name="form-table"]')[0] ?? null;
+    if (!tableOuter) {
       return;
     }
-    var tabody = tableOuter[0].getElementsByTagName("tbody")[0];
+    const tabody = tableOuter.querySelector('[name="tbody"]')[0] ?? null;
+    if (!tabody) {
+      return;
+    }
+
     tabody.innerHTML = "";
-    var data = {
+    const data = {
       action: "bddb_rescan_thumb_folder",
       nonce: this.getAttribute("wpnonce"),
     };
@@ -487,23 +479,23 @@ jQuery(document).ready(function ($) {
   $("#bddb_thumb_clear").click(function () {
     let arrPicFiles = [];
     let del_rows = [];
-    var obj_tab;
+    let obj_tab = null;
     rows = document.querySelectorAll('input[name^="sel_thumb"]:checked');
     Array.from(rows).forEach((element, index) => {
-      var rid = element.getAttribute("row_id");
+      const rid = element.getAttribute("row_id");
       if (0 == index) {
         obj_tab = element.parentNode.parentNode.parentNode;
       }
       if (rid) {
         let namecell = document.getElementById("fname_" + rid);
-        var pics = namecell.innerText.split("\n");
+        const pics = namecell.innerText.split("\n");
         arrPicFiles.push.apply(arrPicFiles, pics);
-        var del_row = element.parentNode.parentNode;
+        let del_row = element.parentNode.parentNode;
         del_rows.push(del_row);
       }
     });
     const del_pics = arrPicFiles.join(",");
-    var data = {
+    const data = {
       action: "bddb_thumb_clear",
       nonce: this.getAttribute("wpnonce"),
       files: del_pics,
