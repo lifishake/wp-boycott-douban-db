@@ -4,7 +4,8 @@
  * @file    class-bddb-editor.php
  * @brief   bddb后台编辑页面
  * @since   0.0.1
- * @date    2023-10-12
+ * @version 1.3.5
+ * @date    2026-09-18
  */
 
 if (!class_exists('BDDB_Settings')) {
@@ -1040,13 +1041,15 @@ class BDDB_Editor
      * @return  string  显示用字符串
      * @see     $this->show_meta_box()->iscallable('comment')
      * @since   0.0.1
-     * @version 0.7.2
+     * @version 1.3.5   2026-09-18 dest_src中更新的内容，从thumbnail更新为图片本身
+     * @date    2026-09-18
+     * 
      */
     protected function echo_poster_button($post)
     {
         $nonce_str = wp_create_nonce('bddb-get-pic-' . $post->ID);
         $names = bddb_get_poster_names($post->post_type, $post->ID);
-        $btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="' . $post->ID . '" ptype="' . $post->post_type . '" wpnonce="' . $nonce_str . '" dest_src="' . $names->thumb_url . '" >取得</button>';
+        $btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="' . $post->ID . '" ptype="' . $post->post_type . '" wpnonce="' . $nonce_str . '" dest_src="' . $names->poster_url . '" >取得</button>';
         $btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_rrotate" value="0"/>右转90°</label>';
         $btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_cover" value="0"/>剪裁封面</label>';
         $btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_adape" value="0"/>自适应</label>';

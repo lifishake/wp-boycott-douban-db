@@ -286,27 +286,26 @@ jQuery(document).ready(function ($) {
 
   //取图片按钮
   $('button[name="bddb_get_pic_btn"]').click(function () {
-    const pic_bar = document.getElementsByName("bddb_poster_link");
-    const check_rotate_90 = document.getElementsByName("bddb_pic_rrotate");
-    const check_cover = document.getElementsByName("bddb_pic_cover");
-    const check_adapt = document.getElementsByName("bddb_pic_adape");
+    const pic_link = $("[name='bddb_poster_link']")?.[0]?.value ?? "";
+    //const check_rotate_90 = document.getElementsByName("bddb_pic_rrotate");
+    //const check_cover = document.getElementsByName("bddb_pic_cover");
+    //const check_adapt = document.getElementsByName("bddb_pic_adape");
     const dest_pic = this.getAttribute("dest_src");
-    const need_rrotate = "0";
-    const need_cover = "0";
-    const need_adapt = "0";
-    if (pic_bar.length != 1) {
+    const need_rrotate = $("[name='bddb_pic_rrotate']")?.[0]?.value ?? "0";
+    const need_cover = $("[name='bddb_pic_cover']")?.[0]?.value ?? "0";
+    const need_adapt = $("[name='bddb_pic_adape']")?.[0]?.value ?? "0";
+    if (!pic_link) {
       return;
     }
-    if (check_rotate_90.length == 1) {
-      need_rrotate = check_rotate_90[0].checked ? "1" : "0";
-    }
-    if (check_cover.length == 1) {
-      need_cover = check_cover[0].checked ? "1" : "0";
-    }
-    if (check_adapt.length == 1) {
-      need_adapt = check_adapt[0].checked ? "1" : "0";
-    }
-    const pic_link = pic_bar[0].value;
+    //if (check_rotate_90.length == 1) {
+    //  need_rrotate = check_rotate_90[0].checked ? "1" : "0";
+    //}
+    //if (check_cover.length == 1) {
+    //  need_cover = check_cover[0].checked ? "1" : "0";
+   // }
+    //if (check_adapt.length == 1) {
+    //  need_adapt = check_adapt[0].checked ? "1" : "0";
+    //}
     const data = {
       action: "bddb_get_pic",
       nonce: this.getAttribute("wpnonce"),
