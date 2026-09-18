@@ -1,6 +1,10 @@
 <?php
+
 /**
- * 后台编辑用类
+ * @file    class-bddb-editor.php
+ * @brief   bddb后台编辑页面
+ * @since   0.0.1
+ * @date    2023-10-12
  */
 
 if (!class_exists('BDDB_Settings')) {
@@ -19,31 +23,32 @@ if (!class_exists('BDDB_Settings')) {
 class BDDB_Editor_Factory
 {
     /**
-     * 后台初始化。
+     * @brief   后台初始化。
      * @since   0.5.4
      * @version 1.1.2
-     * @date 2025-11-16
+     * @date    2025-11-16
      * @see     bddb_admin_init()
      */
     public static function admin_init(): void
     {
         //统一到一个函数中方便查找。
-        add_action('save_post', 'BDDB_Editor_Factory::update_all_items', 10, 2);
-        add_filter('wp_insert_post_data', 'BDDB_Editor_Factory::generate_content', 10, 2);
-        add_action('wp_ajax_bddb_get_pic', 'BDDB_Editor_Factory::download_pic');
-        add_action('wp_ajax_bddb_get_imdbpic', 'BDDB_Editor_Factory::download_imdbpic');
-        add_action('wp_ajax_bddb_get_tmdb_poster', 'BDDB_Editor_Factory::get_tmdb_poster');
-        add_action('wp_ajax_bddb_get_scovers', 'BDDB_Editor_Factory::download_serial_pics');
-        add_action('wp_ajax_bddb_clear_douban_cookie', 'BDDB_Editor_Factory::clear_douban_cookie');
+        add_action('save_post', array('BDDB_Editor_Factory', 'update_all_items'), 10, 2);
+        add_filter('wp_insert_post_data', array('BDDB_Editor_Factory', 'generate_content'), 10, 2);
+        add_action('wp_ajax_bddb_get_pic', array('BDDB_Editor_Factory', 'download_pic'));
+        add_action('wp_ajax_bddb_get_imdbpic', array('BDDB_Editor_Factory', 'download_imdbpic'));
+        add_action('wp_ajax_bddb_get_tmdb_poster', array('BDDB_Editor_Factory', 'get_tmdb_poster'));
+        add_action('wp_ajax_bddb_get_scovers', array('BDDB_Editor_Factory', 'download_serial_pics'));
+        add_action('wp_ajax_bddb_clear_douban_cookie', array('BDDB_Editor_Factory', 'clear_douban_cookie'));
     }
     /**
-     * 后台初始化。
+     * @brief   后台初始化。
      * @since   0.5.4
      * @version 0.7.5
-     * @date 2023-02-13
+     * @date    2023-02-13
+     * @param   WP_Post     $pt   编辑post对象
      * @see     BDDB_Statics::check_types()
      */
-    public static function add_meta_boxes($pt): void
+    public static function add_meta_boxes(WP_Post $pt): void
     {
         $post_type = $pt->post_type;
         if (!BDDB_Statics::is_valid_type($post_type)) {
@@ -54,11 +59,12 @@ class BDDB_Editor_Factory
     }
     /******    钩子回调函数 开始    ******/
     /**
-     * 保存时更新追加的内容。
+     * @brief   保存时更新追加的内容。
      * @public
-     * @param int $post_ID  正在编辑的post_ID
-     * @param object $post  正在编辑的post
+     * @param   int $post_ID  正在编辑的post_ID
+     * @param   object $post  正在编辑的post
      * @see     action::save_post
+     * @return  void
      * @since   0.0.1
      * @version 0.5.4
      */
@@ -76,11 +82,11 @@ class BDDB_Editor_Factory
     }
 
     /**
-     * 根据附加项内容生成文章正文。
-     * @param array $data       要保存的post_data
-     * @param array $postarr    还没有落地的post_data
+     * @brief           根据附加项内容生成文章正文。
+     * @param array     $data       要保存的post_data
+     * @param array     $postarr    还没有落地的post_data
      * @return array    $data
-     * @see filter::wp_insert_post_data
+     * @see     filter::wp_insert_post_data
      * @since   0.0.1
      * @version 0.5.4
      */
@@ -102,7 +108,7 @@ class BDDB_Editor_Factory
 
     /******    AJAX回调函数 开始    ******/
     /**
-     * 获取封面的Callback。
+     * @brief   获取封面的Callback。
      * @see     AJAX::bddb_get_pic
      * @since   0.0.1
      * @version 1.0.9
@@ -155,10 +161,6 @@ class BDDB_Editor_Factory
         $arg['filename'] = $poster_full_name;
         $domain = parse_url($piclink, PHP_URL_SCHEME) . '://' . parse_url($piclink, PHP_URL_HOST);
         $arg['headers'] = ['Referer' => $domain];
-        if (strpos($piclink, "douban") > 0) {
-            $cookie = get_transient('douban_thief');
-            $arg['cookies'] = $cookie ? $cookie : array();
-        }
 
         $response = @wp_remote_get(
             $piclink,
@@ -167,9 +169,7 @@ class BDDB_Editor_Factory
         if (is_wp_error($response)) {
             wp_die();
         }
-        if (strpos($piclink, "douban") > 0) {
-            BDDB_Settings::getInstance()->save_douban_cookie($response);
-        }
+
         $full_width = BDDB_Settings::getInstance()->get_poster_width($_POST['ptype']);
         $full_height = BDDB_Settings::getInstance()->get_poster_height($_POST['ptype']);
         $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($_POST['ptype']);
@@ -188,15 +188,16 @@ class BDDB_Editor_Factory
         }
 
         $image->resize($full_width, $full_height);
-        $image->save($poster_full_name);
-        $image->resize($thumb_width, $thumb_height);
-        $image->save($thumbnail_full_name);
+        $image->save($poster_full_name, IMAGETYPE_WEBP);
+        //$image->resize($thumb_width, $thumb_height);
+        //$image->save($thumbnail_full_name);
         wp_die();
     }
 
     /**
-     * 获取imdb封面的Callback。
+     * @brief   获取imdb封面的Callback。
      * @see     AJAX::bddb_get_imdbpic
+     * @return  void
      * @since   0.3.6
      * @version 1.0.5
      */
@@ -242,15 +243,16 @@ class BDDB_Editor_Factory
         $image = new Bddb_SimpleImage();
         $image->load($poster_full_name);
         $image->resize($full_width, $full_height);
-        $image->save($poster_full_name);
-        $image->resize($thumb_width, $thumb_height);
-        $image->save($thumbnail_full_name);
+        $image->save($poster_full_name, IMAGETYPE_WEBP);
+        //$image->resize($thumb_width, $thumb_height);
+        //$image->save($thumbnail_full_name);
         wp_die();
     }
 
     /**
-     * 获取themoviedb.org封面的Callback。
+     * @brief   获取themoviedb.org封面的Callback。
      * @see     AJAX::bddb_get_tmdb_poster
+     * @return  void
      * @since   1.1.2
      * @version 1.2.8
      * @date    2026-02-24
@@ -275,7 +277,7 @@ class BDDB_Editor_Factory
         $response = @wp_remote_get(
             $piclink,
             array(
-                'timeout' => 180,
+                'timeout' => 30000,
                 'headers' => array(
                     'Content-Type' => 'application/json', // Or 'application/x-www-form-urlencoded' depending on your API
                     'Authorization' => 'Bearer ' . $auth_key,
@@ -292,46 +294,19 @@ class BDDB_Editor_Factory
                 $chief3166 = $content['production_countries'][0]['iso_3166_1'];
             }
         }
-        $poster_link = 'https://image.tmdb.org/t/p/original' . $content['poster_path'];
+        $pic_link = 'https://image.tmdb.org/t/p/original' . $content['poster_path'];
         if (!in_array($chief3166, array('CN', 'TW', 'HK', 'SG', 'MY'))) {
-            $poster_link = 'https://image.tmdb.org/t/p/original' . BDDB_Fetcher::get_loaction_poster($tmdbno, $chief3166);
+            $pic_link = 'https://image.tmdb.org/t/p/original' . BDDB_Fetcher::get_loaction_poster($tmdbno, $chief3166);
         }
-        /*
-        $names = bddb_get_poster_names('movie', $_POST['id']);
-        $poster_full_name = $names->poster_name;
-        $thumbnail_full_name = $names->thumb_name;
-        $domain = parse_url($piclink, PHP_URL_SCHEME) . '://tmdb.org';
-        $response = @wp_remote_get(
-            $poster_link,
-            array(
-                'timeout' => 180,
-                'stream' => true,
-                'filename' => $poster_full_name,
-                'headers' => array('Referer' => $domain),
-            )
-        );
-        if (!is_wp_error($response)) {
-            $full_width = BDDB_Settings::getInstance()->get_poster_width('movie');
-            $full_height = BDDB_Settings::getInstance()->get_poster_height('movie');
-            $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width('movie');
-            $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height('movie');
-            $image = new Bddb_SimpleImage();
-            $image->load($poster_full_name);
-            $image->resize($full_width, $full_height);
-            $image->save($poster_full_name);
-            $image->resize($thumb_width, $thumb_height);
-            $image->save($thumbnail_full_name);
-        }
-        */
-
-        $resp = array('backdrop_path' => $poster_link);
+        $resp = array('backdrop_path' => $pic_link);
         wp_send_json($resp);
         wp_die();
     }
 
     /**
-     * 手动删除保存的doubancookie
+     * @brief   手动删除保存的doubancookie
      * @see     AJAX::clear_douban_cookie
+     * @return  void
      * @since   1.1.0
      * @data    2025-10-31
      */
@@ -347,8 +322,9 @@ class BDDB_Editor_Factory
     }
 
     /**
-     * 获取系列封面的AJAX的Callback
+     * @brief   获取系列封面的AJAX的Callback
      * @see     AJAX::bddb_get_scovers
+     * @return  void
      * @since   0.0.8
      * @version 1.0.5
      */
@@ -360,6 +336,7 @@ class BDDB_Editor_Factory
         if (!wp_verify_nonce($_POST['nonce'], "bddb-get-scovers-" . $_POST['id'])) {
             wp_die();
         }
+        $str_referer = isset($_POST['referer']) ? $_POST['referer'] : 'https://douban.com';
         $options = BDDB_Settings::getInstance()->get_options();
         $default_serial_count = $options['b_max_serial_count'];
         $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width('book');
@@ -369,12 +346,12 @@ class BDDB_Editor_Factory
         $parts = explode(";", $slinks);
         $serial_count = min(count($parts), $default_serial_count, $_POST['stotal']);
         for ($i = 0; $i < $default_serial_count; ++$i) {
-            $dest = sprintf("%s%02d.jpg", $obj_names->thumb_series_front, $i);
+            $dest = sprintf("%s%02d.webp", $obj_names->thumb_series_front, $i);
             if (file_exists($dest))
                 unlink($dest);
         }
         for ($i = 0; $i < $serial_count; ++$i) {
-            $dest = sprintf("%s%02d.jpg", $obj_names->thumb_series_front, $i);
+            $dest = sprintf("%s%02d.webp", $obj_names->thumb_series_front, $i);
             $src = $parts[$i];
             $response = @wp_remote_get(
                 htmlspecialchars_decode($src),
@@ -382,7 +359,7 @@ class BDDB_Editor_Factory
                     'timeout' => 180,
                     'stream' => true,
                     'filename' => $dest,
-                    'headers' => array('Referer' => 'https://douban.com'),
+                    'headers' => array('Referer' => $str_referer),
                 )
             );
             if (is_wp_error($response)) {
@@ -391,7 +368,7 @@ class BDDB_Editor_Factory
             $image = new Bddb_SimpleImage();
             $image->load($dest);
             $image->resize($thumb_width, $thumb_height);
-            $image->save($dest);
+            $image->save($dest, IMAGETYPE_WEBP);
         }
         wp_die();
     }
@@ -412,22 +389,42 @@ class BDDB_Editor
 {
 
     //成员列表
-    private $common_items;          /*四种档案都包括的共通项目*/
-    private $total_items;           /*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
-    private $self_post_type;        /*档案自身的种类*/
-    private $default_item;          /*单条档案对应的默认值*/
-    private $options;               /*配置选项，在set_working_mode时被设置*/
+    /**
+     * 四种档案都包括的共通项目
+     * @var array<string, mixed>
+     */
+    private array $common_items = [];
+    /**
+     * 每个档案的所有项目,初始为空,留待子类填充后再一起使用
+     * @var array<string, array<string, mixed>>
+     */
+    private array $total_items = [];
+    /**
+     * 档案自身的种类
+     * @var string
+     */
+    private string $self_post_type = "";
+    /**
+     * 单条档案对应的默认值
+     * @var array<string, array<string, mixed>>
+     */
+    private array $default_item = [];
 
     /**
-     * 构造函数
-     * @protected
-     * @param   array   $post_type 不设置时大部分功能不能使用
-     * @since 0.0.1
-     * @version 1.2.8
-     * @date 2026-02-24
+     * 配置选项，在set_working_mode时被设置
+     * @var false|array<string,mixed>
      */
-    public function __construct($post_type = false)
-    {
+    private $options = false;
+
+    /**
+     * @brief   构造函数
+     * @protected
+     * @param   string|bool   $post_type 不设置时大部分功能不能使用
+     * @since   0.0.1
+     * @version 1.2.8
+     * @date    2026-02-24
+     */
+    public function __construct($post_type = false) {
         $this->options = false;
         $this->default_item = array(
             'name' => '',
@@ -441,7 +438,7 @@ class BDDB_Editor
             'min' => -1,
             'max' => 9999,
             'step' => 1,
-            'limit' => 10,//TODO
+            'limit' => 10, //TODO
         );
         $this->self_post_type = false;
         $this->common_items = array(
@@ -537,13 +534,13 @@ class BDDB_Editor
     /******  钩子调用的外部函数 开始  ******/
 
     /**
-     * 创建编辑盒子。
+     * @brief   创建编辑盒子。
      * @see     action::register_meta_box_cb
+     * @return  void
      * @since   0.0.1
      * @version 0.5.4
      */
-    public function add_meta_box()
-    {
+    public function add_meta_box(){
         switch ($this->self_post_type) {
             case 'movie':
                 $addi = '影片';
@@ -572,14 +569,14 @@ class BDDB_Editor
     }
 
     /**
-     * 保存时更新追加的内容。
-     * @param int $post_ID  正在编辑的post_ID
+     * @brief   保存时更新追加的内容。
+     * @param   int $post_ID  正在编辑的post_ID
      * @see     action::save_post
+     * @return  void
      * @since   0.0.1
      * @version 0.5.4
      */
-    public function update_all_items($post_ID)
-    {
+    public function update_all_items($post_ID){
         if (!is_array($this->total_items)) {
             return;
         }
@@ -594,10 +591,10 @@ class BDDB_Editor
     }
 
     /**
-     * 根据附加项内容生成文章正文。
-     * @param array $data       要保存的post_data
-     * @param array $postarr    还没有落地的post_data
-     * @return array    $data
+     * @brief   根据附加项内容生成文章正文。
+     * @param   array $data       要保存的post_data
+     * @param   array $postarr    还没有落地的post_data
+     * @return  array
      * @see     filter::wp_insert_post_data
      * @since   0.0.1
      * @version 0.5.4
@@ -618,8 +615,8 @@ class BDDB_Editor
     }
 
     /**
-     * 显示图片工具的callback
-     * @param object $post  正在编辑的wp的post
+     * @brief   显示图片工具的callback
+     * @param   object $post  正在编辑的wp的post
      * @see     add_meta_box()
      * @since   0.0.1
      * @version 1.1.6
@@ -628,14 +625,17 @@ class BDDB_Editor
     public function show_status_meta_box($post)
     {
         $names = bddb_get_poster_names($post->post_type, $post->ID);
-        $thumb_name = $names->thumb_name;
-        $is_got_thumb = is_file($thumb_name);
-        $thumb_url = $names->thumb_url;
-        if ($is_got_thumb) {
-            $thumb_src = $thumb_url;
-        } else {
-            $thumb_src = $names->nopic_thumb_url;
+        //TODO: webp改完后删除
+        $is_new_style = file_exists($names->poster_name);
+        $is_got_thumb = $is_new_style;
+
+        $img_url = $names->nopic_thumb_url;
+        if ($is_new_style) {
+            $img_url = $names->poster_url;
+        } else if (is_file($names->old_poster_name)) {
+            $img_url = $names->old_poster_url;
         }
+
         $val_str = get_post_meta($post->ID, 'bddb_id_douban', true);
         if (empty($val_str)) {
             if ('movie' == $post->post_type) {
@@ -662,18 +662,18 @@ class BDDB_Editor
         $t_class = ('' == $val_str) ? "pic" : "no-pic";
 
         $box_str = "<table>";
-        $box_str .= "<tr><th>缩略图:</th><td><img id='img_poster_thumbnail' src='{$thumb_src}'/></td></tr>";
+        $box_str .= "<tr><th>缩略图:</th><td><img id='img_poster_thumbnail' src='{$img_url}'/></td></tr>";
         $box_str .= "<tr><th>抓取状态:</th><td><span class='{$t_class}' id='fetch-status'>{$catch_status}<span></td></tr>";
         $box_str .= "<tr><th>实时状态:</th><td><input type='text' class='input-short' id='pic-status' name='ajax-status' value='' readonly='readonly' /></td></tr>";
-        $box_str .= "<tr><th>豆瓣Cookie:</th><td><input type='text' class='input-short' id='douban-cookie-status' name='ajax-douban-cookie' value='{$cookie_str}' readonly='readonly' />";
-        $box_str .= "<button class='button' id='clear_douban_cookie_btn' type='button' pid='{$post->ID}'  wpnonce='{$nonce}' >清除</button>";
         $box_str .= "</td></tr>";
         $box_str .= '</table>';
         echo $box_str;
     }
+
     /**
-     * 显示编辑盒子。
-     * @param object $post  正在编辑的wp的post
+     * @brief   显示编辑盒子。
+     * @param   object $post  正在编辑的wp的post
+     * @return  void
      * @see     add_meta_box()
      * @since   0.0.1
      * @version 0.8.6
@@ -761,11 +761,11 @@ class BDDB_Editor
 
     /****   保存选项的优化回调函数 开始   ****/
     /**
-     * 优化个人评分。
-     * @param string $str   编辑框中的评分
-     * @return string   -1~100的十进制字符串
+     * @brief   优化个人评分。
+     * @param   string  $str   编辑框中的评分
+     * @return  string  -1~100的十进制字符串
      * @see     update_meta()->sanitize_callback
-     * @since 0.0.1
+     * @since   0.0.1
      */
     protected function sanitize_personal_rating($str)
     {
@@ -778,9 +778,9 @@ class BDDB_Editor
     }
 
     /**
-     * 优化原名。如果输入参数为空,则把显示名复制到原名上
-     * @param string $str   编辑框中的原名
-     * @return string   原名
+     * @brief   优化原名。如果输入参数为空,则把显示名复制到原名上
+     * @param   string  $str   编辑框中的原名
+     * @return  string  原名
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
      */
@@ -819,8 +819,8 @@ class BDDB_Editor
     }
 
     /**
-     * 优化系列作品的封面列表。
-     * @param   string $str 编辑框中的所有封面地址
+     * @brief   优化系列作品的封面列表。
+     * @param   string  $str    编辑框中的所有封面地址
      * @return  string  优化后的封面地址
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
@@ -832,8 +832,8 @@ class BDDB_Editor
         return $this->sanitize_link($str);
     }
     /**
-     * 优化链接输入。
-     * @param   string $str 编辑框中的所有地址
+     * @brief   优化链接输入。
+     * @param   string  $str    编辑框中的所有地址
      * @return  string  优化后的地址
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
@@ -844,8 +844,8 @@ class BDDB_Editor
     }
 
     /**
-     * @brief 优化人名输入①去掉中日文人名后面的英文②如果全是英文，判断分成两部分后是否内容一样，一样的话只留一半。
-     * @param   string $str 人名
+     * @brief   优化人名输入①去掉中日文人名后面的英文②如果全是英文，判断分成两部分后是否内容一样，一样的话只留一半。
+     * @param   string  $str    人名
      * @return  string  优化后的人名
      * @see     sanitize_name()
      * @since   1.3.0
@@ -881,8 +881,8 @@ class BDDB_Editor
     }
 
     /**
-     * 优化人名输入。
-     * @param   string $str 编辑框中的人名
+     * @brief   优化人名输入。
+     * @param   string  $str    编辑框中的人名
      * @return  string  优化后的人名
      * @see     update_meta()->sanitize_callback
      * @version 1.3.2
@@ -905,9 +905,9 @@ class BDDB_Editor
     }
 
     /**
-     * 优化接触时间，不填时默认为当月。
-     * @param string $str   编辑框中的接触时间
-     * @return string   观影/阅读/游戏/欣赏时间
+     * @brief   优化接触时间，不填时默认为当月。
+     * @param   string  $str    编辑框中的接触时间
+     * @return  string  观影/阅读/游戏/欣赏时间
      * @see     update_meta()->sanitize_callback
      * @date    2026-02-24
      * @version 1.2.7
@@ -941,9 +941,9 @@ class BDDB_Editor
     }
 
     /**
-     * 优化接触时间，不填时默认为当年。
-     * @param string $str   编辑框中的接触时间
-     * @return string   欣赏时间
+     * @brief   优化接触时间，不填时默认为当年。
+     * @param   string  $str    编辑框中的接触时间
+     * @return  string  欣赏时间
      * @see     update_meta()->sanitize_callback()->sanitize_view_time()
      * @date    2026-02-24
      * @version 1.2.7
@@ -972,9 +972,9 @@ class BDDB_Editor
     }
 
     /**
-     * 优化花费时间，不填时默认0.5。
-     * @param string $str   编辑框中的花费时间
-     * @return string   花费时间
+     * @brief   优化花费时间，不填时默认0.5。
+     * @param   string  $str    编辑框中的花费时间
+     * @return  string  花费时间
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
      */
@@ -988,9 +988,9 @@ class BDDB_Editor
     }
 
     /**
-     * 优化丛书本数，不填时默认为非丛书，设成1本。
-     * @param string $str   编辑框中的丛书本数
-     * @return string   丛书本数
+     * @brief   优化丛书本数，不填时默认为非丛书，设成1本。
+     * @param   string  $str    编辑框中的丛书本数
+     * @return  string  丛书本数
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
      */
@@ -1004,9 +1004,9 @@ class BDDB_Editor
     }
 
     /**
-     * 优化电影类型。
-     * @param string $str   编辑框中的电影类型
-     * @return string   电影类型
+     * @brief   优化电影类型。
+     * @param   string  $str    编辑框中的电影类型
+     * @return  string  电影类型
      * @see     update_meta()->sanitize_callback
      * @since   0.2.9
      */
@@ -1017,9 +1017,9 @@ class BDDB_Editor
     }
 
     /**
-     * 优化图片链接。
-     * @param string $str   编辑框中的图片链接
-     * @return string   图片链接
+     * @brief   优化图片链接。
+     * @param   string  $str    编辑框中的图片链接
+     * @return  string  图片链接
      * @see     update_meta()->sanitize_callback
      * @since   0.2.9
      */
@@ -1035,8 +1035,8 @@ class BDDB_Editor
 
     /**** comment 列的特殊回调函数 开始 ****/
     /**
-     * 获取封面的按钮。
-     * @param object $post
+     * @brief   获取封面的按钮。
+     * @param   object  $post
      * @return  string  显示用字符串
      * @see     $this->show_meta_box()->iscallable('comment')
      * @since   0.0.1
@@ -1055,7 +1055,7 @@ class BDDB_Editor
 
 
     /**
-     * 抓取按钮。
+     * @brief   抓取按钮。
      * @param object $post
      * @return  string  显示用字符串
      * @see     $this->show_meta_box()->iscallable('comment')
@@ -1070,7 +1070,7 @@ class BDDB_Editor
     }
 
     /**
-     * 取多张封面按钮。
+     * @brief   取多张封面按钮。
      * @param object $post
      * @return  string  显示用字符串
      * @see     $this->show_meta_box()->iscallable('comment')
@@ -1086,7 +1086,7 @@ class BDDB_Editor
     }
 
     /**
-     * 取imdb封面按钮。
+     * @brief   取imdb封面按钮。
      * @param object $post
      * @return  string  显示用字符串
      * @see     $this->show_meta_box()->iscallable('comment')
@@ -1101,7 +1101,7 @@ class BDDB_Editor
     }
 
     /**
-     * 取tmdb所有情报按钮。
+     * @brief   取tmdb所有情报按钮。
      * @param object $post
      * @return  string  显示用字符串
      * @see     $this->show_meta_box()->iscallable('comment')
@@ -1116,7 +1116,7 @@ class BDDB_Editor
     }
 
     /**
-     * 为taxinomy类型的输入项增加辅助标签。
+     * @brief   为taxinomy类型的输入项增加辅助标签。
      * @param int $id   正在编辑的post_ID
      * @param array $item   要更新的条目
      * @return  string  显示用字符串
@@ -1163,7 +1163,7 @@ class BDDB_Editor
 
     /******      工具函数 开始      ******/
     /**
-     * 更新term项目。
+     * @brief   更新term项目。
      * @param int $post_ID  正在编辑的post_ID
      * @param array $item   要更新的条目
      * @return  string  更新后的内容
@@ -1193,7 +1193,7 @@ class BDDB_Editor
     }
 
     /**
-     * 更新meta项目。
+     * @brief   更新meta项目。
      * @param int $post_ID  正在编辑的post_ID
      * @param array $item   要更新的条目
      * @return  string  更新后的内容
@@ -1229,7 +1229,7 @@ class BDDB_Editor
     }
 
     /**
-     * 根据post_type设置工作模式,主要是设定好每个种类的条目。
+     * @brief   根据post_type设置工作模式,主要是设定好每个种类的条目。
      * @param string $post_type
      * @return  bool    成功
      * @private
@@ -1255,7 +1255,7 @@ class BDDB_Editor
     }
 
     /**
-     * 为项目添加默认值。
+     * @brief   为项目添加默认值。
      * @return  array       
      * @param   array       $inItem
      * @see     $this->set_working_mode()->array_map
@@ -1270,7 +1270,7 @@ class BDDB_Editor
     }
 
     /**
-     * 设置电影的表示条目。
+     * @brief   设置电影的表示条目。
      * @see $this->set_working_mode()->set_additional_items_{$post_type}
      * @since 0.1.0
      * @version 1.2.8
@@ -1371,7 +1371,7 @@ class BDDB_Editor
         $this->total_items = array_merge($this->common_items, $additional_items);
     }
     /**
-     * 设置电影的表示条目。
+     * @brief   设置电影的表示条目。
      * @see $this->set_working_mode()->set_additional_items_{$post_type}
      * @since 0.1.0
      * @version 1.1.6
@@ -1468,7 +1468,7 @@ class BDDB_Editor
         $this->total_items = array_merge($this->common_items, $additional_items);
     }
     /**
-     * 设置游戏的表示条目。
+     * @brief   设置游戏的表示条目。
      * @see $this->set_working_mode()->set_additional_items_{$post_type}
      * @since   0.1.0
      * @version 1.1.6
@@ -1538,7 +1538,7 @@ class BDDB_Editor
         $this->total_items = array_merge($this->common_items, $additional_items);
     }
     /**
-     * 设置专辑的表示条目。
+     * @brief   设置专辑的表示条目。
      * @see $this->set_working_mode()->set_additional_items_{$post_type}
      * @since 0.1.0
      * @version 1.1.6
@@ -1615,6 +1615,4 @@ class BDDB_Editor
     }
     /******      工具函数 结束      ******/
     /********    私有函数 结束    ********/
-}
-;
-
+};

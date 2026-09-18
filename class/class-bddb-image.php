@@ -9,106 +9,168 @@
  * @since	0.1.4
  * 
  */
-class Bddb_SimpleImage {
+class Bddb_SimpleImage
+{
 
-    var $image;
-    var $image_type;
+    /**
+     * Summary of image
+     * @var GDImage
+     */
+    public $image = null;
+    public int $image_type = -1;
 
-    function load($filename) {
-        if(strtolower(substr($filename, 0, 4))=='http'){
+    /**
+     * Summary of load
+     * @param string $filename
+     * @return void
+     */
+    function load($filename)
+    {
+        if (strtolower(substr($filename, 0, 4)) == 'http') {
             //url  
             $cxContext = stream_context_create();
             $proxy = new WP_HTTP_Proxy();
             if ($proxy->is_enabled()) {
-                $proxy_str = $proxy->host().":".$proxy->port();
+                $proxy_str = $proxy->host() . ":" . $proxy->port();
                 $stream_default_opts = array(
-                    'http'=>array(
-                      'proxy'=>$proxy_str,
-                      'request_fulluri' => true,
+                    'http' => array(
+                        'proxy' => $proxy_str,
+                        'request_fulluri' => true,
                     ),
                     'ssl' => array(
                         'verify_peer' => false,
                         'verify_peer_name' => false,
                         'allow_self_signed' => true
                     ),
-                 );
-                 $cxContext = stream_context_create($stream_default_opts);
+                );
+                $cxContext = stream_context_create($stream_default_opts);
             }
-            file_put_contents("./temp", file_get_contents($filename,false, $cxContext));
+            file_put_contents("./temp", file_get_contents($filename, false, $cxContext));
             $filename = "./temp";
         }
         $image_info = getimagesize($filename);
-        
+
         $this->image_type = $image_info[2];
-        if( $this->image_type == IMAGETYPE_JPEG ) {
-            $this->image = imagecreatefromjpeg($filename);
-        } elseif( $this->image_type == IMAGETYPE_GIF ) {
-            $this->image = imagecreatefromgif($filename);
-        } elseif( $this->image_type == IMAGETYPE_PNG ) {
-            $this->image = imagecreatefrompng($filename);
-        } elseif( $this->image_type == IMAGETYPE_WEBP ) {
-            $this->image = imagecreatefromwebp($filename);
+        $img_result = false;
+        if ($this->image_type == IMAGETYPE_JPEG) {
+            $img_result = imagecreatefromjpeg($filename);
+        } elseif ($this->image_type == IMAGETYPE_GIF) {
+            $img_result = imagecreatefromgif($filename);
+        } elseif ($this->image_type == IMAGETYPE_PNG) {
+            $img_result = imagecreatefrompng($filename);
+        } elseif ($this->image_type == IMAGETYPE_WEBP) {
+            $img_result = imagecreatefromwebp($filename);
         }
-        if ($filename==="./temp") {
+        if (false === $img_result) {
+            $this->image = null;
+        } else {
+            $this->image = $img_result;
+        }
+
+        if ($filename === "./temp") {
             unlink("./temp");
         }
     }
-    function save($filename, $image_type=IMAGETYPE_JPEG, $compression=75, $permissions=null) {
+    /**
+     * Summary of save
+     * @param mixed $filename
+     * @param int $image_type
+     * @param mixed $compression
+     * @param mixed $permissions
+     * @return void
+     */
+    function save($filename, $image_type = IMAGETYPE_JPEG, $compression = 75, $permissions = null)
+    {
 
-        if( $image_type == IMAGETYPE_JPEG ) {
-            imagejpeg($this->image,$filename,$compression);
-        } elseif( $image_type == IMAGETYPE_GIF ) {
-            imagegif($this->image,$filename);
-        } elseif( $image_type == IMAGETYPE_PNG ) {
-            imagepng($this->image,$filename);
-        } elseif( $image_type == IMAGETYPE_WEBP ) {
-            imagewebp($this->image,$filename);
+        if ($image_type == IMAGETYPE_JPEG) {
+            imagejpeg($this->image, $filename, $compression);
+        } elseif ($image_type == IMAGETYPE_PNG) {
+            imagepng($this->image, $filename);
+        } elseif ($image_type == IMAGETYPE_WEBP) {
+            imagewebp($this->image, $filename);
         }
-        if( $permissions != null) {
-
-            chmod($filename,$permissions);
+        if ($permissions != null) {
+            chmod($filename, $permissions);
         }
     }
-    function output($image_type=IMAGETYPE_JPEG) {
+    /**
+     * Summary of output
+     * @param int $image_type
+     * @return void
+     */
+    function output($image_type = IMAGETYPE_JPEG)
+    {
 
-        if( $image_type == IMAGETYPE_JPEG ) {
+        if ($image_type == IMAGETYPE_JPEG) {
             imagejpeg($this->image);
-        } elseif( $image_type == IMAGETYPE_GIF ) {
-            imagegif($this->image);
-        } elseif( $image_type == IMAGETYPE_PNG ) {
+        } elseif ($image_type == IMAGETYPE_PNG) {
             imagepng($this->image);
-        } elseif( $image_type == IMAGETYPE_WEBP ) {
+        } elseif ($image_type == IMAGETYPE_WEBP) {
             imagewebp($this->image);
         }
     }
-    function getWidth() {
-
+    /**
+     * Summary of getWidth
+     * @return bool|int
+     */
+    function getWidth()
+    {
         return imagesx($this->image);
     }
-    function getHeight() {
+    /**
+     * Summary of getHeight
+     * @return bool|int
+     */
+    function getHeight()
+    {
 
         return imagesy($this->image);
     }
-    function resizeToHeight($height) {
+    /**
+     * Summary of resizeToHeight
+     * @param mixed $height
+     * @return void
+     */
+    function resizeToHeight($height)
+    {
 
         $ratio = $height / $this->getHeight();
         $width = $this->getWidth() * $ratio;
-        $this->resize($width,$height);
+        $this->resize($width, $height);
     }
 
-    function resizeToWidth($width) {
+    /**
+     * Summary of resizeToWidth
+     * @param mixed $width
+     * @return void
+     */
+    function resizeToWidth($width)
+    {
         $ratio = $width / $this->getWidth();
         $height = $this->getheight() * $ratio;
-        $this->resize($width,$height);
+        $this->resize($width, $height);
     }
 
-    function scale($scale) {
-        $width = $this->getWidth() * $scale/100;
-        $height = $this->getheight() * $scale/100;
-        $this->resize($width,$height);
+    /**
+     * Summary of scale
+     * @param mixed $scale
+     * @return void
+     */
+    function scale($scale)
+    {
+        $width = $this->getWidth() * $scale / 100;
+        $height = $this->getheight() * $scale / 100;
+        $this->resize($width, $height);
     }
 
-    function resize($width,$height) {
+    /**
+     * Summary of resize
+     * @param mixed $width
+     * @param mixed $height
+     * @return void
+     */
+    function resize($width, $height)
+    {
         $new_image = imagecreatetruecolor($width, $height);
         imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $width, $height, $this->getWidth(), $this->getHeight());
         $this->image = $new_image;
@@ -120,7 +182,8 @@ class Bddb_SimpleImage {
      * @since 	0.7.0
      * @version	0.7.0
      */
-    function rotate($angle) {
+    function rotate($angle)
+    {
         $new_image = imagerotate($this->image, $angle, 0);
         $this->image = $new_image;
     }
@@ -133,7 +196,8 @@ class Bddb_SimpleImage {
      * @since 	0.7.1
      * @version	0.7.1
      */
-    function addcover($new_width, $new_height, $border_width=0) {
+    function addcover($new_width, $new_height, $border_width = 0)
+    {
         $bg0 = imagecreatetruecolor($new_width, $new_height);
         $white = imagecolorallocate($bg0, 255, 255, 255);
 
@@ -143,22 +207,22 @@ class Bddb_SimpleImage {
         //外套。将图片拉伸或缩小到高度，然后从中间截取。
         $original_img = $this->image;    //backup源
         $this->resizeToHeight($new_height);
-        $mid_x = $this->getWidth()/2;
-        $start_x = $mid_x - $new_width/2;
+        $mid_x = $this->getWidth() / 2;
+        $start_x = $mid_x - $new_width / 2;
 
-        imagecopymerge( $bg0, $this->image, 0, 0, $start_x, 0, $new_width, $new_height, 50);
+        imagecopymerge($bg0, $this->image, 0, 0, $start_x, 0, $new_width, $new_height, 50);
 
         //白框，无框全覆盖
         $th_x = 7;
         $th_width = $new_width - $th_x * 2;
         $ratio = imagesy($original_img) / imagesx($original_img);
-        $th_height = intval($th_width*$ratio);
-        $th_y = intval(($new_height-$th_height) / 2);
-        imagefilledrectangle($bg0, $th_x, $th_y, $th_x +$th_width, $th_y +$th_height, $white);
+        $th_height = intval($th_width * $ratio);
+        $th_y = intval(($new_height - $th_height) / 2);
+        imagefilledrectangle($bg0, $th_x, $th_y, $th_x + $th_width, $th_y + $th_height, $white);
 
         // 图像缩放拷贝
-        $th_width -= 2*$border_width;
-        $th_height -= 2*$border_width;
+        $th_width -= 2 * $border_width;
+        $th_height -= 2 * $border_width;
         $th_y += $border_width;
         $th_x += $border_width;
         imagecopyresized($bg0, $original_img, $th_x, $th_y, 0, 0, $th_width, $th_height, imagesx($original_img), imagesy($original_img));
@@ -172,7 +236,8 @@ class Bddb_SimpleImage {
      * @since 	0.7.2
      * @version	0.7.2
      */
-    function adapt($new_width, $new_height) {
+    function adapt($new_width, $new_height)
+    {
         $original_img = $this->image;    //backup源
         $original_ratio = floatval(imagesy($original_img) / imagesx($original_img));
         $new_ratio = floatval($new_height / $new_width);
@@ -183,38 +248,45 @@ class Bddb_SimpleImage {
             $new_image = imagecreatetruecolor($new_width, $new_height);
             imagecopyresampled($new_image, $this->image, 0, 0, 0, 0, $new_width, $new_height, $this->getWidth(), $this->getHeight());
             $this->image = $new_image;
-        } else if ($delta>0) {
+        } else if ($delta > 0) {
             $bg0 = imagecreatetruecolor($new_width, $new_height);
             //图比封面高，按宽度截取
             $this->resizeToWidth($new_width);
-            $start_y = intval(($this->getHeight() - $new_height)/2);
-            imagecopymerge( $bg0, $this->image, 0, 0, 0, $start_y, $new_width, $new_height, 100);
+            $start_y = intval(($this->getHeight() - $new_height) / 2);
+            imagecopymerge($bg0, $this->image, 0, 0, 0, $start_y, $new_width, $new_height, 100);
             $this->image = $bg0;
-        } else if ($delta<0) {
+        } else if ($delta < 0) {
             $bg0 = imagecreatetruecolor($new_width, $new_height);
             //图比封面胖，按高度截取
             $this->resizeToHeight($new_height);
-            $start_x = intval(($this->getWidth() - $new_width)/2);
-            imagecopymerge( $bg0, $this->image, 0, 0, $start_x, 0, $new_width, $new_height, 100);
+            $start_x = intval(($this->getWidth() - $new_width) / 2);
+            imagecopymerge($bg0, $this->image, 0, 0, $start_x, 0, $new_width, $new_height, 100);
             $this->image = $bg0;
         }
     }
 
-    function makebookcover($title, $writer) {
+    /**
+     * Summary of makebookcover
+     * @param mixed $title
+     * @param mixed $writer
+     * @return void
+     */
+    function makebookcover($title, $writer)
+    {
         $tl = mb_strlen($title, 'UTF-8');
         $wl = mb_strlen($writer, 'UTF-8');
-        if (0===$tl) {
+        if (0 === $tl) {
             return;
         }
-        if (0===$wl) {
-            $writer="佚名";
+        if (0 === $wl) {
+            $writer = "佚名";
             $wl = 2;
         }
         $width = imagesx($this->image);
         $height = imagesy($this->image);
-        $color = imagecolorallocate($this->image, rand(160,225), rand(160,225), rand(160,225));
-        $ty = intval($height/8)*3;
-        $tx = intval($width/2);
+        $color = imagecolorallocate($this->image, rand(160, 225), rand(160, 225), rand(160, 225));
+        $ty = intval($height / 8) * 3;
+        $tx = intval($width / 2);
         $wy = $ty + 15;
         switch ($tl) {
             case 1:
@@ -258,9 +330,9 @@ class Bddb_SimpleImage {
                 $wx = $tx + 88;
                 break;
             default:
-                $tx = $tx - intval(20*(floatval($tl/2)));
+                $tx = $tx - intval(20 * (floatval($tl / 2)));
                 $tpt = 15; //20px
-                $wx = $tx + intval(20*(floatval(($wl+3)/2)));
+                $wx = $tx + intval(20 * (floatval(($wl + 3) / 2)));
                 break;
         }
         //title
@@ -268,5 +340,5 @@ class Bddb_SimpleImage {
 
         //writer
     }
-    
+
 }

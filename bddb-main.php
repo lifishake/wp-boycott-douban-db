@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.3.2
- * Date:        2026-08-14
+ * Version:     1.3.4
+ * Date:        2026-09-18
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -20,7 +20,7 @@ define('BDDB_PLUGIN_BASE_NAME', plugin_basename(__FILE__));
 //define('BDDB_GALLERY_DIR', ABSPATH.'wp-content/poster_gallery/');
 define('BDDB_TAX_VER', '20220101');
 define('BDDB_META_VER', '20230210');
-define('BDDB_STYLE_VER', '20260223');
+define('BDDB_STYLE_VER', '2026909');
 
 register_activation_hook(__FILE__, 'bddb_plugin_activation');
 register_deactivation_hook(__FILE__, 'bddb_plugin_deactivation');
@@ -35,6 +35,10 @@ require_once(BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 require_once(BDDB_PLUGIN_DIR . '/class/class-bddb-statics.php');
 require_once(BDDB_PLUGIN_DIR . '/class/class-bddb-types-list-table.php');
 
+/**
+ * @brief 判断是否是debug模式
+ * @return int
+ */
 function bddb_is_debug_mode()
 {
 	if (isset($_SERVER['PHPRC']) && strpos($_SERVER['PHPRC'], "xampp") > 0) {
@@ -43,14 +47,11 @@ function bddb_is_debug_mode()
 	return 0;
 }
 
-/* 打log用 */
-function bddb_log()
-{
-	//echo '<pre>'.$any.'</pre>';
-	print_r(debug_backtrace());
-}
-
-/*创建目录*/
+/**
+ * @brief 创建目录
+ * @param string $dir
+ * @return void
+ */
 function bddb_create_dir($dir)
 {
 	if (file_exists($dir)) {
@@ -63,28 +64,35 @@ function bddb_create_dir($dir)
 }
 
 /*创建必须文件*/
+/**
+ * Summary of bddb_create_nopic
+ * @param string|int $width
+ * @param string|int $height
+ * @return void
+ */
 function bddb_create_nopic($width, $height)
 {
 	if ($width == $height) {
-		$src = sprintf("%s/img/nocover_square.png", BDDB_PLUGIN_DIR);
+		$src = sprintf("%s/img/nocover_square.webp", BDDB_PLUGIN_DIR);
 	} else {
-		$src = sprintf("%s/img/nocover_oblone.png", BDDB_PLUGIN_DIR);
+		$src = sprintf("%s/img/nocover_oblone.webp", BDDB_PLUGIN_DIR);
 	}
-	$dest = sprintf("%s/img/nocover_%s_%s.png", BDDB_PLUGIN_DIR, $width, $height);
+	$dest = sprintf("%s/img/nocover_%s_%s.webp", BDDB_PLUGIN_DIR, $width, $height);
 	if (file_exists($dest)) {
 		return;
 	}
 	$image = new Bddb_SimpleImage();
 	$image->load($src);
 	$image->resize($width, $height);
-	$image->save($dest);
+	$image->save($dest, IMAGETYPE_WEBP);
 }
 
 /*插件激活*/
-function bddb_plugin_activation()
-{
-
-}
+/**
+ * @brief 插件激活，未使用，预留
+ * @return void
+ */
+function bddb_plugin_activation() {}
 
 /*检查路径，检查默认文件*/
 function bddb_check_paths()
@@ -101,14 +109,10 @@ function bddb_check_paths()
 }
 
 /*插件反激活*/
-function bddb_plugin_deactivation()
-{
-}
+function bddb_plugin_deactivation() {}
 
 /*插件卸载*/
-function bddb_plugin_uninstall()
-{
-}
+function bddb_plugin_uninstall() {}
 
 /*配置画面*/
 if (is_admin()) {
@@ -143,8 +147,7 @@ function bddb_init_actions()
 
 /**
  * @brief	解析豆瓣页面内容。
- * @param	string	$pic_mass	批量图片地址
- * @param	string	$default	默认图片地址
+ * @param	array	$templates	批量图片地址
  * @return 	array
  * @since 	0.6.1
  */
@@ -168,7 +171,12 @@ function bddb_add_theme_template_supported($templates)
 	}
 	return $templates;
 }
-
+/**
+ * Summary of qt_show_record
+ * @param array $atts
+ * @param mixed $content
+ * @return string
+ */
 function qt_show_record($atts, $content = null)
 {
 	extract($atts);
@@ -228,7 +236,6 @@ function ajax_douban_fetch()
 	$resp['result'] = $got['content'];
 	wp_send_json($resp);
 	wp_die();
-
 }
 
 //后台初始化
@@ -273,7 +280,6 @@ function bddb_scripts()
 		wp_add_inline_style('bddb-boxstyle', $css);
 
 		wp_enqueue_style('bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css', array(), BDDB_STYLE_VER);
-
 	}
 	wp_enqueue_style('bddb-style-front', BDDB_PLUGIN_URL . 'css/bddb.css', array(), BDDB_STYLE_VER);
 }
@@ -291,4 +297,3 @@ function bddb_admin_scripts()
 	wp_deregister_style('open-sans');
 	wp_register_style('open-sans', false);
 }
-

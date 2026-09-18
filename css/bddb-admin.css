@@ -7,6 +7,10 @@
 	cursor: pointer;
 }
 
+img#img_poster_thumbnail {
+	width: 100px;
+}
+
 input.check-r90 {
 	margin-left: 1rem;
 }

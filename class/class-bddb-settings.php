@@ -3,16 +3,27 @@
  * @file	class-bddb-settings.php
  * @class	BDDB_Settings
  * @brief	设定项管理类
- * @date	2025-10-21
+ * @date	2026-09-08
  * @author	大致
- * @version	1.0.9
+ * @version	1.3.3
  * @since	0.1.0
+ * @note    删除了豆瓣cookie相关的函数
  * 
  */
-class BDDB_Settings{
+class BDDB_Settings
+{
+    /**
+     * Summary of bddb_options
+     * @var array
+     */
     public $bddb_options = null;			//成员
+    /**
+     * Summary of instance
+     * @var null |BDDB_Settings
+     */
     private static $instance = null;
-    public static function getInstance() {
+    public static function getInstance()
+    {
         if (null === self::$instance) {
             self::$instance = new BDDB_Settings();
         }
@@ -24,11 +35,14 @@ class BDDB_Settings{
      * @since	1.0.5
      * @version	1.0.5
      */
-    private function __construct(){
+    private function __construct()
+    {
     }
 
     /* 防止被克隆 */
-    private function __clone(){}
+    private function __clone()
+    {
+    }
 
     /**
      * @brief	默认设置。
@@ -37,65 +51,69 @@ class BDDB_Settings{
      * @version	1.2.5
      * @date	2026-01-18
      */
-    public function default_options(){
+    public function default_options()
+    {
         $ret = array(
-            'default_folder'=>'wp-content/poster_gallery/',
-            'm_omdb_key'=>'',
-            'm_tmdb_key'=>'',
-            'g_giantbomb_key'=>'',
-            'primary_common_order'=>'bddb_personal_rating',
-            'user_agent'=>'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
-            'cookie_keep_time'=>108000,
-            'poster_width'=>400,
-            'poster_height'=>592,
-            'thumbnail_width'=>100,
-            'thumbnail_height'=>148,
-            'thumbnails_per_page'=>48,
-            'poster_width_book'=>400,
-            'poster_height_book'=>560,
-            'thumbnail_width_book'=>100,
-            'thumbnail_height_book'=>140,
-            'b_max_serial_count'=>18,
-            'poster_width_album'=>400,
-            'poster_height_album'=>400,
-            'thumbnail_width_album'=>128,
-            'thumbnail_height_album'=>128,
-            'poster_width_game'=>400,
-            'poster_height_game'=>568,
-            'thumbnail_width_game'=>100,
-            'thumbnail_height_game'=>142,
-            'tax_version'=>'20220101',
-            'type_version'=>'20230210',
-            'b_misc_map'=>'',
-            'm_misc_map'=>'',
-            'g_misc_map'=>'',
-            'a_misc_map'=>'',
-            'a_languages_def'=>'603-普通话;601-粤语;550-英语;796-日语;000-纯音乐;001-韩语',
-            'b_countries_map'=>'日,日本;美,美国;',
+            'default_folder' => 'wp-content/poster_gallery/',
+            'm_omdb_key' => '',
+            'm_tmdb_key' => '',
+            'g_giantbomb_key' => '',
+            'primary_common_order' => 'bddb_personal_rating',
+            'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+            'cookie_keep_time' => 108000,
+            'poster_width' => 400,
+            'poster_height' => 592,
+            'thumbnail_width' => 100,
+            'thumbnail_height' => 148,
+            'thumbnails_per_page' => 48,
+            'poster_width_book' => 400,
+            'poster_height_book' => 560,
+            'thumbnail_width_book' => 100,
+            'thumbnail_height_book' => 140,
+            'b_max_serial_count' => 18,
+            'poster_width_album' => 400,
+            'poster_height_album' => 400,
+            'thumbnail_width_album' => 128,
+            'thumbnail_height_album' => 128,
+            'poster_width_game' => 400,
+            'poster_height_game' => 568,
+            'thumbnail_width_game' => 100,
+            'thumbnail_height_game' => 142,
+            'tax_version' => '20220101',
+            'type_version' => '20230210',
+            'b_misc_map' => '',
+            'm_misc_map' => '',
+            'g_misc_map' => '',
+            'a_misc_map' => '',
+            'a_languages_def' => '603-普通话;601-粤语;550-英语;796-日语;000-纯音乐;001-韩语',
+            'b_countries_map' => '日,日本;美,美国;',
             //TODO
             'general_order' => array(
-                'bddb_display_name' => array( 'priority' => '09', 'orderby' => 'ASC'),
-                'bddb_original_name' => array( 'priority' => false, 'orderby' => 'ASC'),
-                'bddb_personal_review' => array( 'priority' => false, 'orderby' => 'ASC'),
-                'bddb_publish_time' => array( 'priority' => '03', 'orderby' => 'ASC'),
-                'bddb_view_time' => array( 'priority' => '02', 'orderby' => 'ASC'),
-                'bddb_personal_rating' => array( 'priority' => '01', 'orderby' => 'DESC'),
+                'bddb_display_name' => array('priority' => '09', 'orderby' => 'ASC'),
+                'bddb_original_name' => array('priority' => false, 'orderby' => 'ASC'),
+                'bddb_personal_review' => array('priority' => false, 'orderby' => 'ASC'),
+                'bddb_publish_time' => array('priority' => '03', 'orderby' => 'ASC'),
+                'bddb_view_time' => array('priority' => '02', 'orderby' => 'ASC'),
+                'bddb_personal_rating' => array('priority' => '01', 'orderby' => 'DESC'),
             ),
         );
         return $ret;
     }
-    
+
     /**
      * @brief	优化配置项。
      * @public
+     * @param array $input
+     * @return array
      * @since	0.1.0
      * @version	1.0.5
      */
-    public function sanitize_options($input){
+    public function sanitize_options($input)
+    {
         //取得当前值。
         $current_options = $this->get_options();
-        foreach( $current_options as $key => $val ) {
-            if (!isset($input[$key])){
+        foreach ($current_options as $key => $val) {
+            if (!isset($input[$key])) {
                 $input[$key] = $val;
             }
         }
@@ -145,17 +163,17 @@ class BDDB_Settings{
     /**
      * @brief	取得配置项。
      * @public
-     * @param	none
-     * @return 	array
+     * @return 	null | array
      * @since	0.1.0
      * @version	0.1.0
      */
-    public function get_options(){
+    public function get_options()
+    {
         if (null === self::$instance->bddb_options) {
             self::$instance->bddb_options = get_option('bddb_settings');
             if (is_array(self::$instance->bddb_options)) {
-                self::$instance->bddb_options = array_merge( self::$instance->default_options(), self::$instance->bddb_options);
-            }else{
+                self::$instance->bddb_options = array_merge(self::$instance->default_options(), self::$instance->bddb_options);
+            } else {
                 self::$instance->bddb_options = self::$instance->default_options();
             }
         }
@@ -165,13 +183,13 @@ class BDDB_Settings{
     /**
      * @brief	取得omdb 的API KEY。
      * @public
-     * @param	none
-     * @return 	string
+     * @return 	null|string omdb key 字符串
      * @since	0.1.0
      * @version	0.1.0
-     * @see TODO
+     * @see BDDB_Fetcher::get_from_omdb
      */
-    public function get_omdb_key(){
+    public function get_omdb_key()
+    {
         $options = $this->get_options();
         return $options['m_omdb_key'];
     }
@@ -179,12 +197,13 @@ class BDDB_Settings{
     /**
      * @brief	取得tmdb 的API KEY。
      * @public
-     * @param	none
      * @return 	string
+     * @since   1.2.5
      * @version	1.2.5
-     * @see gBDDB_Editor_Factory::et_theomdb
+     * @see BDDB_Editor_Factory::et_theomdb
      */
-    public function get_tmdb_key(){
+    public function get_tmdb_key()
+    {
         $options = $this->get_options();
         return $options['m_tmdb_key'];
     }
@@ -193,13 +212,13 @@ class BDDB_Settings{
     /**
      * @brief	【共】取得系列最大数。
      * @public
-     * @param	none
      * @return 	int
      * @since	0.1.0
      * @version	0.1.0
      * @see BDDB_Templates::set_working_mode()
      */
-    public function get_max_serial_count(){
+    public function get_max_serial_count()
+    {
         $options = $this->get_options();
         return $options['b_max_serial_count'];
     }
@@ -207,50 +226,37 @@ class BDDB_Settings{
     /**
      * @brief	【共】取得伪装浏览器UA。
      * @public
-     * @param	none
-     * @return 	string
+     * @return	string
      * @since	1.0.8
      * @version	1.0.8
-     * @data 2025-10-20
-     * @see BDDB_Fetcher::fetch_from_douban_page()
+     * @date    2025-10-20
+     * @see     BDDB_Fetcher::fetch_from_douban_page()
      */
-    public function get_user_agent(){
+    public function get_user_agent()
+    {
         $options = $this->get_options();
         return $options['user_agent'];
     }
 
     /**
-     * @brief	【共】取得豆瓣cookie最大保存时间。
-     * @public
-     * @param	none
-     * @return 	string
-     * @since	1.0.8
-     * @version	1.0.8
-     * @data 2025-10-20
-     * @see BDDB_Fetcher::fetch_from_douban_page()
-     */
-    public function get_cookie_keep_time(){
-        $options = $this->get_options();
-        return $options['cookie_keep_time'];
-    }
-
-    /**
      * @brief	【书】将国名简写转成全名。
      * @public
-     * @param	string
+     * @param	string $cap
      * @return 	string
      * @since	0.1.0
      * @version	0.1.0
-     * @see TODO
+     * @date    2026-09-08
+     * @see BDDB_Fetcher::parse_douban_book_body
      */
-    public function get_book_country_full_name($cap){
+    public function get_book_country_full_name($cap)
+    {
         $options = $this->get_options();
         $ret = $cap;
         if (!isset($options['b_countries_map'])) {
             return $ret;
         }
         $arrs = explode(';', $options['b_countries_map']);
-        foreach ($arrs as $str ) {
+        foreach ($arrs as $str) {
             $pos = strpos($str, $cap);
             if (false === $pos) {
                 continue;
@@ -258,7 +264,7 @@ class BDDB_Settings{
             if ($pos > strpos($str, ',')) {
                 continue;
             }
-            $ret = trim(str_replace(array($cap.",",";"),"", $str));
+            $ret = trim(str_replace(array($cap . ",", ";"), "", $str));
             break;
         }
         return $ret;
@@ -267,13 +273,13 @@ class BDDB_Settings{
     /**
      * @brief	【游】取得giantbomb 的API KEY。
      * @public
-     * @param	none
      * @return 	string
      * @since	0.1.0
      * @version	0.1.0
      * @see TODO
      */
-    public function get_giantbomb_key(){
+    public function get_giantbomb_key()
+    {
         $options = $this->get_options();
         return $options['g_giantbomb_key'];
     }
@@ -281,13 +287,13 @@ class BDDB_Settings{
     /**
      * @brief	【碟】获取编辑用语言列表
      * @public
-     * @param	none
      * @return 	array
      * @since	0.8.6
      * @version	1.0.5
      * @see		BDDB_Editor::set_additional_items_album()
      */
-    public function get_language_list(){
+    public function get_language_list()
+    {
         $options = $this->get_options();
         $ret = array();
         $ret = explode(';', $options['a_languages_def']);
@@ -305,12 +311,13 @@ class BDDB_Settings{
      * @see		BDDB_Editor::download_pic()
      * @see		bddb_scripts()
      */
-    public function get_poster_width($type){
+    public function get_poster_width($type)
+    {
         $options = $this->get_options();
         if (!BDDB_Statics::is_valid_type($type)) {
             return $options['poster_width'];
         }
-        $key = 'poster_width_'.$type;
+        $key = 'poster_width_' . $type;
         return $this->get_sized_template($options, $key, $options['poster_width']);
     }
 
@@ -325,18 +332,18 @@ class BDDB_Settings{
      * @see		BDDB_Editor::download_pic()
      * @see		bddb_scripts()
      */
-    public function get_poster_height($type){
+    public function get_poster_height($type)
+    {
         $options = $this->get_options();
         if (!BDDB_Statics::is_valid_type($type)) {
             return $options['poster_height'];
         }
-        $key = 'poster_height_'.$type;
+        $key = 'poster_height_' . $type;
         return $this->get_sized_template($options, $key, $options['poster_height']);
     }
 
     /**
      * @brief	【共】获取每页显示的海报数。
-     * @param	array		$type		种类
      * @return 	int
      * @since	0.3.6
      * @version	0.6.0
@@ -344,7 +351,8 @@ class BDDB_Settings{
      * @see		bddb_check_paths()
      * @see		BDDB_Editor::download_pic()
      */
-    public function get_thumbnails_per_page(){
+    public function get_thumbnails_per_page()
+    {
         $options = $this->get_options();
         return $options['thumbnails_per_page'];
     }
@@ -360,12 +368,13 @@ class BDDB_Settings{
      * @see		BDDB_Editor::download_pic()
      */
 
-    public function get_thumbnail_width($type){
+    public function get_thumbnail_width($type)
+    {
         $options = $this->get_options();
         if (!BDDB_Statics::is_valid_type($type)) {
             return $options['thumbnail_width'];
         }
-        $key = 'thumbnail_width_'.$type;
+        $key = 'thumbnail_width_' . $type;
         return $this->get_sized_template($options, $key, $options['thumbnail_width']);
     }
 
@@ -380,18 +389,18 @@ class BDDB_Settings{
      * @see		BDDB_Editor::download_pic()
      */
 
-    public function get_thumbnail_height($type){
+    public function get_thumbnail_height($type)
+    {
         $options = $this->get_options();
         if (!BDDB_Statics::is_valid_type($type)) {
             return $options['thumbnail_height'];
         }
-        $key = 'thumbnail_height_'.$type;
+        $key = 'thumbnail_height_' . $type;
         return $this->get_sized_template($options, $key, $options['thumbnail_height']);
     }
 
     /**
      * @brief	【共】获取缩略图默认保存路径。
-     * @param	none
      * @return 	string
      * @since	0.1.6
      * @version	0.6.0
@@ -399,34 +408,36 @@ class BDDB_Settings{
      * @see		bddb_get_check_paths()
      * @see		bddb_maintain_render()
      */
-    public function get_default_folder(){
+    public function get_default_folder()
+    {
         $options = self::$instance->get_options();
         return $options['default_folder'];
     }
 
     /**
      * @brief	【共】追加的taxonomy定义版本号。
-     * @param	none
      * @return 	string
      * @since	0.1.6
      * @version	0.3.0
      * @see		check_db()
      * @see		tax_diff()
      */
-    public function get_tax_version(){
+    public function get_tax_version()
+    {
         $options = $this->get_options();
         return $options['tax_version'];
     }
 
     /**
      * @brief	【共】更新taxonomy定义版本号。
-     * @param	string
-     * @return 	none
+     * @param	string  $version
+     * @return 	void
      * @since	0.1.6
      * @version	0.3.0
      * @see		check_db()
      */
-    public function update_tax_version($version){
+    public function update_tax_version($version)
+    {
         $options = $this->get_options();
         $options['tax_version'] = $version;
         update_option('bddb_settings', $options);
@@ -434,26 +445,27 @@ class BDDB_Settings{
 
     /**
      * @brief	【共】取得种类定义版本号。
-     * @param	none
      * @return 	string
      * @since	0.1.6
      * @version	0.3.0
      * @see		check_db()
      */
-    public function get_type_version(){
+    public function get_type_version()
+    {
         $options = $this->get_options();
         return $options['type_version'];
     }
 
     /**
-     * @brief	【共】更新type定义版本号。
-     * @param	string
-     * @return 	none
-     * @since	0.1.6
-     * @version	0.3.0
-     * @see		check_db()
+     * @brief   【共】更新type定义版本号。
+     * @param   string  $version
+     * @return 	void
+     * @since   0.1.6
+     * @version 0.3.0
+     * @see     check_db()
      */
-    public function update_type_version($version){
+    public function update_type_version($version)
+    {
         $options = $this->get_options();
         $options['type_version'] = $version;
         update_option('bddb_settings', $options);
@@ -471,7 +483,8 @@ class BDDB_Settings{
      * @see		get_thumbnail_width()
      * @see		get_thumbnail_height()
      */
-    public function get_sized_template($options, $key, $default) {
+    public function get_sized_template($options, $key, $default)
+    {
         if (!isset($options[$key])) {
             return $default;
         }
@@ -493,59 +506,32 @@ class BDDB_Settings{
      * @see		movie_misc_special()
      * @see		book_misc_special()
      */
-    public function is_pictured_misc($slug, $type) {
+    public function is_pictured_misc($slug, $type)
+    {
         if (!BDDB_Statics::is_valid_type($type)) {
             return false;
         }
-        $key = substr($type,0,1).'_misc_map';
+        $key = substr($type, 0, 1) . '_misc_map';
         $options = $this->get_options();
         if (!array_key_exists($key, $options)) {
             return false;
         }
-        $valid_slugs = explode(';' , $options[$key]);
+        $valid_slugs = explode(';', $options[$key]);
         $valid_slugs = array_map('trim', $valid_slugs);
         return in_array(trim($slug), $valid_slugs);
     }
-    
-    /**
-     * @brief	从response中获取cookies并保存到option中。
-     * @param	array		$response			页面的返回值
-     * @return 	none
-     * @since	1.0.9
-     * @date	2025-10-21
-     * @see		download_pic()
-     */
-    public function save_douban_cookie($response) {
-        $keep_time_original = BDDB_Settings::getInstance()->get_cookie_keep_time();
-        $keep_time = intval($keep_time_original);
-        date_default_timezone_set('Asia/Hong_Kong');
-        $weekday = intval(date('w'));
-        if (0 === $weekday) {
-            $keep_time = $keep_time / 2;
-        }
-        else if (5 === $weekday) {
-            $cur_time = new DateTime();
-            $tgt_time = new DateTime('today 19:00:00');
-            $inertval = $cur_time->diff($tgt_time);
-            $seconds = $inertval->h * 24 * 60 * 60 + $inertval->i *60 + $inertval->s;
-            if ($inertval->invert) {
-                $keep_time = $seconds;
-            }
-        }
-        $cookie_new = wp_remote_retrieve_cookies( $response );
-        set_transient( 'douban_thief', $cookie_new, $keep_time);
-    }
-
-};//class
+}
+;//class
 
 
 /**
  * @brief	单例模式不能直接设为回调函数，封装一次
  * @param	array		$input				要更新的配置项
- * @return 	bool
+ * @return 	bool | array
  * @since	1.0.5
  * @see		bddb_sanitize_options()
  */
-function bddb_sanitize_options($input) {
+function bddb_sanitize_options($input)
+{
     return BDDB_Settings::getInstance()->sanitize_options($input);
 }

@@ -11,6 +11,9 @@
 require_once(BDDB_PLUGIN_DIR . '/class/class-bddb-settings.php');
 
 if (!function_exists('TrimArray')) {
+    /**
+     * @param mixed $Input
+     */
     function TrimArray($Input)
     {
         if (!is_array($Input)) {
@@ -350,9 +353,6 @@ class BDDB_Fetcher
             $ret['reason'] = "wp_remote_get() failed.";
             return $ret;
         }
-        if (strpos($url, "douban") > 0) {
-            BDDB_Settings::getInstance()->save_douban_cookie($response);
-        }
 
         $body = wp_remote_retrieve_body($response);
         $start_pos = strpos($body, "<title>", 0);
@@ -394,7 +394,6 @@ class BDDB_Fetcher
     /**
      * @brief	解析豆瓣页面内容。
      * @param	string	$body	页面html内容
-     * @param	string	$type
      * @return 	array
      * @since 	0.0.1
      * @version 1.1.3
@@ -825,9 +824,6 @@ class BDDB_Fetcher
         if (is_wp_error($response) || !is_array($response)) {
             return $default;
         }
-        if (strpos($pic_mass, "douban") > 0) {
-            BDDB_Settings::getInstance()->save_douban_cookie($response);
-        }
         $official_name = self::get_short_name($default);
         $array_result_imgs = array();
 
@@ -965,7 +961,7 @@ class BDDB_Fetcher
 
     /**
      * @brief	字符串替换。
-     * @param	string	$pic_mass	页面html内容
+     * @param	string	$in_str	页面html内容
      * @return 	string
      * @since 	0.2.1
      */
@@ -1139,7 +1135,7 @@ class BDDB_Fetcher
 
     /**
      * @brief	取文件名，不包括扩展名。
-     * @param	string	$str	字符串
+     * @param	string	$url	字符串
      * @return 	string
      * @since 	0.5.6
      */
@@ -1364,6 +1360,14 @@ class BDDB_Fetcher
         }
     }
 
+    /**
+     * @brief   获取地区对应的海报
+     * @param string $id
+     * @param string $location
+     * @return string
+     * @since 	1.2.6
+     * @date	2026-01-20
+     */
     public static function get_loaction_poster($id, $location = '')
     {
         $auth_key = BDDB_Settings::getInstance()->get_tmdb_key();

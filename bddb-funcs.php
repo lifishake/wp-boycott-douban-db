@@ -11,7 +11,7 @@
 
 /**
  * 乱七八糟的工具类
-*/
+ */
 
 
 /**
@@ -22,9 +22,10 @@
  *
  * @see BDDB_Editor::update_meta()
  */
-class BDDB_Tools {
+class BDDB_Tools
+{
     //protected static
-    
+
     /**
      * 优化出品时间。改为年-月格式。如果只输入年则默认定位到该年1月
      * @public
@@ -34,16 +35,19 @@ class BDDB_Tools {
      * @since 0.4.1
      * @version 1.2.7
      */
-    public static function sanitize_year_month($str) {
+    public static function sanitize_year_month($str)
+    {
         if (empty($str)) {
             return $str;
         }
-        $str = trim(str_replace(array('年','月','日'), array('-','-',''), $str));
+        $str = trim(str_replace(array('年', '月', '日'), array('-', '-', ''), $str));
         if (bddbt_is_valid_year($str)) {
             $str .= '-01';
         }
-        if (strtotime(date("Y-m-d",strtotime($str))) == strtotime($str) ||
-            strtotime(date("Y-m-d H:i:s",strtotime($str))) == strtotime($str)) {
+        if (
+            strtotime(date("Y-m-d", strtotime($str))) == strtotime($str) ||
+            strtotime(date("Y-m-d H:i:s", strtotime($str))) == strtotime($str)
+        ) {
             $str = date("Y-m", strtotime($str));
         }
         return $str;
@@ -57,24 +61,27 @@ class BDDB_Tools {
      * @return	string
      * @since	0.0.1
      * @version	0.4.1
-    */
-    public static function tax_slugs_to_names($tax, $imaged_slugs, $limit = 10){
+     */
+    public static function tax_slugs_to_names($tax, $imaged_slugs, $limit = 10)
+    {
         $srcs = explode(',', $imaged_slugs);
         $old = array_map('trim', $srcs);
-        $os = array_map('BDDB_Tools::my_space_replace', $srcs);
+        $os = array_map(array('BDDB_Tools', 'my_space_replace'), $srcs);
         $got = array();
         $i = 0;
         foreach ($os as $slug) {
-            $got_items = get_terms(array(	'taxonomy'=>$tax,
-                                            'hide_empty'=>false,
-                                            'slug'=>$slug));
+            $got_items = get_terms(array(
+                'taxonomy' => $tax,
+                'hide_empty' => false,
+                'slug' => $slug
+            ));
             if (is_wp_error($got_items) || empty($got_items)) {
                 $got[] = $old[$i];
             } else {
                 $got[] = $got_items[0]->name;
             }
             $i++;
-            if ($i == $limit){
+            if ($i == $limit) {
                 break;
             }
         }
@@ -84,52 +91,77 @@ class BDDB_Tools {
     /**
      * @brief	字符串替换。
      * @public
-     * @param	string	$pic_mass	页面html内容
+     * @param	string	$in_str	页面html内容
      * @return string
      * @since 0.2.1
-    */
-    public static function my_space_replace($in_str) {
-        $in_str = str_replace(" ","-",trim($in_str));
+     */
+    public static function my_space_replace($in_str)
+    {
+        $in_str = str_replace(" ", "-", trim($in_str));
         $in_str = strtolower($in_str);
         return $in_str;
     }
 }
 
 //从第n个位置开始查找count个start_str与stop_str间的内容
-function bddbt_get_msg($str, $start_str, $stop_str, $count, $n) { 
-    $start=$n; //从第n个位置开始查找
-    $data=array(); 
-    for($i=0;$i<$count;$i++) {
-        $start=strpos($str,$start_str,$start);
-        $stop=strpos($str,$stop_str,$start);
-        $start=strlen($start_str)+$start;
-        $data[$i]= substr($str,$start,$stop-$start);
-        $start=$stop;
+/**
+ * Summary of bddbt_get_msg
+ * @param mixed $str
+ * @param mixed $start_str
+ * @param mixed $stop_str
+ * @param mixed $count
+ * @param mixed $n
+ * @return string[]
+ */
+function bddbt_get_msg($str, $start_str, $stop_str, $count, $n)
+{
+    $start = $n; //从第n个位置开始查找
+    $data = array();
+    for ($i = 0; $i < $count; $i++) {
+        $start = strpos($str, $start_str, $start);
+        $stop = strpos($str, $stop_str, $start);
+        $start = strlen($start_str) + $start;
+        $data[$i] = substr($str, $start, $stop - $start);
+        $start = $stop;
     }
     return $data;
 }
 
 //查找str中start_str和stop_str间的内容
-function bddbt_get_inlabel($str, $start_str, $stop_str){
-    $arr = bddbt_get_msg($str, $start_str, $stop_str ,1 ,0);
-    if (1 != count($arr)){
+/**
+ * Summary of bddbt_get_inlabel
+ * @param mixed $str
+ * @param mixed $start_str
+ * @param mixed $stop_str
+ * @return bool|string
+ */
+function bddbt_get_inlabel($str, $start_str, $stop_str)
+{
+    $arr = bddbt_get_msg($str, $start_str, $stop_str, 1, 0);
+    if (1 != count($arr)) {
         return false;
     }
     return $arr[0];
 }
-
-function bddbt_substr_n_pos($str,$find,$n){
-    $pos_val=0;
-    for ($i=1;$i<=$n;$i++){
-        $pos = strpos($str,$find);
-        if(false===$pos){
+/**
+ * Summary of bddbt_substr_n_pos
+ * @param mixed $str
+ * @param mixed $find
+ * @param mixed $n
+ */
+function bddbt_substr_n_pos($str, $find, $n)
+{
+    $pos_val = 0;
+    for ($i = 1; $i <= $n; $i++) {
+        $pos = strpos($str, $find);
+        if (false === $pos) {
             break;
         }
-        $str = substr($str,$pos+1);
-        $pos_val=$pos+$pos_val+1;
+        $str = substr($str, $pos + 1);
+        $pos_val = $pos + $pos_val + 1;
     }
     if ($pos_val > 0) {
-        return substr($str,0,$pos_val - 1);
+        return substr($str, 0, $pos_val - 1);
     }
     return $str;
 }
@@ -140,16 +172,23 @@ function bddbt_substr_n_pos($str,$find,$n){
  * @param	string	$str	输入的字符串
  * @return bool
  * @since 1.2.7
-*/
-function bddbt_is_valid_year(string $str) {
+ */
+function bddbt_is_valid_year(string $str)
+{
     return preg_match('/^\d{4}$/', $str) === 1 &&
-    $str >= '1900' &&
-    $str <='2199';
+        $str >= '1900' &&
+        $str <= '2199';
 }
-
-function bddbt_get_in_qouta($src, $key) {
-    $ret='';
-    $preg=sprintf('/(?<=%s=").*?(?=")/',$key);
+/**
+ * Summary of bddbt_get_in_qouta
+ * @param mixed $src
+ * @param mixed $key
+ * @return string
+ */
+function bddbt_get_in_qouta($src, $key)
+{
+    $ret = '';
+    $preg = sprintf('/(?<=%s=").*?(?=")/', $key);
     preg_match($preg, $src, $matches);
     if (!is_array($matches)) {
         return $ret;
@@ -159,60 +198,86 @@ function bddbt_get_in_qouta($src, $key) {
 }
 
 //供主题使用，最好在page里，不要使用the_post
-function bddb_the_gallery($post_type) {
+/**
+ * Summary of bddb_the_gallery
+ * @param mixed $post_type
+ * @return void
+ */
+function bddb_the_gallery($post_type)
+{
     if (!BDDB_Statics::is_valid_type($post_type)) {
         the_content();
         return;
     }
     if ('book' == $post_type) {
         BDDB_Book::getInstance()->the_gallery();
-    } elseif('movie' == $post_type) {
+    } elseif ('movie' == $post_type) {
         BDDB_Movie::getInstance()->the_gallery();
-    } elseif('game' == $post_type) {
+    } elseif ('game' == $post_type) {
         BDDB_Game::getInstance()->the_gallery();
-    } elseif('album' == $post_type) {
+    } elseif ('album' == $post_type) {
         BDDB_Album::getInstance()->the_gallery();
     }
 }
 
 //整合输出文件名
 //TODO:使用静态类
-function bddb_get_poster_names($post_type, $ID) {
+/**
+ * Summary of bddb_get_poster_names
+ * @param mixed $post_type
+ * @param mixed $ID
+ * @return object
+ */
+function bddb_get_poster_names($post_type, $ID)
+{
     $ret = array();
-    $name = sprintf("%s_%013d.jpg", $post_type, $ID);
-    $dir_o = BDDB_Settings::getInstance()->get_default_folder();
-    $gallery_dir = ABSPATH.$dir_o;
-    $gallery_url = home_url('/',is_ssl()?'https':'http').$dir_o;
+    $name = sprintf("%s_%013d.webp", $post_type, $ID);
+    $old_name = sprintf("%s_%013d.jpg", $post_type, $ID);
+    $dir_o = wp_normalize_path(BDDB_Settings::getInstance()->get_default_folder());
+    $gallery_dir = wp_normalize_path(ABSPATH . $dir_o);
+    $gallery_url = home_url('/', is_ssl() ? 'https' : 'http') . $dir_o;
     $rel_url = str_replace(home_url(), '', $gallery_url);
     $rel_plugin_url = str_replace(home_url(), '', BDDB_PLUGIN_URL);
-    if (bddb_is_debug_mode()){
+    if (bddb_is_debug_mode()) {
         $rel_url = str_replace('http://localhost', '', $gallery_url);
         $rel_plugin_url = str_replace('http://localhost', '', BDDB_PLUGIN_URL);
     }
     $ret['short_name'] = $name;
+    $ret['old_name'] = $old_name;
     $ret['gallery_dir'] = $gallery_dir;
-    $ret['thumb_dir'] = $gallery_dir.'thumbnails/';
-    $ret['poster_name'] = $gallery_dir .$name;
-    $ret['thumb_name'] = $gallery_dir.'thumbnails/'.$name;
-    $ret['thumb_series_front'] = $gallery_dir.'thumbnails/'.sprintf("%s_%013d_", $post_type, $ID);
-    $ret['poster_url'] = $rel_url .$name;
-    $ret['thumb_url'] = $rel_url.'thumbnails/'.$name;
-    $ret['thumb_url_front'] = $rel_url.'thumbnails/';
+    $ret['thumb_dir'] = $gallery_dir . 'thumbnails/';
+    $ret['poster_name'] = $gallery_dir . $name;
+    $ret['old_poster_name'] = $gallery_dir . $old_name;
+    $ret['thumb_name'] = $gallery_dir . 'thumbnails/' . $old_name;
+    $ret['thumb_series_front'] = $gallery_dir . 'thumbnails/' . sprintf("%s_%013d_", $post_type, $ID);
+    $ret['poster_url'] = $rel_url . $name;
+    $ret['old_poster_url'] = $rel_url . $old_name;
+    $ret['thumb_url'] = $rel_url . 'thumbnails/' . $old_name;
+    $ret['thumb_url_front'] = $rel_url . 'thumbnails/';
     $poster_width = BDDB_Settings::getInstance()->get_poster_width($post_type);
     $poster_height = BDDB_Settings::getInstance()->get_poster_height($post_type);
     $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($post_type);
     $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height($post_type);
-    $ret['nopic_thumb_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $thumb_width, $thumb_height );
-    $ret['nopic_poster_url'] = sprintf( "%simg/nocover_%s_%s.png", $rel_plugin_url, $poster_width, $poster_height );
-    return (object)$ret;
+    $ret['nopic_thumb_url'] = sprintf("%simg/nocover_%s_%s.webp", $rel_plugin_url, $thumb_width, $thumb_height);
+    $ret['nopic_poster_url'] = sprintf("%simg/nocover_%s_%s.webp", $rel_plugin_url, $poster_width, $poster_height);
+    return (object) $ret;
 }
 
-function bddb_array_child_value_to_str($data, $key, $name_key="name", $unknown_str="") {
+/**
+ * Summary of bddb_array_child_value_to_str
+ * @param mixed $data
+ * @param mixed $key
+ * @param mixed $name_key
+ * @param mixed $unknown_str
+ * @return string
+ */
+function bddb_array_child_value_to_str($data, $key, $name_key = "name", $unknown_str = "")
+{
     $ret = '';
     if (array_key_exists($key, $data) && is_array($data[$key])) {
         $subs = $data[$key];
-        if ( count($subs)>1 ) {
-            if ( is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
+        if (count($subs) > 1) {
+            if (is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
                 $items = wp_list_pluck($subs, $name_key);
                 $ret .= implode(', ', $items);
             } else {
@@ -239,19 +304,20 @@ function bddb_array_child_value_to_str($data, $key, $name_key="name", $unknown_s
  * @brief   取得bddb类型的最大post_id
  * @since	1.0.4
  * @version 1.0.4
-*/
-function bddb_get_the_max_id() {
+ */
+function bddb_get_the_max_id()
+{
     $args = array(
-        'post_type' => array('book','movie','game','album'),
+        'post_type' => array('book', 'movie', 'game', 'album'),
         'orderby' => 'ID',
         'order' => 'DESC',
         'numberposts' => 1,
-        'posts_per_page' =>1,
+        'posts_per_page' => 1,
         'post_status' => 'any',
         'fields' => 'ids',
-      ); 
+    );
     $result_ids = get_posts($args);
-    if (!is_array($result_ids)){
+    if (!is_array($result_ids)) {
         return false;
     }
     return $result_ids[0];
@@ -261,16 +327,18 @@ function bddb_get_the_max_id() {
  * @brief   判断字符串最后一个字符是否是中文和日文
  * @since	1.2.9
  * @version 1.2.9
-*/
-function isLastCharCJK(string $str): bool {
-    if ($str === '') return false;
-    
+ */
+function isLastCharCJK(string $str): bool
+{
+    if ($str === '')
+        return false;
+
     $last = mb_substr($str, -1, 1, 'UTF-8');
     $code = mb_ord($last, 'UTF-8');
-    
-    return 
+
+    return
         ($code >= 0x4E00 && $code <= 0x9FFF) ||     // 常用汉字
         ($code >= 0x3040 && $code <= 0x30FF) ||     // 平/片假名
         ($code >= 0x3400 && $code <= 0x4DBF) ||     // 扩展A
-        ($code >= 0x20000 && $code <= 0x2EBEF) ;    // 扩展BCDEF
+        ($code >= 0x20000 && $code <= 0x2EBEF);    // 扩展BCDEF
 }

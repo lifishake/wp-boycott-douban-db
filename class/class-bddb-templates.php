@@ -16,13 +16,41 @@
 class BDDB_Common_Template
 {
     //成员列表
-    protected $common_items;		/*四种档案都包括的共通项目*/
-    protected $total_items;			/*每个档案的所有项目,初始为空,留待子类填充后再一起使用*/
-    protected $self_post_type;		/*档案自身的种类*/
-    protected $default_item;		/*选项默认值*/
-    protected $num_per_page;		/*每页显示数*/
-    protected $total_pages;			/*页数*/
-    protected $query;
+    /**
+     * 四种档案都包括的共通项目
+     * @var array<string, mixed>
+     */
+    protected array $common_items = [];
+    /**
+     * 每个档案的所有项目,初始为空,留待子类填充后再一起使用
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $total_items = [];
+    /**
+     * 档案自身的种类
+     * @var string
+     */
+    protected string $self_post_type = "";
+    /**
+     * 单条档案对应的默认值
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $default_item = [];
+    /**
+     * 每页显示数
+     * @var int
+     */
+    protected int $num_per_page = 0;
+    /**
+     * 总页数
+     * @var int
+     */
+    protected int $total_pages = 0;
+    /**
+     * 保存上一次的查询结果
+     * @var false| WP_Query
+     */
+    protected $query = false;
     /**
      * @brief	构造函数。
      * @public
@@ -110,6 +138,7 @@ class BDDB_Common_Template
     /**
      * @brief	通过所有参数创建自身
      * @public
+     * @param array $args
      * @see		bddb_the_gallery()
      * @since	0.4.0
      * @version	1.3.2
@@ -235,7 +264,7 @@ class BDDB_Common_Template
 
     /**
      * @brief	输出简易链接。
-     * @param	array	$atts	短代码属性，该函数中只包括一个$id。
+     * @param	int	$id	短代码属性，该函数中只包括一个$id。
      * @public
      * @since	1.3.1
      * @version	1.3.1
@@ -255,7 +284,7 @@ class BDDB_Common_Template
      * @public
      * @since	0.1.4
      * @version	1.3.2
-     * @date    2026-07-06
+     * @date    2026-08-18
      * @see		add_shortcode()
      */
     public function show_record($atts, $content = null): string
@@ -273,12 +302,23 @@ class BDDB_Common_Template
         $summary = array_column($this->total_items, 'summary');
         array_multisort($summary, array_column($this->total_items, 'name'), $this->total_items);
 
+        //TODO: 完全迁移成webp后删除
+        $is_new_style = file_exists($obj_name->poster_name);
+
         if (empty($src_is_series)) {
-            $template = '<div class="bddb-item"><div class="mod"><div class="%1$s"><div class="apiplist-post">%2$s</div><div class="title">%3$s</div><div class="rating">%4$s</div><div class="abstract">%5$s</div></div></div></div>';
+            $template = '<div class="bddb-item"><div class="mod"><div class="%1$s"><div class="bddblist-post">%2$s</div><div class="title">%3$s</div><div class="rating">%4$s</div><div class="abstract">%5$s</div></div></div></div>';
             //1.悬挂体风格
             $subject_class = "v-overflowHidden doulist-subject";//1
             //2.缩略图
-            $img_str = sprintf('<img src="%1$s" alt="%2$s"></img>', $obj_name->thumb_url, base64_encode($obj_name->short_name));//2
+
+            if ($is_new_style) {
+                $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($this->self_post_type);
+                $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height($this->self_post_type);
+                $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', $obj_name->poster_url, base64_encode($obj_name->short_name));//2
+            } else {
+                $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', $obj_name->thumb_url, base64_encode($obj_name->short_name));//2
+            }
+
 
             //4.评分
             if ($src_score < 0 || $src_score > 100) {
@@ -430,6 +470,9 @@ class BDDB_Common_Template
     /**
      * @brief   调用模板函数。
      * @private
+     * @param   string  $before
+     * @param   string  $after
+     * @param   mixed   $args
      * @since   1.3.2
      * @version 1.3.2
      * @see     set_working_mode()
@@ -820,7 +863,7 @@ class BDDB_Common_Template
      * @brief	为项目添加默认值。被set_working_mode中的array_map函数回调。
      * @return array
      * @protected
-     * @param	array	inItem	显示用的单个项目
+     * @param	array	$inItem	显示用的单个项目
      * @since	0.0.1
      * @version	0.0.1
      * @see		set_working_mode()->array_map()
@@ -889,11 +932,18 @@ class BDDB_Common_Template
             $info_str .= $rtr;
         }
 
-        if (file_exists($obj_name->poster_name)) {
+        //TODO: 完成webp修改后删除
+        $is_new_style = file_exists($obj_name->poster_name);
+        if ($is_new_style) {
             $poster_url = $obj_name->poster_url;
         } else {
-            $poster_url = $obj_name->nopic_poster_url;
+            if (file_exists($obj_name->old_poster_name)) {
+                $poster_url = $obj_name->old_poster_url;
+            } else {
+                $poster_url = $obj_name->nopic_poster_url;
+            }
         }
+
         $thumb_url = $poster_url;
         $tooltip = $this->get_poster_tooltip($id);
         $addi_class = $this->template_type_callable("get_", "_poster_class", $id);
@@ -918,8 +968,8 @@ class BDDB_Common_Template
 
         //20251230 改为直接加loading='lazy'
         //20260105，改回data-src模式
-        $ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
-        //$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
+        //$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
+        $ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
 
         return $ret;
 
@@ -1326,14 +1376,23 @@ class BDDB_Common_Template
         $images = '';
         $count = BDDB_Settings::getInstance()->get_max_serial_count();
         $obj_names = bddb_get_poster_names($this->self_post_type, $id);
+        //TODO：webp改完后删除
+        $is_new_style = file_exists($obj_names->poster_name);
+
         for ($i = 0; $i < $count; ++$i) {
-            $short_name = sprintf('%s_%013d_%02d.jpg', $this->self_post_type, $id, $i);
+            if ($is_new_style) {
+                $short_name = sprintf('%s_%013d_%02d.webp', $this->self_post_type, $id, $i);
+                $thumbnail_full_name = $obj_names->thumb_dir . $short_name;
+            } else {
+                $short_name = sprintf('%s_%013d_%02d.jpg', $this->self_post_type, $id, $i);
+                $thumbnail_full_name = $obj_names->thumb_dir . $short_name;
+            }
             $thumbnail_full_name = $obj_names->thumb_dir . $short_name;
             if (!file_exists($thumbnail_full_name)) {
                 continue;
             }
             $url = $obj_names->thumb_url_front . $short_name;
-            $images .= sprintf('<div class="apiplist-post"><img src="%1$s" alt="%2$s" ></img></div>', $url, base64_encode($short_name));
+            $images .= sprintf('<div class="bddblist-post"><img src="%1$s" alt="%2$s" loading="lazy"></img></div>', $url, base64_encode($short_name));
         }
         return sprintf($template, $abs_str, $images);
     }
@@ -1458,7 +1517,7 @@ class BDDB_Common_Template
                 continue;
             }
             $img = BDDB_PLUGIN_URL . 'img/' . $slug . '.png';
-            $feature .= sprintf('<img class="m-misc-brand" src="%s" alt="%s"/>', $img, $slug);
+            $feature .= sprintf('<img class="m-misc-brand" src="%s" alt="%s" loading="lazy"/>', $img, $slug);
         }
         return $feature;
     }
@@ -1565,7 +1624,7 @@ class BDDB_Common_Template
                 continue;
             }
             $img = BDDB_PLUGIN_URL . 'img/' . $slug . '.png';
-            $feature .= sprintf('<img class="b-misc-brand" src="%s" alt="%s"/>', $img, $slug);
+            $feature .= sprintf('<img class="b-misc-brand" src="%s" alt="%s" loading="lazy"/>', $img, $slug);
         }
         return $feature;
     }
@@ -1916,7 +1975,7 @@ class BDDB_Common_Template
                 continue;
             }
             $img = BDDB_PLUGIN_URL . 'img/' . $slug . '.png';
-            $feature .= sprintf('<img class="g-misc-brand" src="%s" alt="%s"/>', $img, $slug);
+            $feature .= sprintf('<img class="g-misc-brand" src="%s" alt="%s" loading="lazy"/>', $img, $slug);
         }
         return $feature;
     }
@@ -1962,7 +2021,7 @@ class BDDB_Common_Template
         }
         $arr_str_region = array();
         foreach ($arr_regions as $region) {
-            $arr_str_region[] = sprintf('<img src="https://flagcdn.com/16x12/%1$s.png"  alt="%2$s" />', $region->slug, $region->name);
+            $arr_str_region[] = sprintf('<img src="https://flagcdn.com/16x12/%1$s.png"  alt="%2$s" loading="lazy"/>', $region->slug, $region->name);
         }
         if (empty($arr_str_region)) {
             return false;

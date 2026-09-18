@@ -171,31 +171,31 @@ class BDDB_Typed_List
     public static function admin_init()
     {
         //处理列标题
-        add_filter('manage_posts_columns', 'BDDB_Typed_List::fix_list_headers', 10, 2);
+        add_filter('manage_posts_columns', ['BDDB_Typed_List', 'fix_list_headers'], 10, 2);
 
         //显示meta类型的值的内容
-        add_action('manage_posts_custom_column', 'BDDB_Typed_List::show_custom_meta_value', 10, 2);
+        add_action('manage_posts_custom_column', ['BDDB_Typed_List', 'show_custom_meta_value'], 10, 2);
 
         //追加自定义的排序列
-        add_filter('manage_edit-movie_sortable_columns', 'BDDB_Typed_List::add_movie_sortable_columns');
-        add_filter('manage_edit-book_sortable_columns', 'BDDB_Typed_List::add_book_sortable_columns');
-        add_filter('manage_edit-game_sortable_columns', 'BDDB_Typed_List::add_game_sortable_columns');
-        add_filter('manage_edit-album_sortable_columns', 'BDDB_Typed_List::add_album_sortable_columns');
+        add_filter('manage_edit-movie_sortable_columns', ['BDDB_Typed_List', 'add_movie_sortable_columns']);
+        add_filter('manage_edit-book_sortable_columns', ['BDDB_Typed_List', 'add_book_sortable_columns']);
+        add_filter('manage_edit-game_sortable_columns', ['BDDB_Typed_List', 'add_game_sortable_columns']);
+        add_filter('manage_edit-album_sortable_columns', ['BDDB_Typed_List', 'add_album_sortable_columns']);
 
         //修改自己追加的meta列的排序方法（主要针对数字100和个位数）
-        add_action('pre_get_posts', 'BDDB_Typed_List::resort_meta_column_query');
+        add_action('pre_get_posts', ['BDDB_Typed_List', 'resort_meta_column_query']);
 
         //增加分类法的下拉列表
-        add_action('restrict_manage_posts', 'BDDB_Typed_List::add_taxonomy_filter_ddl', 10, 2);
+        add_action('restrict_manage_posts', ['BDDB_Typed_List', 'add_taxonomy_filter_ddl'], 10, 2);
 
         //不显示按月分类下拉列表
-        add_filter('disable_months_dropdown', 'BDDB_Typed_List::disable_month_filter_ddl', 10, 2);
+        add_filter('disable_months_dropdown', ['BDDB_Typed_List', 'disable_month_filter_ddl'], 10, 2);
 
         //修改每页最大显示条数
-        add_filter('edit_posts_per_page', 'BDDB_Typed_List::modify_list_per_page', 10, 2);
+        add_filter('edit_posts_per_page', ['BDDB_Typed_List', 'modify_list_per_page'], 10, 2);
 
         //添加可以快速编辑的meta项
-        add_action('quick_edit_custom_box', 'BDDB_Typed_List::add_quickedit_items', 10, 2);
+        add_action('quick_edit_custom_box', ['BDDB_Typed_List', 'add_quickedit_items'], 10, 2);
 
     }
 
@@ -239,7 +239,7 @@ class BDDB_Typed_List
      * @public
      * @param string 	$column_name	列标题
      * @param int 		$id				post_ID
-     * @return none
+     * @return void
      * @see		action::manage_posts_custom_column
      * @since 	0.2.0
      * @version 0.8.2
@@ -406,7 +406,7 @@ class BDDB_Typed_List
     /**
      * 显示taxonomy的下拉列表。
      * @param string 	$post_type
-     * @param array		$switch		未使用
+     * @param array		$which		未使用
      * @see		action::pre_get_posts
      * @since 	0.1.0
      * @version 0.5.4
@@ -476,7 +476,7 @@ class BDDB_Typed_List
      * 快速编辑页面显示追加的meta框。
      * @param	int		$column_name	列名（包括自己追加的前缀）		
      * @param	string	$post_type		类型
-     * @return  none
+     * @return  void
      * @see		filter::quick_edit_custom_box
      * @since 	0.2.1
      * @version 0.5.4
