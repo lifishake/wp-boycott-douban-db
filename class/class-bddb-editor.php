@@ -278,7 +278,7 @@ class BDDB_Editor_Factory
         $response = @wp_remote_get(
             $piclink,
             array(
-                'timeout' => 30000,
+                'timeout' => 300,
                 'headers' => array(
                     'Content-Type' => 'application/json', // Or 'application/x-www-form-urlencoded' depending on your API
                     'Authorization' => 'Bearer ' . $auth_key,
@@ -327,7 +327,7 @@ class BDDB_Editor_Factory
      * @see     AJAX::bddb_get_scovers
      * @return  void
      * @since   0.0.8
-     * @version 1.0.5
+     * @version 1.4.2       改进referer
      */
     public static function download_serial_pics()
     {
@@ -354,14 +354,18 @@ class BDDB_Editor_Factory
         for ($i = 0; $i < $serial_count; ++$i) {
             $dest = sprintf("%s%02d.webp", $obj_names->thumb_series_front, $i);
             $src = $parts[$i];
+            $domain = parse_url($src, PHP_URL_SCHEME) . '://' . parse_url($src, PHP_URL_HOST);
+            $ua = BDDB_Settings::getInstance()->get_user_agent();
+            $arg=array();
+            $arg['timeout'] = 180;
+            $arg['stream'] = true;
+            $arg['sslverify'] = false;
+            $arg['filename'] = $dest;
+            $arg['user-agent'] = $ua;
+            $arg['headers'] = ['Referer' => $domain];
             $response = @wp_remote_get(
                 htmlspecialchars_decode($src),
-                array(
-                    'timeout' => 180,
-                    'stream' => true,
-                    'filename' => $dest,
-                    'headers' => array('Referer' => $str_referer),
-                )
+                $arg,
             );
             if (is_wp_error($response)) {
                 continue;
