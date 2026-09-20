@@ -177,6 +177,10 @@ img.lazy-fade.loaded {
   margin-right: 20px;
 }
 
+.bddblist-post img {
+    width: 100px;
+}
+
 .doulist-subject .bddblist-post a img {
   box-shadow: 0 0 0 2px #666;
 }
