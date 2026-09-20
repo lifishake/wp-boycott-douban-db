@@ -341,3 +341,7 @@ img.lazy-fade.loaded {
   letter-spacing: 4px;
   color: #b2b7b3;
 }
+
+span.abs-list {
+  font-family: var(--🖊-context);
+}
