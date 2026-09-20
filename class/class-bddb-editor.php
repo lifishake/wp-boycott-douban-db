@@ -329,7 +329,7 @@ class BDDB_Editor_Factory
      * @since   0.0.8
      * @version 1.0.5
      */
-    public function download_serial_pics()
+    public static function download_serial_pics()
     {
         if (!isset($_POST['nonce']) || !isset($_POST['id']) || !isset($_POST['ptype']) || !isset($_POST['slinks'])) {
             wp_die();
