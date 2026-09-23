@@ -6,7 +6,7 @@
  * @file      fancygallery.js
  * @brief     处理照片墙动态显示相关
  * @since     1.0.0
- * @version   1.4.5     修改不正确的变量声明， 试图在ajax中实现模糊加载图片
+ * @version   1.4.6     修改不正确的变量声明， 试图在ajax中实现模糊加载图片
  * @date      2022-09-23
  */
 //ajax
@@ -122,7 +122,7 @@ jQuery(document).ready(function ($) {
         hide_loader();
         const $obj = $(results);
         const $newElems = $obj.find(".bddb-poster-thumb");
-        $(".list-poster-thumb").last().after($newElems);
+        $(".bddb-poster-thumb").last().after($newElems);
         initLazyFade($newElems);
       },
       error: function () {
