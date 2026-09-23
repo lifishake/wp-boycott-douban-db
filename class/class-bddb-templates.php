@@ -8,6 +8,7 @@
  * @author	大致
  * @version	1.3.2
  * @version 1.4.3	替换了取海报url的函数
+ * @version 1.4.4
  * @since	0.0.1
  * @par Revision History
  * - 1.3.2 修复array_map调用成员函数的问题，顺便修改了原有旧函数引用的圆括号写法，改为方括号。增加了函数调用模板template_type_callable()。给函数增加了返回值类型。
@@ -285,7 +286,8 @@ class BDDB_Common_Template
      * @public
      * @since	0.1.4
      * @version	1.4.3   更新了取海报url的函数
-     * @date    2026-09-22
+     * @version 1.4.4   紧急修复
+     * @date    2026-09-23
      * @see		add_shortcode()
      */
     public function show_record($atts, $content = null): string
@@ -308,7 +310,7 @@ class BDDB_Common_Template
             //1.悬挂体风格
             $subject_class = "v-overflowHidden doulist-subject";//1
             //2.缩略图
-            $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', strrev(sprintf("%08x", $id)));//2
+            $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', $poster_url, strrev(sprintf("%08x", $id)));//2
 
             //4.评分
             if ($src_score < 0 || $src_score > 100) {
