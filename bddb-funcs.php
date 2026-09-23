@@ -2,9 +2,10 @@
 /**
  * @file	bddb-funcs.php
  * @brief	外部接口和内部工具
- * @date	2026-02-24
+ * @date	2026-09-23
  * @author	大致
  * @version	1.2.7
+ * @version 1.4.3	将原来的整体获得名字相关的object拆分成多个普通函数
  * @since	0.0.1
  * 
  */
@@ -264,40 +265,86 @@ function bddb_get_poster_names($post_type, $ID)
 }
 
 /**
- * Summary of bddb_array_child_value_to_str
- * @param mixed $data
- * @param mixed $key
- * @param mixed $name_key
- * @param mixed $unknown_str
+ * @brief           获得封面海报链接
+ * @param string    $post_type
+ * @param int       $ID
+ * @param bool      $show_no_pic
+ * @since   1.4.3
+ * @version	1.4.3   统一了接口，将是否有pic的判断整合到当前函数中，外部一次调用
+ * @date            2026-09-22
  * @return string
  */
-function bddb_array_child_value_to_str($data, $key, $name_key = "name", $unknown_str = "")
-{
-    $ret = '';
-    if (array_key_exists($key, $data) && is_array($data[$key])) {
-        $subs = $data[$key];
-        if (count($subs) > 1) {
-            if (is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
-                $items = wp_list_pluck($subs, $name_key);
-                $ret .= implode(', ', $items);
-            } else {
-                $ret .= implode(', ', $subs);
-            }
-        } else if (!empty($subs)) {
-            if (is_array($subs[0]) && array_key_exists($name_key, $subs[0])) {
-                $ret .= $subs[0][$name_key];
-            } else {
-                $ret .= $subs[0];
-            }
-        } else {
-            $ret .= $unknown_str;
-        }
-    } elseif (array_key_exists($key, $data)) {
-        $ret .= $data[$key];
-    } else {
-        $ret .= $unknown_str;
+function bddb_get_poster_url($post_type, $ID, $show_no_pic = true) {
+    $dir_o = wp_normalize_path(BDDB_Settings::getInstance()->get_default_folder());
+    $gallery_url = home_url('/', is_ssl() ? 'https' : 'http') . $dir_o;
+    $name = sprintf("%s_%013d.webp", $post_type, $ID);
+    $rel_url = str_replace(home_url(), '', $gallery_url);
+    $rel_plugin_url = str_replace(home_url(), '', BDDB_PLUGIN_URL);
+    if (bddb_is_debug_mode()) {
+        $replace = is_ssl() ? 'https://localhost' : 'http://localhost';
+        $rel_url = str_replace($replace, '', $gallery_url);
+        $rel_plugin_url = str_replace($replace, '', BDDB_PLUGIN_URL);
     }
-    return $ret;
+    if ( true === $show_no_pic) {
+        $gallery_dir = wp_normalize_path(ABSPATH . $dir_o);
+        if (!(file_exists($gallery_dir . $name))) {
+            $poster_width = BDDB_Settings::getInstance()->get_poster_width($post_type);
+            $poster_height = BDDB_Settings::getInstance()->get_poster_height($post_type);
+            return sprintf("%simg/nocover_%s_%s.webp", $rel_plugin_url, $poster_width, $poster_height);
+        }
+    }
+    return $rel_url . $name;
+}
+
+/**
+ * @brief       根据文件种类生成文件名，不保证文件存在
+ * @param string $post_type
+ * @param int       $ID
+ * @return      string
+ * @version     1.4.3   改进调用方式
+ * @since       1.4.3
+ * @data        2026-09-21
+ */
+function bddb_get_poster_full_file_name($post_type, $ID) {
+    $name = sprintf("%s_%013d.webp", $post_type, $ID);
+    $dir_o = wp_normalize_path(BDDB_Settings::getInstance()->get_default_folder());
+    $gallery_dir = wp_normalize_path(ABSPATH . $dir_o);
+    return $gallery_dir . $name;
+}
+
+/**
+ * @brief           取得文件缩略图路径的前面部分
+ * @param string    $post_type
+ * @param int       $ID
+ * @return string
+ * @version     1.4.3   改进调用方式
+ * @since       1.4.3
+ * @data        2026-09-21
+ */
+function bddb_get_poster_thumb_series_front($post_type, $ID) {
+    $dir_o = wp_normalize_path(BDDB_Settings::getInstance()->get_default_folder());
+    $gallery_dir = wp_normalize_path(ABSPATH . $dir_o);
+    $thumb_series_front = $gallery_dir . 'thumbnails/' . sprintf("%s_%013d_", $post_type, $ID);
+    return $thumb_series_front;
+}
+
+/**
+ * @brief           取得文件缩略图的链接的前面部分
+ * @param string    $post_type
+ * @param int       $ID
+ * @return string
+ * @version     1.4.3   改进调用方式
+ * @since       1.4.3
+ * @data        2026-09-21
+ */
+function bddb_get_poster_thumb_url_front($post_type, $ID) {
+    $dir_o = wp_normalize_path(BDDB_Settings::getInstance()->get_default_folder());
+    $gallery_url = home_url('/', is_ssl() ? 'https' : 'http') . $dir_o;
+    $rel_url = str_replace(home_url(), '', $gallery_url);
+    if (bddb_is_debug_mode()) {
+        $rel_url = str_replace('http://localhost', '', $gallery_url);
+    }
+    return $rel_url . 'thumbnails/'. sprintf("%s_%013d_", $post_type, $ID);
 }
 
 /**

@@ -251,37 +251,10 @@ class BDDB_Typed_List
         } else {
             return;
         }
-        /*
-        if ('pic' == $meta) {
-            $image = new Bddb_SimpleImage();
-            $names = bddb_get_poster_names('book', $id);
-               $poster_full_name = $names->poster_name;
-            if (!file_exists($poster_full_name)) {
-                $out = '冇';
-                return $out;
-            }
-            $image_info = getimagesize($poster_full_name);
-            $full_width = BDDB_Settings::get_poster_width('book');
-            $full_height = BDDB_Settings::get_poster_height('book');
-            if (!$image_info ||
-                !is_array($image_info) ||
-                $image_info[0] != $full_width ||
-                $image_info[1] != $full_height) {
-                    $out = '要！';
-            }
-            else {
-                $out = '-';
-            }
-
-
-        }
-        else
-        */ {
-            $out = get_post_meta($id, $meta, true);
-            if (empty($out)) {
-                if (0 != $out) {
-                    $out = '&#8212;';
-                }
+        $out = get_post_meta($id, $meta, true);
+        if (empty($out)) {
+            if (0 != $out) {
+                $out = '&#8212;';
             }
         }
 

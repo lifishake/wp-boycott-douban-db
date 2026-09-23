@@ -49,6 +49,7 @@ class BDDB_Settings
      * @public
      * @since	0.1.0
      * @version	1.2.5
+     * @version 1.4.3   去除缩略图，增加各个信息墙slug
      * @date	2026-01-18
      */
     public function default_options()
@@ -63,28 +64,26 @@ class BDDB_Settings
             'cookie_keep_time' => 108000,
             'poster_width' => 400,
             'poster_height' => 592,
-            'thumbnail_width' => 100,
-            'thumbnail_height' => 148,
             'thumbnails_per_page' => 48,
+            'poster_width_movie' => 400,
+            'poster_height_movie' => 592,
             'poster_width_book' => 400,
             'poster_height_book' => 560,
-            'thumbnail_width_book' => 100,
-            'thumbnail_height_book' => 140,
             'b_max_serial_count' => 18,
             'poster_width_album' => 400,
             'poster_height_album' => 400,
-            'thumbnail_width_album' => 128,
-            'thumbnail_height_album' => 128,
             'poster_width_game' => 400,
             'poster_height_game' => 568,
-            'thumbnail_width_game' => 100,
-            'thumbnail_height_game' => 142,
             'tax_version' => '20220101',
             'type_version' => '20230210',
             'b_misc_map' => '',
             'm_misc_map' => '',
             'g_misc_map' => '',
             'a_misc_map' => '',
+            'book_gallery_name' => '',
+            'movie_gallery_name' => '',
+            'game_gallery_name' => '',
+            'album_gallery_name' => '',
             'a_languages_def' => '603-普通话;601-粤语;550-英语;796-日语;000-纯音乐;001-韩语',
             'b_countries_map' => '日,日本;美,美国;',
             //TODO
@@ -121,20 +120,12 @@ class BDDB_Settings
         $valid_img_strs = array(
             'poster_width_book',
             'poster_height_book',
-            'thumbnail_width_book',
-            'thumbnail_height_book',
             'poster_width_movie',
             'poster_height_movie',
-            'thumbnail_width_movie',
-            'thumbnail_height_movie',
             'poster_width_game',
             'poster_height_game',
-            'thumbnail_width_game',
-            'thumbnail_height_game',
             'poster_width_album',
             'poster_height_album',
-            'thumbnail_width_album',
-            'thumbnail_height_album',
         );
 
         foreach ($valid_img_strs as $valid_img_str) {
@@ -306,7 +297,7 @@ class BDDB_Settings
      * @return 	int
      * @since	0.1.6
      * @version	0.6.0
-     * @see		bddb_get_poster_names()
+     * @see		bddb_get_poster_url()
      * @see		bddb_check_paths()
      * @see		BDDB_Editor::download_pic()
      * @see		bddb_scripts()
@@ -327,7 +318,7 @@ class BDDB_Settings
      * @return 	int
      * @since	0.1.6
      * @version	0.6.0
-     * @see		bddb_get_poster_names()
+     * @see		bddb_get_poster_url()
      * @see		bddb_check_paths()
      * @see		BDDB_Editor::download_pic()
      * @see		bddb_scripts()
@@ -347,7 +338,6 @@ class BDDB_Settings
      * @return 	int
      * @since	0.3.6
      * @version	0.6.0
-     * @see		bddb_get_poster_names()
      * @see		bddb_check_paths()
      * @see		BDDB_Editor::download_pic()
      */
@@ -363,19 +353,16 @@ class BDDB_Settings
      * @return 	int
      * @since	0.1.6
      * @version	0.6.0
-     * @see		bddb_get_poster_names()
+     * @version 1.4.3       废弃了单独保存的缩略图配置项，改成正式图片的1/4
+     * @date    2026-09-22
+     * @see		bddb_get_poster_url()
      * @see		bddb_check_paths()
      * @see		BDDB_Editor::download_pic()
      */
 
     public function get_thumbnail_width($type)
     {
-        $options = $this->get_options();
-        if (!BDDB_Statics::is_valid_type($type)) {
-            return $options['thumbnail_width'];
-        }
-        $key = 'thumbnail_width_' . $type;
-        return $this->get_sized_template($options, $key, $options['thumbnail_width']);
+        return intval($this->get_poster_width($type) / 4);
     }
 
     /**
@@ -384,19 +371,16 @@ class BDDB_Settings
      * @return 	int
      * @since	0.1.6
      * @version	0.6.0
-     * @see		bddb_get_poster_names()
+     * @version 1.4.3       废弃了单独保存的缩略图配置项，改成正式图片的1/4
+     * @date    2026-09-22
+     * @see		bddb_get_poster_url()
      * @see		bddb_check_paths()
      * @see		BDDB_Editor::download_pic()
      */
 
     public function get_thumbnail_height($type)
     {
-        $options = $this->get_options();
-        if (!BDDB_Statics::is_valid_type($type)) {
-            return $options['thumbnail_height'];
-        }
-        $key = 'thumbnail_height_' . $type;
-        return $this->get_sized_template($options, $key, $options['thumbnail_height']);
+        return intval($this->get_poster_height($type) / 4) ;
     }
 
     /**
@@ -404,7 +388,7 @@ class BDDB_Settings
      * @return 	string
      * @since	0.1.6
      * @version	0.6.0
-     * @see		bddb_get_poster_names()
+     * @see		bddb_get_poster_url()
      * @see		bddb_get_check_paths()
      * @see		bddb_maintain_render()
      */
@@ -520,6 +504,71 @@ class BDDB_Settings
         $valid_slugs = array_map('trim', $valid_slugs);
         return in_array(trim($slug), $valid_slugs);
     }
+
+    /**
+     * @brief   判断页面是否是书墙
+     * @version 1.4.3
+     * @since   1.4.3
+     * @date    2026-09-22
+     * @return bool
+     */
+    public function is_book_gallery_page() {
+        $options = $this->get_options();
+        $slug = $options['book_gallery_name'];
+        if (!$slug) {
+            return false;
+        }
+        return is_page($slug);
+    }
+
+    /**
+     * @brief   判断页面是否是影墙
+     * @version 1.4.3
+     * @since   1.4.3
+     * @date    2026-09-22
+     * @return bool
+     */
+    public function is_movie_gallery_page() {
+        $options = $this->get_options();
+        $slug = $options['movie_gallery_name'];
+        if (!$slug) {
+            return false;
+        }
+        return is_page($slug);
+    }
+
+    /**
+     * @brief   判断页面是否是游戏墙
+     * @version 1.4.3
+     * @since   1.4.3
+     * @date    2026-09-22
+     * @return bool
+     */
+    public function is_game_gallery_page() {
+        $options = $this->get_options();
+        $slug = $options['game_gallery_name'];
+        if (!$slug) {
+            return false;
+        }
+        return is_page($slug);
+    }
+
+    /**
+     * @brief   判断页面是否是专辑墙
+     * @version 1.4.3
+     * @since   1.4.3
+     * @date    2026-09-22
+     * @return bool
+     */
+    public function is_album_gallery_page() {
+        $options = $this->get_options();
+        $slug = $options['album_gallery_name'];
+        if (!$slug) {
+            return false;
+        }
+        return is_page($slug);
+    }
+
 }
 ;//class
 

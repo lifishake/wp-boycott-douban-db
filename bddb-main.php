@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.4.2
- * Date:        2026-09-20
+ * Version:     1.4.3
+ * Date:        2026-09-21
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -252,10 +252,26 @@ function bddb_admin_init()
 	BDDB_Editor_Factory::admin_init();
 }
 
-//js和css初始化
+/**
+ * @brief 	js和css初始化
+ * @since 	0.1.2
+ * @version 1.4.3 增加关于gallery page 的判断
+ * @date 	2026-09-22
+ * @return void
+ */
 function bddb_scripts()
 {
-	if (is_page(array('moviesgallery', 'booksgallery', 'gamesgallery', 'albumsgallery'))) {
+	$page_type = '';
+	if (BDDB_Settings::getInstance()->is_book_gallery_page()) {
+		$page_type = 'book';
+	} else if (BDDB_Settings::getInstance()->is_movie_gallery_page()) {
+		$page_type = 'movie';
+	} else if (BDDB_Settings::getInstance()->is_game_gallery_page()) {
+		$page_type = 'game';
+	} else if (BDDB_Settings::getInstance()->is_album_gallery_page()) {
+		$page_type = 'album';
+	}
+	if ('' !== $page_type) {
 		remove_action('wp_head', 'print_emoji_detection_script', 7);
 		remove_action('wp_print_styles', 'print_emoji_styles');
 		wp_enqueue_script('bddb-fancy', BDDB_PLUGIN_URL . 'js/fancybox.umd.js', array(), '20211123', true);
@@ -264,23 +280,14 @@ function bddb_scripts()
 		wp_localize_script('bddb-fancy-func', 'ajaxurl', array('url' => admin_url('admin-ajax.php')));
 		wp_enqueue_style('bddb-boxstyle', BDDB_PLUGIN_URL . 'css/fancybox.css', array(), BDDB_STYLE_VER);
 		$css = '';
-		$rate = floatval(BDDB_Settings::getInstance()->get_poster_height(false) / BDDB_Settings::getInstance()->get_poster_width(false));
-
-		if (is_page('booksgallery')) {
-			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('book') / BDDB_Settings::getInstance()->get_poster_width('book'));
-		} elseif (is_page('moviesgallery')) {
-			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('movie') / BDDB_Settings::getInstance()->get_poster_width('movie'));
-		} elseif (is_page('gamesgallery')) {
-			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('game') / BDDB_Settings::getInstance()->get_poster_width('game'));
-		} elseif (is_page('albumsgallery')) {
-			$rate = floatval(BDDB_Settings::getInstance()->get_poster_height('album') / BDDB_Settings::getInstance()->get_poster_width('album'));
-		}
+		$rate = floatval(BDDB_Settings::getInstance()->get_poster_height($page_type) / BDDB_Settings::getInstance()->get_poster_width($page_type));
 		$thumbs_height = intval(80 * $rate);
 		$css = ".fancybox__container {	--fancybox-thumbs-width: 80px;	--fancybox-thumbs-height: {$thumbs_height}px;  }";
 		wp_add_inline_style('bddb-boxstyle', $css);
 
 		wp_enqueue_style('bddb-gallery-boxstyle', BDDB_PLUGIN_URL . 'css/bddb-fancy-gallery.css', array(), BDDB_STYLE_VER);
 	}
+
 	wp_enqueue_style('bddb-style-front', BDDB_PLUGIN_URL . 'css/bddb.css', array(), BDDB_STYLE_VER);
 }
 

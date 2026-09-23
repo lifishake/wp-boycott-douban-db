@@ -4,8 +4,8 @@
  * @file    class-bddb-editor.php
  * @brief   bddb后台编辑页面
  * @since   0.0.1
- * @version 1.3.8
- * @date    2026-09-18
+ * @version 1.4.3	替换了获取海报图片和url的函数
+ * @date    2026-09-23
  */
 
 if (!class_exists('BDDB_Settings')) {
@@ -140,14 +140,9 @@ class BDDB_Editor_Factory
         }
 
         $options = BDDB_Settings::getInstance()->get_options();
-        $names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
-        $poster_full_name = $names->poster_name;
-        $thumbnail_full_name = $names->thumb_name;
+        $poster_full_name = bddb_get_poster_full_file_name($_POST['ptype'], $_POST['id']);
         if (file_exists($poster_full_name)) {
             unlink($poster_full_name);
-        }
-        if (file_exists($thumbnail_full_name)) {
-            unlink($thumbnail_full_name);
         }
         $piclink = htmlspecialchars_decode($_POST['piclink']);
         if (strpos($piclink, "doubanio.com") > 0 && strpos($piclink, ".webp") > 0) {
@@ -173,8 +168,6 @@ class BDDB_Editor_Factory
 
         $full_width = BDDB_Settings::getInstance()->get_poster_width($_POST['ptype']);
         $full_height = BDDB_Settings::getInstance()->get_poster_height($_POST['ptype']);
-        $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($_POST['ptype']);
-        $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height($_POST['ptype']);
 
         $image = new Bddb_SimpleImage();
         $image->load($poster_full_name);
@@ -190,8 +183,6 @@ class BDDB_Editor_Factory
 
         $image->resize($full_width, $full_height);
         $image->save($poster_full_name, IMAGETYPE_WEBP);
-        //$image->resize($thumb_width, $thumb_height);
-        //$image->save($thumbnail_full_name);
         wp_die();
     }
 
@@ -211,17 +202,13 @@ class BDDB_Editor_Factory
             wp_die();
         }
         $options = BDDB_Settings::getInstance()->get_options();
-        $names = bddb_get_poster_names('movie', $_POST['id']);
-        $poster_full_name = $names->poster_name;
-        $thumbnail_full_name = $names->thumb_name;
+        $poster_full_name = bddb_get_poster_full_file_name('movie', $_POST['id']);
         if (file_exists($poster_full_name)) {
             unlink($poster_full_name);
         }
-        if (file_exists($thumbnail_full_name)) {
-            unlink($thumbnail_full_name);
-        }
 
         $omdb_ret = BDDB_Fetcher::fetch($_POST['imdbno']);
+        $ua = BDDB_Settings::getInstance()->get_user_agent();
         $piclink = $omdb_ret['content']['pic'];
         $piclink = htmlspecialchars_decode($piclink);
         $domain = parse_url($piclink, PHP_URL_SCHEME) . '://' . parse_url($piclink, PHP_URL_HOST);
@@ -230,6 +217,7 @@ class BDDB_Editor_Factory
             array(
                 'timeout' => 180,
                 'stream' => true,
+                'user-agent' =>$ua,
                 'filename' => $poster_full_name,
                 'headers' => array('Referer' => $domain),
             )
@@ -239,14 +227,10 @@ class BDDB_Editor_Factory
         }
         $full_width = BDDB_Settings::getInstance()->get_poster_width('movie');
         $full_height = BDDB_Settings::getInstance()->get_poster_height('movie');
-        $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width('movie');
-        $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height('movie');
         $image = new Bddb_SimpleImage();
         $image->load($poster_full_name);
         $image->resize($full_width, $full_height);
         $image->save($poster_full_name, IMAGETYPE_WEBP);
-        //$image->resize($thumb_width, $thumb_height);
-        //$image->save($thumbnail_full_name);
         wp_die();
     }
 
@@ -328,6 +312,8 @@ class BDDB_Editor_Factory
      * @return  void
      * @since   0.0.8
      * @version 1.4.2       改进referer
+     * @version 1.4.3       改进了bddb_get_name
+     * @date                2026-09-22
      */
     public static function download_serial_pics()
     {
@@ -342,17 +328,17 @@ class BDDB_Editor_Factory
         $default_serial_count = $options['b_max_serial_count'];
         $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width('book');
         $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height('book');
-        $obj_names = bddb_get_poster_names($_POST['ptype'], $_POST['id']);
         $slinks = $_POST['slinks'];
         $parts = explode(";", $slinks);
         $serial_count = min(count($parts), $default_serial_count, $_POST['stotal']);
+        $thumb_series_front = bddb_get_poster_thumb_series_front($_POST['ptype'], $_POST['id']);
         for ($i = 0; $i < $default_serial_count; ++$i) {
-            $dest = sprintf("%s%02d.webp", $obj_names->thumb_series_front, $i);
+            $dest = sprintf("%s%02d.webp", $thumb_series_front, $i);
             if (file_exists($dest))
                 unlink($dest);
         }
         for ($i = 0; $i < $serial_count; ++$i) {
-            $dest = sprintf("%s%02d.webp", $obj_names->thumb_series_front, $i);
+            $dest = sprintf("%s%02d.webp", $thumb_series_front, $i);
             $src = $parts[$i];
             $domain = parse_url($src, PHP_URL_SCHEME) . '://' . parse_url($src, PHP_URL_HOST);
             $ua = BDDB_Settings::getInstance()->get_user_agent();
@@ -624,22 +610,12 @@ class BDDB_Editor
      * @param   object $post  正在编辑的wp的post
      * @see     add_meta_box()
      * @since   0.0.1
-     * @version 1.1.6
-     * @date    2025-11-30
+     * @version 1.4.3 使用新函数获取图片url
+     * @date    2026-09-22
      */
     public function show_status_meta_box($post)
     {
-        $names = bddb_get_poster_names($post->post_type, $post->ID);
-        //TODO: webp改完后删除
-        $is_new_style = file_exists($names->poster_name);
-        $is_got_thumb = $is_new_style;
-
-        $img_url = $names->nopic_thumb_url;
-        if ($is_new_style) {
-            $img_url = $names->poster_url;
-        } else if (is_file($names->old_poster_name)) {
-            $img_url = $names->old_poster_url;
-        }
+        $img_url = bddb_get_poster_url($post->post_type, $post->ID, true);
 
         $val_str = get_post_meta($post->ID, 'bddb_id_douban', true);
         if (empty($val_str)) {
@@ -1046,14 +1022,15 @@ class BDDB_Editor
      * @see     $this->show_meta_box()->iscallable('comment')
      * @since   0.0.1
      * @version 1.3.5   2026-09-18 dest_src中更新的内容，从thumbnail更新为图片本身
-     * @date    2026-09-18
+     * @version	1.4.3   更新了取海报url的函数
+     * @date    2026-09-22
      * 
      */
     protected function echo_poster_button($post)
     {
         $nonce_str = wp_create_nonce('bddb-get-pic-' . $post->ID);
-        $names = bddb_get_poster_names($post->post_type, $post->ID);
-        $btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="' . $post->ID . '" ptype="' . $post->post_type . '" wpnonce="' . $nonce_str . '" dest_src="' . $names->poster_url . '" >取得</button>';
+        $poster_url = bddb_get_poster_url($post->post_type, $post->ID, false);
+        $btn_get = '<button class="button" name="bddb_get_pic_btn" type="button" pid="' . $post->ID . '" ptype="' . $post->post_type . '" wpnonce="' . $nonce_str . '" dest_src="' . $poster_url . '" >取得</button>';
         $btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_rrotate" value="0"/>右转90°</label>';
         $btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_cover" value="0"/>剪裁封面</label>';
         $btn_get .= '<label><input class="check-r90" type="checkbox" name="bddb_pic_adape" value="0"/>自适应</label>';
@@ -1099,13 +1076,14 @@ class BDDB_Editor
      * @see     $this->show_meta_box()->iscallable('comment')
      * @since   0.3.5
      * @version 1.3.8   2026-09-18 dest_src中更新的内容，从thumbnail更新为图片本身
-     * @date    2026-09-18
+     * @version	1.4.3   更新了取海报url的函数
+     * @date    2026-09-22
      */
     protected function echo_imdbpic_button($post)
     {
         $nonce_str = wp_create_nonce('bddb-get-imdbpic-' . $post->ID);
-        $names = bddb_get_poster_names('movie', $post->ID);
-        $btn_get = '<button class="button" name="bddb_get_imdbpic_btn" type="button" pid="' . $post->ID . '" wpnonce="' . $nonce_str . '" dest_src="' . $names->poster_url . '" >imdb海报</button>';
+        $poster_url = bddb_get_poster_url('movie', $post->ID, false);
+        $btn_get = '<button class="button" name="bddb_get_imdbpic_btn" type="button" pid="' . $post->ID . '" wpnonce="' . $nonce_str . '" dest_src="' . $poster_url . '" >imdb海报</button>';
         return $btn_get;
     }
 

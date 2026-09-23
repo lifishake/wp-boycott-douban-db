@@ -4,9 +4,10 @@
  * @file	class-bddb-templates.php
  * @class	BDDB_Common_Template
  * @brief	内容显示用类，包括gallery显示和嵌入文章显示
- * @date	2026-07-06
+ * @date	2026-09-23
  * @author	大致
  * @version	1.3.2
+ * @version 1.4.3	替换了取海报url的函数
  * @since	0.0.1
  * @par Revision History
  * - 1.3.2 修复array_map调用成员函数的问题，顺便修改了原有旧函数引用的圆括号写法，改为方括号。增加了函数调用模板template_type_callable()。给函数增加了返回值类型。
@@ -283,14 +284,14 @@ class BDDB_Common_Template
      * @param	array	$atts	短代码属性，该函数中只包括一个$id。
      * @public
      * @since	0.1.4
-     * @version	1.3.2
-     * @date    2026-08-18
+     * @version	1.4.3   更新了取海报url的函数
+     * @date    2026-09-22
      * @see		add_shortcode()
      */
     public function show_record($atts, $content = null): string
     {
         extract($atts);
-        $obj_name = bddb_get_poster_names($this->self_post_type, $id);
+        $poster_url = bddb_get_poster_url($this->self_post_type, $id, true);
         $src_is_series = $this->get_meta_str('b_bl_series', $id);
         $src_title = $this->get_meta_str('bddb_display_name', $id);
         $src_link = $this->get_meta_str('bddb_external_link', $id);
@@ -302,23 +303,12 @@ class BDDB_Common_Template
         $summary = array_column($this->total_items, 'summary');
         array_multisort($summary, array_column($this->total_items, 'name'), $this->total_items);
 
-        //TODO: 完全迁移成webp后删除
-        $is_new_style = file_exists($obj_name->poster_name);
-
         if (empty($src_is_series)) {
             $template = '<div class="bddb-item"><div class="mod"><div class="%1$s"><div class="bddblist-post">%2$s</div><div class="title">%3$s</div><div class="rating">%4$s</div><div class="abstract">%5$s</div></div></div></div>';
             //1.悬挂体风格
             $subject_class = "v-overflowHidden doulist-subject";//1
             //2.缩略图
-
-            if ($is_new_style) {
-                $thumb_width = BDDB_Settings::getInstance()->get_thumbnail_width($this->self_post_type);
-                $thumb_height = BDDB_Settings::getInstance()->get_thumbnail_height($this->self_post_type);
-                $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', $obj_name->poster_url, base64_encode($obj_name->short_name));//2
-            } else {
-                $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', $obj_name->thumb_url, base64_encode($obj_name->short_name));//2
-            }
-
+            $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', strrev(sprintf("%08x", $id)));//2
 
             //4.评分
             if ($src_score < 0 || $src_score > 100) {
@@ -915,14 +905,12 @@ class BDDB_Common_Template
      * @private
      * @since   0.0.1
      * @version	1.3.2
-     * @date    2026-07-06
+     * @version 1.4.3   更新了获取封面url的函数
+     * @date    2026-09-22
      * @see     the_gallery()
      */
     private function get_poster_for_gallery($id): string
     {
-        $obj_name = bddb_get_poster_names($this->self_post_type, $id);
-
-        $detail_str = '';
         $panel = array_column($this->total_items, 'panel');
         array_multisort($panel, array_column($this->total_items, 'name'), $this->total_items);
         //get_xxx_info
@@ -932,44 +920,15 @@ class BDDB_Common_Template
             $info_str .= $rtr;
         }
 
-        //TODO: 完成webp修改后删除
-        $is_new_style = file_exists($obj_name->poster_name);
-        if ($is_new_style) {
-            $poster_url = $obj_name->poster_url;
-        } else {
-            if (file_exists($obj_name->old_poster_name)) {
-                $poster_url = $obj_name->old_poster_url;
-            } else {
-                $poster_url = $obj_name->nopic_poster_url;
-            }
-        }
+        $poster_url = bddb_get_poster_url($this->self_post_type, $id, true);
 
-        $thumb_url = $poster_url;
         $tooltip = $this->get_poster_tooltip($id);
         $addi_class = $this->template_type_callable("get_", "_poster_class", $id);
 
         //20230313 使用最后更新时间作为缩略图刷新标识
         //U是php中相对1970-01-01的秒数，足够了。
         $ts = "?ts=" . strval(get_post_modified_time("U", false, $id));
-
-        /*
-        20230214暂时注掉，不用缩略图看看效果
-        if(file_exists($obj_name->thumb_name)) {
-            $thumb_url = $obj_name->thumb_url;
-        }else{
-            $thumb_url = $obj_name->nopic_thumb_url;
-        }
-        */
-
-
-        //$ts = "?ts=".strval(time() + mt_rand(0,9999));		
-        //$ts = "";//暂时去掉让浏览器一直刷新海报功能 20220523
-        //恢复让海报一直刷新的功能 20220607
-
-        //20251230 改为直接加loading='lazy'
-        //20260105，改回data-src模式
-        //$ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img data-src='{$thumb_url}{$ts}' src='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' lazy='true' alt='{$id}' /><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
-        $ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$thumb_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
+        $ret = "<a href='{$poster_url}' data-fancybox='gallery' data-info='{$info_str}' ><img src='{$poster_url}{$ts}' loading='lazy' alt='{$id}' class='lazy-fade'/><span class='tooltiptext'>{$tooltip}</span>{$addi_class}</a>";
 
         return $ret;
 
@@ -1375,24 +1334,17 @@ class BDDB_Common_Template
         $abs_str = $this->abstract_common_loop($id);
         $images = '';
         $count = BDDB_Settings::getInstance()->get_max_serial_count();
-        $obj_names = bddb_get_poster_names($this->self_post_type, $id);
-        //TODO：webp改完后删除
-        $is_new_style = file_exists($obj_names->poster_name);
-
+        $thumb_url_front = bddb_get_poster_thumb_url_front($this->self_post_type, $id);
+        $thumb_series_front = bddb_get_poster_thumb_series_front($this->self_post_type, $id);
         for ($i = 0; $i < $count; ++$i) {
-            if ($is_new_style) {
-                $short_name = sprintf('%s_%013d_%02d.webp', $this->self_post_type, $id, $i);
-                $thumbnail_full_name = $obj_names->thumb_dir . $short_name;
-            } else {
-                $short_name = sprintf('%s_%013d_%02d.jpg', $this->self_post_type, $id, $i);
-                $thumbnail_full_name = $obj_names->thumb_dir . $short_name;
-            }
-            $thumbnail_full_name = $obj_names->thumb_dir . $short_name;
+            $thumbnail_full_name = sprintf("%s%02d.webp", $thumb_series_front, $i);
+            $thumbnail_full_url = sprintf("%s%02d.webp", $thumb_url_front, $i);
+            $rev_short_name = strrev(sprintf("%08x_%02d",$id, $i));
             if (!file_exists($thumbnail_full_name)) {
                 continue;
             }
-            $url = $obj_names->thumb_url_front . $short_name;
-            $images .= sprintf('<div class="bddblist-post"><img src="%1$s" alt="%2$s" loading="lazy"></img></div>', $url, base64_encode($short_name));
+
+            $images .= sprintf('<div class="bddblist-post"><img src="%1$s" alt="%2$s" loading="lazy"></img></div>', $thumbnail_full_url, $rev_short_name);
         }
         return sprintf($template, $abs_str, $images);
     }

@@ -38,9 +38,9 @@ function bddb_add_admin_menu() {
  * @brief   添加渲染用的组件
  * @since	0.0.1
  * @version 1.2.5
- * @date	2026-01-18
+ * @date	2026-09-22
 */
-function bddb_settings_init(  ) {
+function bddb_settings_init() {
     $arg = array(
         'sanitize_callback' => 'bddb_sanitize_options',
         'default' => BDDB_Settings::getInstance()->default_options(),
@@ -148,6 +148,14 @@ function bddb_settings_init(  ) {
     'bddb_m_tmdb_key',
     'themoviedb Auth KEY',
     'bddb_m_tmdb_key_render',
+    'bddb_movie_tab',
+    'bddb_movie_section'
+    );
+
+    add_settings_field(
+    'bddb_m_poster_setting',
+    '电影海报设置',
+    'bddb_m_poster_render',
     'bddb_movie_tab',
     'bddb_movie_section'
     );
@@ -326,8 +334,6 @@ function bddb_poster_render() {
     <span>每页缓存海报数：</span><input type='text' name='bddb_settings[thumbnails_per_page]' class='input-short' value='<?php echo $options['thumbnails_per_page']; ?>'/></br>
     <span>图像宽度：</span><input type='text' name='bddb_settings[poster_width]' class='input-short' value='<?php echo $options['poster_width']; ?>'/><br />
     <span>图像高度：</span><input type='text' name='bddb_settings[poster_height]' class='input-short' value='<?php echo $options['poster_height']; ?>'/><br />
-    <span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width]' class='input-short' value='<?php echo $options['thumbnail_width']; ?>'/></br>
-    <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height]' class='input-short' value='<?php echo $options['thumbnail_height']; ?>'/></br>
 <?php
 }
 
@@ -413,10 +419,27 @@ function bddb_m_tmdb_key_render()
 }
 
 /**
+ * @brief	渲染电影封面规格输入项。
+ * @since	  1.4.3
+ * @version	  1.4.3
+ * @date      2026-09-22
+*/
+function bddb_m_poster_render()
+{
+    $options = BDDB_Settings::getInstance()->get_options();
+?>
+    <span>设定电影封面宽度和高度，false为与总体设定一致，建议比例1：1.48：</span><br />
+    <span>封面宽度：</span><input type='text' name='bddb_settings[poster_width_book]' class='input-short' value='<?php echo $options['poster_width_movie']; ?>'/></br>
+    <span>封面高度：</span><input type='text' name='bddb_settings[poster_height_book]' class='input-short' value='<?php echo $options['poster_height_movie']; ?>'/></br>
+    <span>电影墙slug：</span><input type='text' name='bddb_settings[movie_gallery_name]' class='input-short' value='<?php echo $options['movie_gallery_name']; ?>'/>
+<?php
+}
+
+/**
  * @brief	渲染书籍封面和缩略图规格输入项。
  * @since	  0.6.2
  * @version	  1.1.6
- * @data      2025-11-30
+ * @date      2025-11-30
 */
 function bddb_b_poster_render()
 {
@@ -425,8 +448,7 @@ function bddb_b_poster_render()
     <span>设定书籍封面宽度和高度，false为与总体设定一致，建议比例1：1.40：</span><br />
     <span>封面宽度：</span><input type='text' name='bddb_settings[poster_width_book]' class='input-short' value='<?php echo $options['poster_width_book']; ?>'/></br>
     <span>封面高度：</span><input type='text' name='bddb_settings[poster_height_book]' class='input-short' value='<?php echo $options['poster_height_book']; ?>'/></br>
-    <span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_book]' class='input-short' value='<?php echo $options['thumbnail_width_book']; ?>'/></br>
-    <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_book]' class='input-short' value='<?php echo $options['thumbnail_height_book']; ?>'/></br>
+    <span>书墙slug：</span><input type='text' name='bddb_settings[book_gallery_name]' class='input-short' value='<?php echo $options['book_gallery_name']; ?>'/>
 <?php
 }
 
@@ -470,8 +492,7 @@ function bddb_g_poster_render()
     <span>设定游戏海报宽度和高度，false为与总体设定一致，建议比例1：1.42：</span><br />
     <span>海报宽度：</span><input type='text' name='bddb_settings[poster_width_game]' class='input-short' value='<?php echo $options['poster_width_game']; ?>'/></br>
     <span>海报高度：</span><input type='text' name='bddb_settings[poster_height_game]' class='input-short' value='<?php echo $options['poster_height_game']; ?>'/></br>
-    <span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_game]' class='input-short' value='<?php echo $options['thumbnail_width_game']; ?>'/></br>
-    <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_game]' class='input-short' value='<?php echo $options['thumbnail_height_game']; ?>'/></br>
+    <span>游戏墙slug：</span><input type='text' name='bddb_settings[game_gallery_name]' class='input-short' value='<?php echo $options['game_gallery_name']; ?>'/>
 <?php
 }
 
@@ -503,8 +524,7 @@ function bddb_a_poster_render()
     <span>设定专辑图片宽度和高度，false为与总体设定一致，建议比例1：1：</span><br />
     <span>海报宽度：</span><input type='text' name='bddb_settings[poster_width_album]' class='input-short' value='<?php echo $options['poster_width_album']; ?>'/></br>
     <span>海报高度：</span><input type='text' name='bddb_settings[poster_height_album]' class='input-short' value='<?php echo $options['poster_height_album']; ?>'/></br>
-    <span>缩略图宽度：</span><input type='text' name='bddb_settings[thumbnail_width_album]' class='input-short' value='<?php echo $options['thumbnail_width_album']; ?>'/></br>
-    <span>缩略图高度：</span><input type='text' name='bddb_settings[thumbnail_height_album]' class='input-short' value='<?php echo $options['thumbnail_height_album']; ?>'/></br>
+    <span>专辑墙slug：</span><input type='text' name='bddb_settings[album_gallery_name]' class='input-short' value='<?php echo $options['album_gallery_name']; ?>'/>
 <?php
 }
 
@@ -621,14 +641,8 @@ function bddb_list_no_id_pics() {
             continue;
         }
         $label = $arr_scaned_result[$no_id]['type'];
-        $width = $options['thumbnail_width'];
-        $height = $options['thumbnail_height'];
-        if (array_key_exists('thumbnail_width_'.$label, $options)) {
-            $width = $options['thumbnail_width_'.$label];
-        }
-        if (array_key_exists('thumbnail_height_'.$label, $options)) {
-            $height = $options['thumbnail_height_'.$label];
-        }
+        $width = intval($options['poster_width_'.$label] / 4);
+        $height = intval($options['poster_height_'.$label] / 4);
         $pic_name = end($arr_scaned_result[$no_id]['files']);
         $pic_src = sprintf('<img src="%1$s" width="%2$d" height="%3$d"/>',
                                                 $arr_scaned_result[$no_id]['url'],
