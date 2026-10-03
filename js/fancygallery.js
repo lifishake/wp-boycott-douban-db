@@ -7,7 +7,8 @@
  * @brief     处理照片墙动态显示相关
  * @since     1.0.0
  * @version   1.4.6     修改不正确的变量声明， 试图在ajax中实现模糊加载图片
- * @date      2022-09-23
+ * @version   1.4.7     修改变量类型引起的错误
+ * @date      2022-10-03
  */
 //ajax
 jQuery(document).ready(function ($) {
@@ -154,7 +155,7 @@ function dec_to_hex_string(dec, length) {
 
 function rgb_to_hex_string(rgb_array) {
   let hex_string = "";
-  for (const i = 0; i < rgb_array.length; i++) {
+  for (let i = 0; i < rgb_array.length; i++) {
     hex_string += dec_to_hex_string(rgb_array[i], 2);
   }
   return "#" + hex_string;
