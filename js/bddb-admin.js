@@ -1,9 +1,10 @@
 /**
  * @file	bddb-admin.js
  * @brief	处理后台编辑画面
- * @date	2026-09-18
+ * @date	2026-10-07
  * @author	大致
  * @version	1.3.7   适配webp
+ * @version 1.4.8   修正了JQuery语法对于checkbox判断无效的bug
  * @since	0.0.1
  *
  */
@@ -287,12 +288,19 @@ jQuery(document).ready(function ($) {
   });
 
   //取图片按钮
+  /**
+   * @brief 取图片按钮
+   * @since 0.7.1
+   * @version 1.4.8   修正了JQuery语法对于checkbox判断无效的bug
+   * @date  2026-10-07
+   * 
+   */
   $('button[name="bddb_get_pic_btn"]').click(function () {
     const pic_link = $("[name='bddb_poster_link']")[0]?.value ?? "";
     const dest_pic = this.getAttribute("dest_src");
-    const need_rrotate = $("[name='bddb_pic_rrotate']")[0]?.value ?? "0";
-    const need_cover = $("[name='bddb_pic_cover']")[0]?.value ?? "0";
-    const need_adapt = $("[name='bddb_pic_adape']")[0]?.value ?? "0";
+    const need_rrotate = $("[name='bddb_pic_rrotate']")[0]?.checked ?? false;
+    const need_cover = $("[name='bddb_pic_cover']")[0]?.checked ?? false;
+    const need_adapt = $("[name='bddb_pic_adape']")[0]?.checked ?? false;
     if (!pic_link) {
       return;
     }
@@ -302,9 +310,9 @@ jQuery(document).ready(function ($) {
       id: this.getAttribute("pid"),
       ptype: this.getAttribute("ptype"),
       piclink: pic_link,
-      rrotate: need_rrotate,
-      makecover: need_cover,
-      adapt: need_adapt,
+      rrotate: need_rrotate ?"1":"0",
+      makecover: need_cover ?"1":"0",
+      adapt: need_adapt ?"1":"0",
     };
     $.ajax({
       url: ajaxurl,
