@@ -285,9 +285,10 @@ class BDDB_Common_Template
      * @param	array	$atts	短代码属性，该函数中只包括一个$id。
      * @public
      * @since	0.1.4
-     * @version	1.4.3   更新了取海报url的函数
-     * @version 1.4.4   紧急修复
-     * @date    2026-09-23
+     * @note	1.4.3   更新了取海报url的函数
+     * @note    1.4.4   紧急修复
+     * @version 1.4.9   给系列的横线上加星
+     * @date    2026-10-23
      * @see		add_shortcode()
      */
     public function show_record($atts, $content = null): string
@@ -304,23 +305,21 @@ class BDDB_Common_Template
         $title_str = sprintf('<a href="%1$s" class="cute" target="_blank" rel="external nofollow">%2$s</a>', $src_link, $src_title);//3
         $summary = array_column($this->total_items, 'summary');
         array_multisort($summary, array_column($this->total_items, 'name'), $this->total_items);
-
+        //1.悬挂体风格
+        $subject_class = "v-overflowHidden doulist-subject";//1
+        //4.评分
+        if ($src_score < 0 || $src_score > 100) {
+            $my_score = '0';
+        } else {
+            $my_score = strval((int) ($src_score / 10));
+            $subject_class .= " my-score-" . $my_score;
+        }
         if (empty($src_is_series)) {
             $template = '<div class="bddb-item"><div class="mod"><div class="%1$s"><div class="bddblist-post">%2$s</div><div class="title">%3$s</div><div class="rating">%4$s</div><div class="abstract">%5$s</div></div></div></div>';
-            //1.悬挂体风格
-            $subject_class = "v-overflowHidden doulist-subject";//1
+
             //2.缩略图
             $img_str = sprintf('<img loading="lazy" src="%1$s" alt="%2$s"></img>', $poster_url, strrev(sprintf("%08x", $id)));//2
 
-            //4.评分
-            if ($src_score < 0 || $src_score > 100) {
-                $my_score = '0';
-            } else {
-                $my_score = strval((int) ($src_score / 10));
-                if ($src_score >= 0)
-                    $subject_class .= " my-score-" . $my_score;
-
-            }
             $rating_str = sprintf(
                 '<span class="allstardark">%1$s%2$s</span>',
                 sprintf('<span class="dou-stars-%s"></span>', $src_score_social),
@@ -330,9 +329,9 @@ class BDDB_Common_Template
             $abstract_str = $this->template_type_callable("get_", "_abstract", $id);
             return sprintf($template, $subject_class, $img_str, $title_str, $rating_str, $abstract_str);
         } else { //系列
-            $template = '<div class="bddb-item"><div class="mod"><div class="v-overflowHidden doulist-subject"><div class="title">%1$s</div>%2$s</div></div></div>';
+            $template = '<div class="bddb-item"><div class="mod"><div class="%1$s"><div class="title">%2$s</div>%3$s</div></div></div>';
             $abstract_str = $this->template_type_callable("get_", "_abstract_series", $id);
-            return sprintf($template, $title_str, $abstract_str);
+            return sprintf($template, $subject_class, $title_str, $abstract_str);
         }
     }
     /********    外部函数 结束    ********/
