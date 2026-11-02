@@ -90,8 +90,8 @@ img.lazy-fade.loaded {
   line-height: 1.5;
   overflow: hidden;
   padding: 13px;
-  border-top: 1px solid #e7e7e7;
-  border-bottom: 1px solid #e7e7e7;
+  border-top: 1px solid RGBA(231,231,231,0.77);
+  border-bottom: 1px solid RGBA(231,231,231,0.77);
 }
 
 .doulist-subject::before {

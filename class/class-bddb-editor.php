@@ -4,8 +4,9 @@
  * @file    class-bddb-editor.php
  * @brief   bddb后台编辑页面
  * @since   0.0.1
- * @version 1.4.3	替换了获取海报图片和url的函数
- * @date    2026-09-23
+ * @note    1.4.3	替换了获取海报图片和url的函数
+ * @version 1.5.0   保存到数据库前处理数据，更安全
+ * @date    2026-10-30
  */
 
 if (!class_exists('BDDB_Settings')) {
@@ -256,6 +257,7 @@ class BDDB_Editor_Factory
             wp_die();
         }
         $tmdbno = $ids[0];
+        $ua = BDDB_Settings::getInstance()->get_user_agent();
         $auth_key = BDDB_Settings::getInstance()->get_tmdb_key();
         $piclink = 'https://api.tmdb.org/3/movie/' . (string) $tmdbno . '?append_to_response=images&language=zh-CN';
         $piclink = htmlspecialchars_decode($piclink);
@@ -263,6 +265,7 @@ class BDDB_Editor_Factory
             $piclink,
             array(
                 'timeout' => 300,
+                'user-agent' =>$ua,
                 'headers' => array(
                     'Content-Type' => 'application/json', // Or 'application/x-www-form-urlencoded' depending on your API
                     'Authorization' => 'Bearer ' . $auth_key,
@@ -747,6 +750,8 @@ class BDDB_Editor
      * @return  string  -1~100的十进制字符串
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
+     * @version 1.5.0 规范化转义字符
+     * @date    2026-10-30
      */
     protected function sanitize_personal_rating($str)
     {
@@ -754,7 +759,7 @@ class BDDB_Editor
         if ($int < 0 || $int > 100) {
             return '-1';
         } else {
-            return strval($int);
+            return (string)($int);
         }
     }
 
@@ -764,11 +769,15 @@ class BDDB_Editor
      * @return  string  原名
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
+     * @version 1.5.0 规范化转义字符
+     * @date    2026-10-30
      */
     protected function sanitize_original_name($str)
     {
         if ($str == "" && isset($_POST['bddb_display_name'])) {
-            $str = htmlspecialchars(stripslashes($_POST['bddb_display_name']), ENT_QUOTES);
+            $str = sanitize_text_field( wp_unslash( $_POST['bddb_display_name'] ) );
+        } else {
+            $str = wp_unslash($str);
         }
         return $str;
     }
@@ -784,6 +793,7 @@ class BDDB_Editor
      */
     protected function sanitize_personal_review($str)
     {
+        $str = wp_unslash($str);
         if (empty($str) && isset($_POST['bddb_display_name'])) {
             $str = "没有评价。";
         }
@@ -796,7 +806,7 @@ class BDDB_Editor
                 $str .= ".";
             }
         }
-        return $str;
+        return sanitize_text_field($str);
     }
 
     /**
@@ -809,19 +819,26 @@ class BDDB_Editor
     protected function sanitize_series_covers($str)
     {
         //之前油猴采集到的链接用逗号分隔，替换成分号。
-        $str = str_replace(",", ";", $str);
-        return $this->sanitize_link($str);
+        $cover_array = array_filter(
+            array_map(
+                fn($item)=>$this->sanitize_link(trim($item)),
+                explode(';', str_replace(',', ';', $str))),
+            'strlen'
+        );
+        return implode('; ', $cover_array);
     }
+
     /**
      * @brief   优化链接输入。
      * @param   string  $str    编辑框中的所有地址
      * @return  string  优化后的地址
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
+     * @version 1.5.0
+     * @date    2026-10-30
      */
-    protected function sanitize_link($str)
-    {
-        return htmlspecialchars_decode($str);
+    protected function sanitize_link($str) {
+        return sanitize_url(wp_unslash((string)$str));
     }
 
     /**
@@ -871,6 +888,7 @@ class BDDB_Editor
      */
     protected function sanitize_name($str)
     {
+        $str = wp_unslash($str);
         $arr_person = explode(",", $str);
         $arr_person = array_map('trim', $arr_person);
         $arr_person = array_filter($arr_person, 'strlen');
@@ -958,6 +976,8 @@ class BDDB_Editor
      * @return  string  花费时间
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
+     * @version 1.5.0 规范化转义字符
+     * @date    2026-10-30
      */
     protected function sanitize_cost_time($str)
     {
@@ -965,7 +985,7 @@ class BDDB_Editor
         if ($int <= 0) {
             $str = '0.5';
         }
-        return $str;
+        return (string)$str;
     }
 
     /**
@@ -974,6 +994,8 @@ class BDDB_Editor
      * @return  string  丛书本数
      * @see     update_meta()->sanitize_callback
      * @since   0.0.1
+     * @version 1.5.0 规范化转义字符
+     * @date    2026-10-30
      */
     protected function sanitize_series_total($str)
     {
@@ -981,7 +1003,7 @@ class BDDB_Editor
         if ($int <= 0) {
             $str = '1';
         }
-        return $str;
+        return (string)$str;
     }
 
     /**
@@ -990,11 +1012,12 @@ class BDDB_Editor
      * @return  string  电影类型
      * @see     update_meta()->sanitize_callback
      * @since   0.2.9
+     * @version 1.5.0 规范化转义字符
+     * @date    2026-10-30
      */
-    protected function sanitize_m_genre($str)
-    {
+    protected function sanitize_m_genre($str) {
         $str = str_replace("纪录片", "纪录", $str);
-        return $str;
+        return $this->sanitize_normal_terms($str);
     }
 
     /**
@@ -1003,13 +1026,31 @@ class BDDB_Editor
      * @return  string  图片链接
      * @see     update_meta()->sanitize_callback
      * @since   0.2.9
+     * @version 1.5.0 规范化转义字符
+     * @date    2026-10-30
      */
-    protected function sanitize_post_link($str)
-    {
+    protected function sanitize_post_link($str) {
+        $str = wp_unslash($str);
         if (strpos($str, "doubanio.com") > 0 && strpos($str, ".webp") > 0) {
             $str = str_replace(".webp", ".jpg", $str);
         }
-        return $str;
+        return sanitize_url($str);
+    }
+
+    /**
+     * @brief 优化普通的term
+     * @param mixed $str
+     * @return string
+     */
+    protected function sanitize_normal_terms($str) {
+        $str = wp_unslash($str);
+        $terms_array = array_filter(
+            array_map(
+                'trim',
+                explode(',',  $str)),
+            'strlen'
+        );
+        return implode(', ', $terms_array);
     }
 
     /****   保存选项的优化回调函数 结束   ****/
@@ -1172,6 +1213,8 @@ class BDDB_Editor
             }
             if (isset($item['sanitize_callback']) && is_callable($item['sanitize_callback'])) {
                 $new_terms_str = call_user_func($item['sanitize_callback'], $new_terms_str);
+            } else {
+                $new_terms_str = call_user_func(array($this, 'sanitize_normal_terms'), $new_terms_str);
             }
             wp_set_post_terms($post_ID, $new_terms_str, $taxonomy_name);
             return $new_terms_str;
@@ -1206,6 +1249,8 @@ class BDDB_Editor
 
         if (isset($item['sanitize_callback']) && is_callable($item['sanitize_callback'])) {
             $strMetaVal = call_user_func($item['sanitize_callback'], $strMetaVal);
+        }else {
+            $strMetaVal = sanitize_text_field(wp_unslash($strMetaVal));
         }
         if ('' == $strMetaVal) {
             delete_post_meta($post_ID, $meta_name, $strMetaVal);
