@@ -7,8 +7,8 @@
  * Description: 抵制源于喜爱。既然无法改变它，那就自己创造一个。
  * Author:      lifishake
  * Author URI:  http://pewae.com
- * Version:     1.5.0
- * Date:        2026-10-30
+ * Version:     1.5.2
+ * Date:        2026-11-06
  * License:     GNU General Public License 3.0+ http://www.gnu.org/licenses/gpl.html
  */
 
@@ -20,7 +20,7 @@ define('BDDB_PLUGIN_BASE_NAME', plugin_basename(__FILE__));
 //define('BDDB_GALLERY_DIR', ABSPATH.'wp-content/poster_gallery/');
 define('BDDB_TAX_VER', '20220101');
 define('BDDB_META_VER', '20230210');
-define('BDDB_STYLE_VER', '20261029');
+define('BDDB_STYLE_VER', '20261101');
 
 register_activation_hook(__FILE__, 'bddb_plugin_activation');
 register_deactivation_hook(__FILE__, 'bddb_plugin_deactivation');
@@ -143,6 +143,27 @@ function bddb_init_actions()
 	add_action('wp_ajax_nopriv_bddb_next_gallery_page', 'ajax_get_gallery_page');
 	//修改主题对应的模板名
 	add_filter('page_template_hierarchy', 'bddb_add_theme_template_supported');
+	//避免shortcode后面的文字不能加p标签，追加空行
+	//do_shortcode优先级10，所以要加在前面。
+	add_filter('the_content', 'bddb_fix_bddbr', 8);
+}
+
+/**
+ * @brief 在bddb前后增加空行
+ * @param string $content
+ * @return string
+ * @since 1.5.2
+ * @version 1.5.2 来自原apip 0.19apip_fix_shortcodes，本来就是bddb自己的功能
+ * @ref  https://www.wpexplorer.com/clean-up-wordpress-shortcode-formatting/
+ * @date 2026-11-06
+ */
+function bddb_fix_bddbr($content) {
+    $content = preg_replace(
+        '/(\[bddbr\b[^\]]*\/\])/i',
+        "\r\n$1\r\n\r\n",
+        $content
+    );
+    return $content;
 }
 
 /**
